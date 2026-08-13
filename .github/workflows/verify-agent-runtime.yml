@@ -24,10 +24,10 @@ jobs:
           git --version
           $PSVersionTable.PSVersion
 
-      - name: Validate workspaces
+      - name: Validate stable workspaces
         shell: pwsh
-        run: node .\scripts\agent_runtime.mjs validate
+        run: node .\scripts\agent_runtime_stable.mjs validate
 
-      - name: Smoke lifecycle
+      - name: Smoke lifecycle through Windows PowerShell 5.1
         shell: pwsh
         run: powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\VERIFY_AGENT_RUNTIME.ps1
