@@ -1,0 +1,56 @@
+{
+  "schema": "LocalModelScreenResult@1.0.0",
+  "screenId": "SCREEN-20260813-001",
+  "createdAt": "2026-08-13T23:45:00+09:00",
+  "hardware": {
+    "gpu": "NVIDIA GeForce RTX 4070 Laptop GPU",
+    "vramGiB": 8,
+    "ramGiB": 32
+  },
+  "settings": {
+    "context": 4096,
+    "maxOutputTokens": 128,
+    "timeoutSeconds": 60,
+    "cases": ["REASON-INCREMENTAL-001", "CODER-CONTRACT-001"]
+  },
+  "results": [
+    {
+      "model": "gemma4:12b",
+      "semantic": 83.33,
+      "contract": 100,
+      "quality": 86.67,
+      "avgTokensPerSecond": 16.53,
+      "wallSeconds": 21.13,
+      "timeouts": 0,
+      "status": "SCREEN_PASS",
+      "notes": "Reasoning semantic=75; coder semantic=100. Both strict JSON contract=100."
+    },
+    {
+      "model": "qwen3.6:35b-a3b",
+      "semantic": 33.33,
+      "contract": 33.33,
+      "quality": 33.33,
+      "avgTokensPerSecond": 42.11,
+      "wallSeconds": 39.44,
+      "timeouts": 0,
+      "status": "INCONCLUSIVE_OUTPUT_LIMIT",
+      "notes": "Reasoning response hit exactly 128 output tokens with done=length and became unparsable; coder case scored semantic=100 contract=100 in 4.25s. Do not treat reasoning score as model failure."
+    },
+    {
+      "model": "gpt-oss:20b",
+      "semantic": 0,
+      "contract": 0,
+      "quality": 0,
+      "avgTokensPerSecond": null,
+      "wallSeconds": null,
+      "timeouts": 0,
+      "status": "INCONCLUSIVE_HTTP_500",
+      "notes": "Both cases returned HTTP 500. Existing runner kept prior models alive for 2m, so resident-model memory collision is a plausible cause. HTTP error body was not captured. Do not treat this as a quality score."
+    }
+  ],
+  "decision": {
+    "currentLeader": "gemma4:12b",
+    "promoted": false,
+    "next": "Recheck only Qwen reasoning and GPT-OSS after explicit model unload; do not rerun Gemma screening."
+  }
+}
