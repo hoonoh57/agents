@@ -1,0 +1,32 @@
+{
+  "schema": "AgentTaskTemplate@1.0.0",
+  "agentId": "data-capability",
+  "goalId": "GOAL-DATA-MA-STATE-SNAPSHOT-001",
+  "priority": 94,
+  "createdBy": "COORDINATOR_AFTER_FEATURE_ARCHITECT",
+  "modelRoleHint": "LOCAL_REASONER",
+  "objective": "For frozen experiment EXP-MA-STATE-INCREMENTAL-001, determine the smallest reproducible real-data snapshot contract that can be executed from the current repository without inventing a universe or silently using mutable data. Inspect the actual Kiwoom daily-candle acquisition, adjusted/final candle normalization, warm-up handling, and chronological split. State exactly which fields/hashes must be frozen, whether an exact research universe and date range already exist in source, and what is BLOCKED if they do not. Do not choose symbols or dates merely to make the experiment pass. Do not implement code and do not claim profitability.",
+  "inputs": [
+    {"schema":"ProjectContextInput@1.0.0","inputId":"foundry-ui-data","root":"RESEARCH_LOCAL_ROOT","path":"template/feature-packs/swing-research/ProfitFeatureFoundryUi.ts","mode":"AROUND","anchor":"private async fetchSeries","beforeChars":1600,"afterChars":6200,"maxBytes":8000},
+    {"schema":"ProjectContextInput@1.0.0","inputId":"daily-contract","root":"RESEARCH_LOCAL_ROOT","path":"template/feature-packs/swing-research/SwingTrendFoundation.ts","mode":"AROUND","anchor":"export function normalizeSwingDailyRows","beforeChars":1600,"afterChars":4200,"maxBytes":6200},
+    {"schema":"ProjectContextInput@1.0.0","inputId":"foundry-split","root":"RESEARCH_LOCAL_ROOT","path":"src/profit_feature_foundry.mjs","mode":"AROUND","anchor":"export function buildChronologicalResearchPlan","beforeChars":1200,"afterChars":4400,"maxBytes":6200},
+    {"schema":"ProjectContextInput@1.0.0","inputId":"research-artifacts","root":"RESEARCH_LOCAL_ROOT","path":"docs/INTELLIGENT_FEATURE_RESEARCH_FACTORY_PRECODE_DESIGN.md","mode":"AROUND","anchor":"ResearchExperiment@1.0.0","beforeChars":700,"afterChars":2600,"maxBytes":4000}
+  ],
+  "requiredOutputs": [
+    "Exact current real-data acquisition and normalization contract",
+    "Required frozen dataset provenance fields and hashes",
+    "Whether universe/date range are already source-of-truth or currently mutable/user-entered",
+    "A deterministic snapshot manifest proposal",
+    "Explicit BLOCKED items before experiment execution"
+  ],
+  "constraints": [
+    "Use only resolved SOURCE inputIds",
+    "Do not invent a research universe or favorable date range",
+    "Do not inspect OOS to select Discovery inputs",
+    "Preserve finalized adjusted daily-candle and D+1 semantics",
+    "No code mutation",
+    "profitabilityClaim must remain false"
+  ],
+  "artifactRefs": ["FEATURE_ARCHITECT_MA_STATE_001","RESULT-20260813214743-f46e06","kiwoom-autotrade-template@118acb5bbf334720df78e8213d48fef126ef5c9d"],
+  "dependsOn": ["TASK-20260813214743-f46e06"]
+}
