@@ -1,0 +1,232 @@
+{
+  "schema": "AgentResult@1.0.0",
+  "resultId": "RESULT-20260813213200-vld001",
+  "taskId": "TASK-20260813213200-vld001",
+  "agentId": "experiment-validation",
+  "status": "COMPLETED",
+  "modelProfile": "LOCAL_REASONER",
+  "modelVersion": "qwen3.6:35b-a3b",
+  "startedAt": "2026-08-13T21:38:40.976Z",
+  "completedAt": "2026-08-13T21:40:02.099Z",
+  "summary": "Audit of RESULT-20260813212146-8a6847 confirms all five frozen claims are SUPPORTED by resolved source evidence. The Profit Feature Explorer relies on multiple trigger types (MA cross, price reclaim, high breakout), not solely the Short-MA/Medium-MA trigger. P14-LIVE-002 rejection is due to insufficient recurring windows relative to discovery coverage. P14-LIVE-004 confirms baseline unavailability no longer blocks candidates. Next experiment: Validate minimumSampleCount=8 transformation logic in isolation.",
+  "claims": [
+    {
+      "kind": "DIRECT",
+      "claim": "Claim 1 SUPPORTED: Foundry MA trigger is a fresh Short-MA cross above Medium-MA on completed D with D+1 open entry and ordering state is context only.",
+      "sourceInputIds": [
+        "foundry-trigger"
+      ]
+    },
+    {
+      "kind": "DIRECT",
+      "claim": "Claim 2 SUPPORTED: fail-closed validation rejects invalid parameters/date ranges/missing symbol and non-finite MA observations.",
+      "sourceInputIds": [
+        "foundry-eligibility"
+      ]
+    },
+    {
+      "kind": "DIRECT",
+      "claim": "Claim 3 SUPPORTED: P14-LIVE-002 rejects the screenshot-like discovery candidate before OOS.",
+      "sourceInputIds": [
+        "foundry-live-regression"
+      ]
+    },
+    {
+      "kind": "DIRECT",
+      "claim": "Claim 4 SUPPORTED: The prior inference says threshold 8 may be hardcoded or unclear and is the highest-risk sparse-sample blind spot.",
+      "sourceInputIds": [
+        "foundry-eligibility"
+      ]
+    },
+    {
+      "kind": "DIRECT",
+      "claim": "Claim 5 SUPPORTED: P14-LIVE-004 shows baseline unavailability no longer directly blocks an independently repeatable candidate.",
+      "sourceInputIds": [
+        "foundry-live-regression"
+      ]
+    },
+    {
+      "kind": "DIRECT",
+      "claim": "Correction: The prior summary phrase that the Profit Feature Explorer as a whole relies on the Short-MA/Medium-MA trigger is UNSUPPORTED. PROFIT_FEATURE_EXPLORER_FEATURES includes maCrossFeature, priceMaReclaimFeature, and highBreakoutFeature.",
+      "sourceInputIds": [
+        "explorer-features"
+      ]
+    },
+    {
+      "kind": "DIRECT",
+      "claim": "Determination: minimumSampleCount=8 is transformed inside eligibility logic by dividing by 4 and taking the ceiling, resulting in candidateMinN=2. The check is metricNumber(summary.sampleCount, 0) < candidateMinN.",
+      "sourceInputIds": [
+        "foundry-eligibility"
+      ]
+    },
+    {
+      "kind": "DIRECT",
+      "claim": "Determination: P14-LIVE-002 returns false for screenshotLikeState because sampleCount=11 < candidateMinN=2 is false, but uniqueDecisionDates=11 >= 2 is true. The failure is due to recurringWindowCount (default 0) < Math.min(2, windows).",
+      "sourceInputIds": [
+        "foundry-eligibility"
+      ]
+    }
+  ],
+  "sourceRefs": [
+    {
+      "inputId": "foundry-trigger",
+      "root": "RESEARCH_LOCAL_ROOT",
+      "relativePath": "src/profit_feature_foundry.mjs",
+      "repositoryHead": "28877f60c2a0550ce62c053ddb38beb20249657c",
+      "fileSha256": "eac08702eb0be165520abecb475182964e8358e221b39951ab0c0c12564f4004",
+      "excerptSha256": "402396a408d1594085d6caaa08c3bd1e3631ab4fb6979cddab8ac1cd358faec4",
+      "sourceBytes": 28728,
+      "excerptBytes": 4834,
+      "mode": "AROUND",
+      "anchor": "An ordering state is context only."
+    },
+    {
+      "inputId": "foundry-eligibility",
+      "root": "RESEARCH_LOCAL_ROOT",
+      "relativePath": "src/profit_feature_foundry.mjs",
+      "repositoryHead": "28877f60c2a0550ce62c053ddb38beb20249657c",
+      "fileSha256": "eac08702eb0be165520abecb475182964e8358e221b39951ab0c0c12564f4004",
+      "excerptSha256": "d5210c5687682175ae65af0ebc9e637998660b30c8440d7a9f63578949b7ec1e",
+      "sourceBytes": 28728,
+      "excerptBytes": 4650,
+      "mode": "AROUND",
+      "anchor": "export function isDiscoveryStateValidationEligible"
+    },
+    {
+      "inputId": "foundry-live-regression",
+      "root": "RESEARCH_LOCAL_ROOT",
+      "relativePath": "tests/profit_feature_foundry_live_logic.test.mjs",
+      "repositoryHead": "28877f60c2a0550ce62c053ddb38beb20249657c",
+      "fileSha256": "e41380c90113943c27c7104154b4b86da50f4012bf97e57d3cad6e75d57a90e1",
+      "excerptSha256": "e41380c90113943c27c7104154b4b86da50f4012bf97e57d3cad6e75d57a90e1",
+      "sourceBytes": 3106,
+      "excerptBytes": 3106,
+      "mode": "FULL",
+      "anchor": null
+    },
+    {
+      "inputId": "explorer-features",
+      "root": "RESEARCH_LOCAL_ROOT",
+      "relativePath": "template/feature-packs/swing-research/ProfitFeatureExplorer.ts",
+      "repositoryHead": "28877f60c2a0550ce62c053ddb38beb20249657c",
+      "fileSha256": "e4504f29f2d9f8d26a7616d3f95d5cf118c2f60b420d1619e84291f4385c62bb",
+      "excerptSha256": "20d8b8b02ac3670cc941407dd24bad8692b93e911e5d44b75d4934db1c3a8928",
+      "sourceBytes": 27781,
+      "excerptBytes": 6295,
+      "mode": "AROUND",
+      "anchor": "export const PROFIT_FEATURE_EXPLORER_FEATURES"
+    },
+    {
+      "inputId": "pfx-catalog",
+      "root": "RESEARCH_LOCAL_ROOT",
+      "relativePath": "template/feature-packs/swing-research/ProfitFeatureCatalog.ts",
+      "repositoryHead": "28877f60c2a0550ce62c053ddb38beb20249657c",
+      "fileSha256": "d5162b93d50d1488ad4af9fe9c7569c51defac85da79e051e046487473808101",
+      "excerptSha256": "d5162b93d50d1488ad4af9fe9c7569c51defac85da79e051e046487473808101",
+      "sourceBytes": 3033,
+      "excerptBytes": 3033,
+      "mode": "FULL",
+      "anchor": null
+    }
+  ],
+  "proposalRefs": [],
+  "artifactRefs": [],
+  "requiresValidation": true,
+  "externalEscalation": null,
+  "workProduct": {
+    "schema": "AgentWorkProduct@1.0.0",
+    "summary": "Audit of RESULT-20260813212146-8a6847 confirms all five frozen claims are SUPPORTED by resolved source evidence. The Profit Feature Explorer relies on multiple trigger types (MA cross, price reclaim, high breakout), not solely the Short-MA/Medium-MA trigger. P14-LIVE-002 rejection is due to insufficient recurring windows relative to discovery coverage. P14-LIVE-004 confirms baseline unavailability no longer blocks candidates. Next experiment: Validate minimumSampleCount=8 transformation logic in isolation.",
+    "findings": [
+      {
+        "kind": "DIRECT",
+        "claim": "Claim 1 SUPPORTED: Foundry MA trigger is a fresh Short-MA cross above Medium-MA on completed D with D+1 open entry and ordering state is context only.",
+        "sourceInputIds": [
+          "foundry-trigger"
+        ]
+      },
+      {
+        "kind": "DIRECT",
+        "claim": "Claim 2 SUPPORTED: fail-closed validation rejects invalid parameters/date ranges/missing symbol and non-finite MA observations.",
+        "sourceInputIds": [
+          "foundry-eligibility"
+        ]
+      },
+      {
+        "kind": "DIRECT",
+        "claim": "Claim 3 SUPPORTED: P14-LIVE-002 rejects the screenshot-like discovery candidate before OOS.",
+        "sourceInputIds": [
+          "foundry-live-regression"
+        ]
+      },
+      {
+        "kind": "DIRECT",
+        "claim": "Claim 4 SUPPORTED: The prior inference says threshold 8 may be hardcoded or unclear and is the highest-risk sparse-sample blind spot.",
+        "sourceInputIds": [
+          "foundry-eligibility"
+        ]
+      },
+      {
+        "kind": "DIRECT",
+        "claim": "Claim 5 SUPPORTED: P14-LIVE-004 shows baseline unavailability no longer directly blocks an independently repeatable candidate.",
+        "sourceInputIds": [
+          "foundry-live-regression"
+        ]
+      },
+      {
+        "kind": "DIRECT",
+        "claim": "Correction: The prior summary phrase that the Profit Feature Explorer as a whole relies on the Short-MA/Medium-MA trigger is UNSUPPORTED. PROFIT_FEATURE_EXPLORER_FEATURES includes maCrossFeature, priceMaReclaimFeature, and highBreakoutFeature.",
+        "sourceInputIds": [
+          "explorer-features"
+        ]
+      },
+      {
+        "kind": "DIRECT",
+        "claim": "Determination: minimumSampleCount=8 is transformed inside eligibility logic by dividing by 4 and taking the ceiling, resulting in candidateMinN=2. The check is metricNumber(summary.sampleCount, 0) < candidateMinN.",
+        "sourceInputIds": [
+          "foundry-eligibility"
+        ]
+      },
+      {
+        "kind": "DIRECT",
+        "claim": "Determination: P14-LIVE-002 returns false for screenshotLikeState because sampleCount=11 < candidateMinN=2 is false, but uniqueDecisionDates=11 >= 2 is true. The failure is due to recurringWindowCount (default 0) < Math.min(2, windows).",
+        "sourceInputIds": [
+          "foundry-eligibility"
+        ]
+      }
+    ],
+    "nextActions": [
+      "TASK-20260813213201-vld002: Validate minimumSampleCount=8 transformation logic in isolation with edge cases (0, negative, float) to confirm candidateMinN=2 behavior and ensure no integer overflow or unexpected coercion.",
+      "TASK-20260813213202-vld003: Audit ProfitFeatureExplorer trigger diversity by verifying all three features (maCross, priceReclaim, highBreakout) are correctly implemented and tested in isolation."
+    ],
+    "profitabilityClaim": false
+  },
+  "runtimeMetrics": {
+    "wallSeconds": 80.867,
+    "outputTokens": 926,
+    "tokensPerSecond": 40.94400787539863,
+    "contextBytes": 21918,
+    "doneReason": "stop",
+    "outputAttempts": 1,
+    "outputStrict": true,
+    "outputRecovered": false,
+    "outputTrailingChars": 0,
+    "outputDiagnostics": [
+      {
+        "attempt": 1,
+        "doneReason": "stop",
+        "outputTokens": 926,
+        "contentChars": 3352,
+        "contentSha256": "856a41aa6eaa7b4bbe96a97edfc141e9a4f8b68ac89625481dfdfac626ff6630",
+        "preview": "{\n  \"schema\": \"AgentWorkProduct@1.0.0\",\n  \"summary\": \"Audit of RESULT-20260813212146-8a6847 confirms all five frozen claims are SUPPORTED by resolved source evidence. The Profit Feature Explorer relies on multiple trigger types (MA cross, price reclaim, high breakout), not solely the Short-MA/Medium-MA trigger. P14-LIVE-002 rejection is due to insufficient recurring windows relative to discovery coverage. P14-LIVE-004 confirms baseline unavailability no longer blocks candidates. Next experiment: Validate minimumSampleCount=8 transformation logic in isolation.\",\n  \"findings\": [\n    {\n      \"kind\": \"DIRECT\",\n      \"claim\": \"Claim 1 SUPPORTED: Foundry MA trigger is a fresh Short-MA cross above ",
+        "validationError": null,
+        "maxOutputTokens": 1024,
+        "parse": {
+          "strict": true,
+          "recovered": false,
+          "trailing": 0,
+          "error": null
+        }
+      }
+    ]
+  }
+}

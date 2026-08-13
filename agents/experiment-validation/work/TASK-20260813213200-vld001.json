@@ -4,7 +4,7 @@
   "agentId": "experiment-validation",
   "goalId": "GOAL-VALIDATE-CURRENT-LOGIC-001",
   "priority": 95,
-  "status": "ERROR",
+  "status": "COMPLETED",
   "createdBy": "COORDINATOR_VALIDATION_GATE",
   "createdAt": "2026-08-13T21:32:00.000Z",
   "objective": "Independently audit RESULT-20260813212146-8a6847 against the resolved repository evidence. Do not assume the prior result is correct. Evaluate these five frozen claims: (1) Foundry MA trigger is a fresh Short-MA cross above Medium-MA on completed D with D+1 open entry and ordering state is context only; (2) fail-closed validation rejects invalid parameters/date ranges/missing symbol and non-finite MA observations; (3) P14-LIVE-002 rejects the screenshot-like discovery candidate before OOS; (4) the prior inference says threshold 8 may be hardcoded or unclear and is the highest-risk sparse-sample blind spot; (5) P14-LIVE-004 shows baseline unavailability no longer directly blocks an independently repeatable candidate. Also audit the prior summary phrase that the Profit Feature Explorer as a whole relies on the Short-MA/Medium-MA trigger. For each item classify SUPPORTED, PARTIAL, or UNSUPPORTED, identify the exact executable reason, and correct any scope or causal interpretation errors. Then approve exactly one next experiment only if it follows from supported evidence. Do not write code and do not claim profitability.",
@@ -84,10 +84,11 @@
   "externalEscalationAllowed": true,
   "attempt": 1,
   "taskTemplate": "task-templates/validate-current-logic-baseline-review.json",
-  "startedAt": "2026-08-13T21:34:18.979Z",
-  "failedAt": "2026-08-13T21:34:56.142Z",
+  "startedAt": "2026-08-13T21:38:40.976Z",
+  "completedAt": "2026-08-13T21:40:02.099Z",
+  "resultId": "RESULT-20260813213200-vld001",
   "workerId": "local-01",
-  "runtimeRun": 1,
+  "runtimeRun": 2,
   "resolvedSourceRefs": [
     {
       "inputId": "foundry-trigger",
@@ -151,85 +152,33 @@
     }
   ],
   "contextBytes": 21918,
-  "error": "OUTPUT_INVALID_AFTER_RETRY:OUTPUT_SCHEMA_INVALID:missing",
-  "errorDiagnostics": [
-    {
-      "attempt": 1,
-      "doneReason": "length",
-      "outputTokens": 1,
-      "contentChars": 1,
-      "contentSha256": "021fb596db81e6d02bf3d2586ee3981fe519f275c0ac9ca76bbcf2ebb4097d96",
-      "preview": "{",
-      "validationError": "OUTPUT_JSON_PARSE_FAILED:Expected property name or '}' in JSON at position 1 (line 1 column 2)",
-      "maxOutputTokens": 1200,
-      "parse": {
-        "strict": false,
-        "recovered": false,
-        "trailing": 1,
-        "error": "Expected property name or '}' in JSON at position 1 (line 1 column 2)"
+  "runtimeMetrics": {
+    "wallSeconds": 80.867,
+    "outputTokens": 926,
+    "tokensPerSecond": 40.94400787539863,
+    "contextBytes": 21918,
+    "doneReason": "stop",
+    "outputAttempts": 1,
+    "outputStrict": true,
+    "outputRecovered": false,
+    "outputTrailingChars": 0,
+    "outputDiagnostics": [
+      {
+        "attempt": 1,
+        "doneReason": "stop",
+        "outputTokens": 926,
+        "contentChars": 3352,
+        "contentSha256": "856a41aa6eaa7b4bbe96a97edfc141e9a4f8b68ac89625481dfdfac626ff6630",
+        "preview": "{\n  \"schema\": \"AgentWorkProduct@1.0.0\",\n  \"summary\": \"Audit of RESULT-20260813212146-8a6847 confirms all five frozen claims are SUPPORTED by resolved source evidence. The Profit Feature Explorer relies on multiple trigger types (MA cross, price reclaim, high breakout), not solely the Short-MA/Medium-MA trigger. P14-LIVE-002 rejection is due to insufficient recurring windows relative to discovery coverage. P14-LIVE-004 confirms baseline unavailability no longer blocks candidates. Next experiment: Validate minimumSampleCount=8 transformation logic in isolation.\",\n  \"findings\": [\n    {\n      \"kind\": \"DIRECT\",\n      \"claim\": \"Claim 1 SUPPORTED: Foundry MA trigger is a fresh Short-MA cross above ",
+        "validationError": null,
+        "maxOutputTokens": 1024,
+        "parse": {
+          "strict": true,
+          "recovered": false,
+          "trailing": 0,
+          "error": null
+        }
       }
-    },
-    {
-      "attempt": 2,
-      "doneReason": "stop",
-      "outputTokens": 328,
-      "contentChars": 1133,
-      "contentSha256": "4bb9521dbaa3fef792586ad880f4a2bf9cfacd5cbbcaf364840093f63ea514ff",
-      "preview": "{\n  \"profitabilityClaim\": false,\n  \"findings\": [\n    {\n      \"id\": \"F1\",\n      \"summary\": \"Revenue data indicates a net loss over the last fiscal quarter.\",\n      \"evidence\": \"Financial report Q3 shows expenses exceeding income by 15%.\"\n    },\n    {\n      \"id\": \"F2\",\n      \"summary\": \"Operational costs have increased due to supply chain disruptions.\",\n      \"evidence\": \"Logistics audit confirms a 20% rise in material procurement costs.\"\n    },\n    {\n      \"id\": \"F3\",\n      \"summary\": \"Customer churn rate is above industry average.\",\n      \"evidence\": \"CRM analytics show a 12% monthly attrition rate compared to the 8% benchmark.\"\n    },\n    {\n      \"id\": \"F4\",\n      \"summary\": \"Marketing ROI ",
-      "validationError": "OUTPUT_SCHEMA_INVALID:missing",
-      "maxOutputTokens": 1280,
-      "parse": {
-        "strict": true,
-        "recovered": false,
-        "trailing": 0,
-        "error": null
-      }
-    },
-    {
-      "finalDoneReason": "stop",
-      "finalParse": {
-        "value": {
-          "profitabilityClaim": false,
-          "findings": [
-            {
-              "id": "F1",
-              "summary": "Revenue data indicates a net loss over the last fiscal quarter.",
-              "evidence": "Financial report Q3 shows expenses exceeding income by 15%."
-            },
-            {
-              "id": "F2",
-              "summary": "Operational costs have increased due to supply chain disruptions.",
-              "evidence": "Logistics audit confirms a 20% rise in material procurement costs."
-            },
-            {
-              "id": "F3",
-              "summary": "Customer churn rate is above industry average.",
-              "evidence": "CRM analytics show a 12% monthly attrition rate compared to the 8% benchmark."
-            },
-            {
-              "id": "F4",
-              "summary": "Marketing ROI has declined significantly.",
-              "evidence": "Campaign analysis reveals a drop in conversion rates from 5% to 2.5%."
-            }
-          ],
-          "nextActions": [
-            {
-              "id": "A1",
-              "summary": "Conduct a comprehensive cost-benefit analysis of current suppliers.",
-              "priority": "High"
-            },
-            {
-              "id": "A2",
-              "summary": "Implement retention strategies to reduce customer churn.",
-              "priority": "Medium"
-            }
-          ]
-        },
-        "strict": true,
-        "recovered": false,
-        "trailing": 0,
-        "error": null
-      }
-    }
-  ]
+    ]
+  }
 }

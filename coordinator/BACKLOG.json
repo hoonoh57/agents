@@ -18,11 +18,13 @@
       "agentId": "experiment-validation",
       "goalId": "GOAL-VALIDATE-CURRENT-LOGIC-001",
       "priority": 95,
-      "status": "ERROR",
+      "status": "COMPLETED",
       "createdAt": "2026-08-13T21:32:00.000Z",
-      "startedAt": "2026-08-13T21:34:18.979Z",
-      "error": "OUTPUT_INVALID_AFTER_RETRY:OUTPUT_SCHEMA_INVALID:missing",
-      "failedAt": "2026-08-13T21:34:56.142Z"
+      "startedAt": "2026-08-13T21:38:40.976Z",
+      "error": null,
+      "failedAt": "2026-08-13T21:34:56.142Z",
+      "completedAt": "2026-08-13T21:40:02.099Z",
+      "resultId": "RESULT-20260813213200-vld001"
     }
   ]
 }
