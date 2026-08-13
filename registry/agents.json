@@ -1,0 +1,13 @@
+{
+  "schema": "AgentRegistry@1.0.0",
+  "agents": [
+    {"agentId":"current-logic-analyst","enabled":true,"modelRoleHint":"LOCAL_REASONER","purpose":"Diagnose current Explorer feature behavior, failures, instability and missed opportunities."},
+    {"agentId":"market-research","enabled":true,"modelRoleHint":"LOCAL_REASONER","purpose":"Research market mechanisms, participant behavior, regimes, volume-price structure, flows and catalysts."},
+    {"agentId":"academic-research","enabled":true,"modelRoleHint":"LOCAL_REASONER","purpose":"Extract falsifiable mechanisms from papers, academic material and credible published research."},
+    {"agentId":"ml-dl-research","enabled":true,"modelRoleHint":"LOCAL_REASONER","purpose":"Use ML/DL for feature discovery, nonlinear interaction, regime clustering and success/failure separation."},
+    {"agentId":"feature-architect","enabled":true,"modelRoleHint":"LOCAL_REASONER","purpose":"Convert research findings into the smallest falsifiable feature experiments and A vs A+B comparisons."},
+    {"agentId":"data-capability","enabled":true,"modelRoleHint":"LOCAL_REASONER","purpose":"Resolve required Kiwoom data, normalized datasets, indicators, operators and replay/causality constraints."},
+    {"agentId":"implementation","enabled":true,"modelRoleHint":"LOCAL_CODER","purpose":"Produce exact implementation artifacts and tests after research semantics are defined."},
+    {"agentId":"experiment-validation","enabled":true,"modelRoleHint":"LOCAL_FAST","purpose":"Run/coordinate reproducible validation, Explorer parity, optimization and baseline-delta measurement."}
+  ]
+}
