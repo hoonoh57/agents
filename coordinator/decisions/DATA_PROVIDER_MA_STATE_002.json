@@ -1,0 +1,42 @@
+{
+  "schema": "CoordinatorDecision@1.0.0",
+  "decisionId": "DATA_PROVIDER_MA_STATE_002",
+  "status": "BLOCKED_PROVIDER_CAPABILITY_REVALIDATION",
+  "experimentId": "EXP-MA-STATE-INCREMENTAL-001",
+  "evidence": {
+    "failedProvider": "KIWOOM_MOCK_KA10081",
+    "symbol": "057050",
+    "dateFrom": "2026-04-22",
+    "dateTo": "2026-08-13",
+    "observedBehavior": "Every deterministic base-date probe returned one undated sentinel row and zero dated daily rows.",
+    "attemptsHash": "efa5a738c0778ac8893265cbb886474bcdd04941d21c134128aea456f38fde5f"
+  },
+  "interpretation": [
+    "This is provider-availability evidence, not evidence that the security itself lacked market history.",
+    "Do not silently remove 057050 from the frozen 38-symbol cohort.",
+    "Do not force the real-trading Kiwoom endpoint merely to obtain historical candles.",
+    "Do not mix one fallback provider for a single symbol inside the final comparison snapshot unless a later parity design explicitly approves mixed-source semantics."
+  ],
+  "nextGate": {
+    "provider": "CYBOS_PLUS_STOCKCHART_DAILY",
+    "scope": "Capability probe only before experiment execution",
+    "required": [
+      "32-bit CYBOS Server32 builds and reports isConnected=true",
+      "057050 returns dated daily candles",
+      "005930 control returns dated daily candles",
+      "Both have at least 120 completed daily candles before 2026-04-22",
+      "No A vs A+B measurement is executed during this gate"
+    ]
+  },
+  "frozenResearchInputsUnchanged": {
+    "symbolCount": 38,
+    "dateFrom": "2026-04-22",
+    "dateTo": "2026-08-13",
+    "ma": [20, 60, 120],
+    "horizonSessions": 5,
+    "positivePct": 3,
+    "negativePct": 1,
+    "minimumSampleCount": 8
+  },
+  "profitabilityClaim": false
+}
