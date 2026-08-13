@@ -1,0 +1,20 @@
+name: verify-model-benchmark-v4
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  verify:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Self-test chat-grounded benchmark
+        shell: pwsh
+        run: node .\scripts\model_benchmark_v4.mjs self-test
