@@ -1,0 +1,185 @@
+{
+  "schema": "AgentTask@1.0.0",
+  "taskId": "TASK-20260813215100-dat001",
+  "agentId": "data-capability",
+  "goalId": "GOAL-DATA-MA-STATE-SNAPSHOT-001",
+  "priority": 94,
+  "status": "COMPLETED",
+  "createdBy": "COORDINATOR_AFTER_FEATURE_ARCHITECT",
+  "createdAt": "2026-08-13T21:51:00.000Z",
+  "objective": "For frozen experiment EXP-MA-STATE-INCREMENTAL-001, determine the smallest reproducible real-data snapshot contract that can be executed from the current repository without inventing a universe or silently using mutable data. Inspect the actual Kiwoom daily-candle acquisition, adjusted/final candle normalization, warm-up handling, and chronological split. State exactly which fields/hashes must be frozen, whether an exact research universe and date range already exist in source, and what is BLOCKED if they do not. Do not choose symbols or dates merely to make the experiment pass. Do not implement code and do not claim profitability.",
+  "inputs": [
+    {
+      "schema": "ProjectContextInput@1.0.0",
+      "inputId": "foundry-ui-data",
+      "root": "RESEARCH_LOCAL_ROOT",
+      "path": "template/feature-packs/swing-research/ProfitFeatureFoundryUi.ts",
+      "mode": "AROUND",
+      "anchor": "private async fetchSeries",
+      "beforeChars": 1600,
+      "afterChars": 6200,
+      "maxBytes": 8000
+    },
+    {
+      "schema": "ProjectContextInput@1.0.0",
+      "inputId": "daily-contract",
+      "root": "RESEARCH_LOCAL_ROOT",
+      "path": "template/feature-packs/swing-research/SwingTrendFoundation.ts",
+      "mode": "AROUND",
+      "anchor": "export function normalizeSwingDailyRows",
+      "beforeChars": 1600,
+      "afterChars": 4200,
+      "maxBytes": 6200
+    },
+    {
+      "schema": "ProjectContextInput@1.0.0",
+      "inputId": "foundry-split",
+      "root": "RESEARCH_LOCAL_ROOT",
+      "path": "src/profit_feature_foundry.mjs",
+      "mode": "AROUND",
+      "anchor": "export function buildChronologicalResearchPlan",
+      "beforeChars": 1200,
+      "afterChars": 4400,
+      "maxBytes": 6200
+    },
+    {
+      "schema": "ProjectContextInput@1.0.0",
+      "inputId": "research-artifacts",
+      "root": "RESEARCH_LOCAL_ROOT",
+      "path": "docs/INTELLIGENT_FEATURE_RESEARCH_FACTORY_PRECODE_DESIGN.md",
+      "mode": "AROUND",
+      "anchor": "ResearchExperiment@1.0.0",
+      "beforeChars": 700,
+      "afterChars": 2600,
+      "maxBytes": 4000
+    }
+  ],
+  "requiredOutputs": [
+    "Exact current real-data acquisition and normalization contract",
+    "Required frozen dataset provenance fields and hashes",
+    "Whether universe/date range are already source-of-truth or currently mutable/user-entered",
+    "A deterministic snapshot manifest proposal",
+    "Explicit BLOCKED items before experiment execution"
+  ],
+  "constraints": [
+    "Use only resolved SOURCE inputIds",
+    "Do not invent a research universe or favorable date range",
+    "Do not inspect OOS to select Discovery inputs",
+    "Preserve finalized adjusted daily-candle and D+1 semantics",
+    "No code mutation",
+    "profitabilityClaim must remain false"
+  ],
+  "artifactRefs": [
+    "FEATURE_ARCHITECT_MA_STATE_001",
+    "RESULT-20260813214743-f46e06",
+    "kiwoom-autotrade-template@118acb5bbf334720df78e8213d48fef126ef5c9d"
+  ],
+  "dependsOn": [
+    "TASK-20260813214743-f46e06"
+  ],
+  "modelRoleHint": "LOCAL_REASONER",
+  "externalEscalationAllowed": true,
+  "attempt": 1,
+  "taskTemplate": "task-templates/data-capability-ma-state-snapshot.json",
+  "startedAt": "2026-08-13T21:54:56.097Z",
+  "completedAt": "2026-08-13T21:56:10.605Z",
+  "resultId": "RESULT-20260813215100-dat001",
+  "workerId": "local-01",
+  "runtimeRun": 1,
+  "resolvedSourceRefs": [
+    {
+      "inputId": "foundry-ui-data",
+      "root": "RESEARCH_LOCAL_ROOT",
+      "relativePath": "template/feature-packs/swing-research/ProfitFeatureFoundryUi.ts",
+      "repositoryHead": "118acb5bbf334720df78e8213d48fef126ef5c9d",
+      "fileSha256": "935cb00e4f9ab122aef8095efa607c566bf15d85809b3cd44b096a181e9b431d",
+      "excerptSha256": "ecdbbcf87db17f7c379a97173463c9fefa9ffb09df4ab109b3a4b6c0ceb4d03f",
+      "sourceBytes": 25037,
+      "excerptBytes": 8000,
+      "mode": "AROUND",
+      "anchor": "private async fetchSeries"
+    },
+    {
+      "inputId": "daily-contract",
+      "root": "RESEARCH_LOCAL_ROOT",
+      "relativePath": "template/feature-packs/swing-research/SwingTrendFoundation.ts",
+      "repositoryHead": "118acb5bbf334720df78e8213d48fef126ef5c9d",
+      "fileSha256": "c419fe2e178635805ffb8d40c795e6575aeac14ee19789ece10204961d5b8e96",
+      "excerptSha256": "c8fdbc1d0f07272678dc7d613c31eb696b029faac95cbfdcb5a289668184fb37",
+      "sourceBytes": 8734,
+      "excerptBytes": 5621,
+      "mode": "AROUND",
+      "anchor": "export function normalizeSwingDailyRows"
+    },
+    {
+      "inputId": "foundry-split",
+      "root": "RESEARCH_LOCAL_ROOT",
+      "relativePath": "src/profit_feature_foundry.mjs",
+      "repositoryHead": "118acb5bbf334720df78e8213d48fef126ef5c9d",
+      "fileSha256": "eac08702eb0be165520abecb475182964e8358e221b39951ab0c0c12564f4004",
+      "excerptSha256": "87d19f99be01209ad07c43de171a5f0d1d24913db0858cc2584361bda367548b",
+      "sourceBytes": 28728,
+      "excerptBytes": 5646,
+      "mode": "AROUND",
+      "anchor": "export function buildChronologicalResearchPlan"
+    },
+    {
+      "inputId": "research-artifacts",
+      "root": "RESEARCH_LOCAL_ROOT",
+      "relativePath": "docs/INTELLIGENT_FEATURE_RESEARCH_FACTORY_PRECODE_DESIGN.md",
+      "repositoryHead": "118acb5bbf334720df78e8213d48fef126ef5c9d",
+      "fileSha256": "1afc51ebbed8c060ff0d5ddc7960ed0cea3de199f93d06734cbc234bbc388045",
+      "excerptSha256": "4d13ae40b7d0b9289031ed1beb7f0513bc511881aa00161397b03f35762deb27",
+      "sourceBytes": 17664,
+      "excerptBytes": 3334,
+      "mode": "AROUND",
+      "anchor": "ResearchExperiment@1.0.0"
+    }
+  ],
+  "contextBytes": 22601,
+  "runtimeMetrics": {
+    "wallSeconds": 74.304,
+    "outputTokens": 1628,
+    "tokensPerSecond": 40.8583052450081,
+    "contextBytes": 22601,
+    "doneReason": "stop",
+    "outputAttempts": 2,
+    "outputStrict": true,
+    "outputRecovered": false,
+    "outputTrailingChars": 0,
+    "outputDiagnostics": [
+      {
+        "attempt": 1,
+        "doneReason": "stop",
+        "outputTokens": 854,
+        "contentChars": 3166,
+        "contentSha256": "d68a3abcadb47ac740d020b310070689300cbdc4bae396b750d8c99e45015018",
+        "preview": "{\n  \"schema\": \"AgentWorkProduct@1.0.0\",\n  \"summary\": \"Analysis of the current repository state reveals that the data acquisition pipeline is fully implemented but relies on mutable user inputs for universe and date range. No frozen research universe or date range exists in source code; these are dynamic UI parameters. The normalization contract enforces adjusted prices and final-bar causality. A deterministic snapshot requires freezing these inputs and capturing the API response hashes.\",\n  \"findings\": [\n    {\n      \"kind\": \"DIRECT\",\n      \"claim\": \"The real-data acquisition uses Kiwoom ka10081 API (dostk/chart) with pagination, fetching daily candles until a required warm-up count is met be",
+        "validationError": "OUTPUT_FINDING_INVALID",
+        "maxOutputTokens": 1024,
+        "parse": {
+          "strict": true,
+          "recovered": false,
+          "trailing": 0,
+          "error": null
+        }
+      },
+      {
+        "attempt": 2,
+        "doneReason": "stop",
+        "outputTokens": 774,
+        "contentChars": 2868,
+        "contentSha256": "ebf513698032d217343bbcf7df1c7bc013c0a96eeb8bfef65491256197ccc2c4",
+        "preview": "{\n  \"schema\": \"AgentWorkProduct@1.0.0\",\n  \"summary\": \"Analysis of source code reveals that the current system relies on mutable user inputs for symbols and dates, with no pre-frozen research universe or date range in the repository. A deterministic snapshot contract must be defined externally to satisfy experiment constraints.\",\n  \"findings\": [\n    {\n      \"kind\": \"DIRECT\",\n      \"claim\": \"The UI (ProfitFeatureFoundryUi.ts) requires user-entered symbols and date ranges via HTML inputs; no default or frozen universe exists in the codebase.\",\n      \"sourceInputIds\": [\n        \"foundry-ui-data\"\n      ]\n    },\n    {\n      \"kind\": \"DIRECT\",\n      \"claim\": \"Data acquisition uses Kiwoom API ka10081",
+        "validationError": null,
+        "maxOutputTokens": 1280,
+        "parse": {
+          "strict": true,
+          "recovered": false,
+          "trailing": 0,
+          "error": null
+        }
+      }
+    ]
+  }
+}

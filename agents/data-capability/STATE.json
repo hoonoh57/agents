@@ -1,10 +1,10 @@
 {
   "schema": "AgentState@1.0.0",
   "agentId": "data-capability",
-  "status": "QUEUED",
+  "status": "COMPLETED",
   "activeTaskId": null,
-  "lastCompletedTaskId": null,
+  "lastCompletedTaskId": "TASK-20260813215100-dat001",
   "modelRole": "LOCAL_REASONER",
   "blockedReason": null,
-  "updatedAt": "2026-08-13T21:51:00.000Z"
+  "updatedAt": "2026-08-13T21:56:20.629Z"
 }

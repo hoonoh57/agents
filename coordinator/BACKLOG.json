@@ -43,8 +43,12 @@
       "agentId": "data-capability",
       "goalId": "GOAL-DATA-MA-STATE-SNAPSHOT-001",
       "priority": 94,
-      "status": "QUEUED",
-      "createdAt": "2026-08-13T21:51:00.000Z"
+      "status": "COMPLETED",
+      "createdAt": "2026-08-13T21:51:00.000Z",
+      "startedAt": "2026-08-13T21:54:56.097Z",
+      "error": null,
+      "completedAt": "2026-08-13T21:56:10.605Z",
+      "resultId": "RESULT-20260813215100-dat001"
     }
   ]
 }
