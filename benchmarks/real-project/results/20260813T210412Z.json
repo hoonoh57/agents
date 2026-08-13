@@ -1,0 +1,311 @@
+{
+  "schema": "RealProjectModelBenchmark@1.0.0",
+  "runId": "REAL-20260813T210412Z",
+  "createdAt": "2026-08-13T21:06:12.455Z",
+  "target": {
+    "path": "E:\\2026\\opus\\typescript\\kiwoom-autotrade-template",
+    "head": "28877f60c2a0550ce62c053ddb38beb20249657c",
+    "workingTreeDirty": false
+  },
+  "hardware": {
+    "hostname": "DESKTOP-3AG4QL7",
+    "platform": "win32",
+    "arch": "x64"
+  },
+  "options": {
+    "context": 4096,
+    "maxOutputTokens": 256,
+    "timeoutSeconds": 60
+  },
+  "modelResults": [
+    {
+      "model": "qwen3.6:35b-a3b",
+      "semantic": 100,
+      "contract": 100,
+      "quality": 100,
+      "totalWallSeconds": 63.594,
+      "residency": {
+        "size": 23448738854,
+        "sizeVram": 4894165564,
+        "contextLength": 4096
+      },
+      "tasks": [
+        {
+          "id": "EXPLORER-CONTRACT-001",
+          "weight": 1,
+          "semantic": 100,
+          "contract": 100,
+          "quality": 100,
+          "output": {
+            "featureRole": "TRIGGER",
+            "readyFeatureIds": [
+              "MA_FRESH_CROSS_UP",
+              "PRICE_MA_RECLAIM_UP",
+              "PRICE_N_HIGH_BREAKOUT"
+            ],
+            "chartReadyGroup": "Chart-ready Probes",
+            "ideaImplementationFeatureId": null,
+            "frozenStatus": "FROZEN_RESEARCH",
+            "profitabilityClaim": false,
+            "brokerActionAllowed": false
+          },
+          "strict": true,
+          "metrics": {
+            "parsed": {
+              "value": {
+                "featureRole": "TRIGGER",
+                "readyFeatureIds": [
+                  "MA_FRESH_CROSS_UP",
+                  "PRICE_MA_RECLAIM_UP",
+                  "PRICE_N_HIGH_BREAKOUT"
+                ],
+                "chartReadyGroup": "Chart-ready Probes",
+                "ideaImplementationFeatureId": null,
+                "frozenStatus": "FROZEN_RESEARCH",
+                "profitabilityClaim": false,
+                "brokerActionAllowed": false
+              },
+              "strict": true,
+              "recovered": false,
+              "trailing": 0
+            },
+            "wallSeconds": 40.645,
+            "outputTokens": 107,
+            "tokensPerSecond": 41.36646980866268,
+            "loadSeconds": 28.1158896,
+            "doneReason": "stop"
+          }
+        },
+        {
+          "id": "RESEARCH-CAUSALITY-001",
+          "weight": 1,
+          "semantic": 100,
+          "contract": 100,
+          "quality": 100,
+          "output": {
+            "orderingStateRole": "CONTEXT_ONLY",
+            "trigger": "SHORT_CROSS_UP_MEDIUM",
+            "decisionReference": "COMPLETED_D",
+            "entryReference": "D_PLUS_1_OPEN",
+            "projectedValidationN": 4.8,
+            "sparseEligible": false,
+            "minimumValidationN": 8,
+            "profitabilityClaim": false
+          },
+          "strict": true,
+          "metrics": {
+            "parsed": {
+              "value": {
+                "orderingStateRole": "CONTEXT_ONLY",
+                "trigger": "SHORT_CROSS_UP_MEDIUM",
+                "decisionReference": "COMPLETED_D",
+                "entryReference": "D_PLUS_1_OPEN",
+                "projectedValidationN": 4.8,
+                "sparseEligible": false,
+                "minimumValidationN": 8,
+                "profitabilityClaim": false
+              },
+              "strict": true,
+              "recovered": false,
+              "trailing": 0
+            },
+            "wallSeconds": 11.629,
+            "outputTokens": 92,
+            "tokensPerSecond": 42.38447696173327,
+            "loadSeconds": 0.2952564,
+            "doneReason": "stop"
+          }
+        },
+        {
+          "id": "CODER-REPAIR-001",
+          "weight": 2,
+          "semantic": 100,
+          "contract": 100,
+          "quality": 100,
+          "output": {
+            "targetFile": "src/profit_feature_foundry.mjs",
+            "oldText": "  else if (!improvesBaseline) oosReason = 'NO_BASELINE_IMPROVEMENT';",
+            "newText": "  else if (baselineComparable && !improvesBaseline) oosReason = 'NO_BASELINE_IMPROVEMENT';",
+            "reason": "The regression test P14-LIVE-004 asserts that the source code must contain the condition `else if (baselineComparable && !improvesBaseline)` to ensure that a baseline improvement check is only performed when the baseline data is comparable. The mutated excerpt incorrectly omits the `baselineComparable` guard, which would cause 'NO_BASELINE_IMPROVEMENT' to be returned even when the baseline is not evaluable or comparable, contradicting the test's requirement and the logic established by `baselineComparable`."
+          },
+          "patchApplied": true,
+          "testPassed": true,
+          "testStatus": 0,
+          "baselineFailedAsExpected": true,
+          "metrics": {
+            "parsed": {
+              "value": {
+                "targetFile": "src/profit_feature_foundry.mjs",
+                "oldText": "  else if (!improvesBaseline) oosReason = 'NO_BASELINE_IMPROVEMENT';",
+                "newText": "  else if (baselineComparable && !improvesBaseline) oosReason = 'NO_BASELINE_IMPROVEMENT';",
+                "reason": "The regression test P14-LIVE-004 asserts that the source code must contain the condition `else if (baselineComparable && !improvesBaseline)` to ensure that a baseline improvement check is only performed when the baseline data is comparable. The mutated excerpt incorrectly omits the `baselineComparable` guard, which would cause 'NO_BASELINE_IMPROVEMENT' to be returned even when the baseline is not evaluable or comparable, contradicting the test's requirement and the logic established by `baselineComparable`."
+              },
+              "strict": true,
+              "recovered": false,
+              "trailing": 0
+            },
+            "wallSeconds": 11.32,
+            "outputTokens": 196,
+            "tokensPerSecond": 42.047814371771324,
+            "loadSeconds": 0.2017697,
+            "doneReason": "stop"
+          }
+        }
+      ]
+    },
+    {
+      "model": "gemma4:12b",
+      "semantic": 75,
+      "contract": 100,
+      "quality": 80,
+      "totalWallSeconds": 43.082,
+      "residency": {
+        "size": 8908324205,
+        "sizeVram": 5925356174,
+        "contextLength": 4096
+      },
+      "tasks": [
+        {
+          "id": "EXPLORER-CONTRACT-001",
+          "weight": 1,
+          "semantic": 100,
+          "contract": 100,
+          "quality": 100,
+          "output": {
+            "featureRole": "TRIGGER",
+            "readyFeatureIds": [
+              "MA_FRESH_CROSS_UP",
+              "PRICE_MA_RECLAIM_UP",
+              "PRICE_N_HIGH_BREAKOUT"
+            ],
+            "chartReadyGroup": "Chart-ready Probes",
+            "ideaImplementationFeatureId": null,
+            "frozenStatus": "FROZEN_RESEARCH",
+            "profitabilityClaim": false,
+            "brokerActionAllowed": false
+          },
+          "strict": true,
+          "metrics": {
+            "parsed": {
+              "value": {
+                "featureRole": "TRIGGER",
+                "readyFeatureIds": [
+                  "MA_FRESH_CROSS_UP",
+                  "PRICE_MA_RECLAIM_UP",
+                  "PRICE_N_HIGH_BREAKOUT"
+                ],
+                "chartReadyGroup": "Chart-ready Probes",
+                "ideaImplementationFeatureId": null,
+                "frozenStatus": "FROZEN_RESEARCH",
+                "profitabilityClaim": false,
+                "brokerActionAllowed": false
+              },
+              "strict": true,
+              "recovered": false,
+              "trailing": 0
+            },
+            "wallSeconds": 21.31,
+            "outputTokens": 114,
+            "tokensPerSecond": 14.986512139074833,
+            "loadSeconds": 10.2715014,
+            "doneReason": "stop"
+          }
+        },
+        {
+          "id": "RESEARCH-CAUSALITY-001",
+          "weight": 1,
+          "semantic": 100,
+          "contract": 100,
+          "quality": 100,
+          "output": {
+            "orderingStateRole": "CONTEXT_ONLY",
+            "trigger": "SHORT_CROSS_UP_MEDIUM",
+            "decisionReference": "COMPLETED_D",
+            "entryReference": "D_PLUS_1_OPEN",
+            "projectedValidationN": 4.8,
+            "sparseEligible": false,
+            "minimumValidationN": 8,
+            "profitabilityClaim": false
+          },
+          "strict": true,
+          "metrics": {
+            "parsed": {
+              "value": {
+                "orderingStateRole": "CONTEXT_ONLY",
+                "trigger": "SHORT_CROSS_UP_MEDIUM",
+                "decisionReference": "COMPLETED_D",
+                "entryReference": "D_PLUS_1_OPEN",
+                "projectedValidationN": 4.8,
+                "sparseEligible": false,
+                "minimumValidationN": 8,
+                "profitabilityClaim": false
+              },
+              "strict": true,
+              "recovered": false,
+              "trailing": 0
+            },
+            "wallSeconds": 7.96,
+            "outputTokens": 66,
+            "tokensPerSecond": 15.723292914941275,
+            "loadSeconds": 0.3645856,
+            "doneReason": "stop"
+          }
+        },
+        {
+          "id": "CODER-REPAIR-001",
+          "weight": 2,
+          "semantic": 50,
+          "contract": 100,
+          "quality": 60,
+          "output": {
+            "targetFile": "src/profit_feature_foundry.mjs",
+            "oldText": "const maeRetained = Number.isFinite(selected.validation?.meanMaePct) && metricNumber(selected.validation?.meanMaePct) >= metricNumber(selected.discovery?.meanMaePct) - 1.5;",
+            "newText": "const maeRetained = Number.isFinite(selected.validation?.meanMaePct) && metricNumber(selected.validation?.meanMaePct) >= metricNumber(selected.discovery?.meanMaePct) - 0.5;",
+            "reason": "The regression test P14-LIVE-004 implies that the baseline comparison logic was adjusted to be less restrictive (from 1.5 to 0.5) to ensure independent candidates aren't blocked by overly strict baseline requirements."
+          },
+          "patchApplied": true,
+          "testPassed": false,
+          "testStatus": 1,
+          "baselineFailedAsExpected": true,
+          "metrics": {
+            "parsed": {
+              "value": {
+                "targetFile": "src/profit_feature_foundry.mjs",
+                "oldText": "const maeRetained = Number.isFinite(selected.validation?.meanMaePct) && metricNumber(selected.validation?.meanMaePct) >= metricNumber(selected.discovery?.meanMaePct) - 1.5;",
+                "newText": "const maeRetained = Number.isFinite(selected.validation?.meanMaePct) && metricNumber(selected.validation?.meanMaePct) >= metricNumber(selected.discovery?.meanMaePct) - 0.5;",
+                "reason": "The regression test P14-LIVE-004 implies that the baseline comparison logic was adjusted to be less restrictive (from 1.5 to 0.5) to ensure independent candidates aren't blocked by overly strict baseline requirements."
+              },
+              "strict": true,
+              "recovered": false,
+              "trailing": 0
+            },
+            "wallSeconds": 13.812,
+            "outputTokens": 174,
+            "tokensPerSecond": 15.760387046121233,
+            "loadSeconds": 0.2836819,
+            "doneReason": "stop"
+          }
+        }
+      ]
+    }
+  ],
+  "ranking": [
+    {
+      "rank": 1,
+      "model": "qwen3.6:35b-a3b",
+      "quality": 100,
+      "semantic": 100,
+      "contract": 100,
+      "wallSeconds": 63.59
+    },
+    {
+      "rank": 2,
+      "model": "gemma4:12b",
+      "quality": 80,
+      "semantic": 75,
+      "contract": 100,
+      "wallSeconds": 43.08
+    }
+  ],
+  "profitabilityClaim": false
+}
