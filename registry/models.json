@@ -1,0 +1,15 @@
+{
+  "schema": "ModelRoleRegistry@1.0.0",
+  "hardwareTarget": {
+    "gpu": "NVIDIA RTX 4070",
+    "vramGiB": 8,
+    "ramGiB": 32
+  },
+  "roles": [
+    {"role":"LOCAL_FAST","selectedModel":null,"purpose":"CRUD, classification, summarization, local retrieval, queue handling and repetitive structured work."},
+    {"role":"LOCAL_REASONER","selectedModel":null,"purpose":"Failure analysis, research synthesis, experiment design and feature-improvement reasoning."},
+    {"role":"LOCAL_CODER","selectedModel":null,"purpose":"Source/test generation, compile-error repair and implementation artifacts."},
+    {"role":"EXTERNAL_FRONTIER","selectedModel":null,"purpose":"High-complexity big-picture research, novel theory, difficult multimodal synthesis and escalation."}
+  ],
+  "selectionPolicy": "Concrete models are selected only after project-specific benchmark results; model names are not architecture invariants."
+}
