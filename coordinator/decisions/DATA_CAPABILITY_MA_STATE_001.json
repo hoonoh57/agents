@@ -1,0 +1,45 @@
+{
+  "schema": "CoordinatorDecision@1.0.0",
+  "decisionId": "DATA_CAPABILITY_MA_STATE_001",
+  "status": "PARTIAL_ACCEPT_BLOCKED_INPUT_REQUIRED",
+  "subjectResultId": "RESULT-20260813215100-dat001",
+  "subjectTaskId": "TASK-20260813215100-dat001",
+  "experimentId": "EXP-MA-STATE-INCREMENTAL-001",
+  "repositoryHead": "118acb5bbf334720df78e8213d48fef126ef5c9d",
+  "accepted": [
+    "Current Foundry population and period are mutable operator inputs, not a frozen experiment identity.",
+    "Real daily data acquisition uses the existing Kiwoom ka10081 path with pagination and warm-up coverage.",
+    "The snapshot must preserve finalized adjusted daily-candle semantics and the chronological split inputs.",
+    "Experiment execution must be reproducible from immutable universe/date/data provenance rather than mutable UI state."
+  ],
+  "rejected": [
+    {
+      "proposal": "Use example symbols 005930 and 000660 and example dates 2020-01-01 through 2023-12-31.",
+      "reason": "Those values were invented by the agent and are not supported by the resolved evidence or an approved experiment population."
+    }
+  ],
+  "requiredSnapshotIdentity": [
+    "experimentId",
+    "sourceRepositoryCommit",
+    "populationDefinition",
+    "populationHash",
+    "symbolsSorted",
+    "dateFrom",
+    "dateTo",
+    "objective",
+    "maParameters",
+    "minimumSampleCount",
+    "adjustedPricePolicy",
+    "finalBarPolicy",
+    "warmupPolicy",
+    "perSymbolCandleHash",
+    "datasetHash",
+    "chronologicalPlanHash"
+  ],
+  "blocked": [
+    "No evidence-backed exact population definition is frozen for EXP-MA-STATE-INCREMENTAL-001.",
+    "No evidence-backed exact dateFrom/dateTo pair is frozen for EXP-MA-STATE-INCREMENTAL-001."
+  ],
+  "nextGate": "Freeze population definition and date range before snapshot acquisition or experiment execution.",
+  "profitabilityClaim": false
+}
