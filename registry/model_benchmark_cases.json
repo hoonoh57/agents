@@ -1,0 +1,62 @@
+{
+  "schema": "LocalModelBenchmarkCases@1.0.0",
+  "cases": [
+    {
+      "caseId": "FAST-JSON-CRUD-001",
+      "role": "LOCAL_FAST",
+      "weight": 1,
+      "prompt": "You maintain a research memory index. Normalize this input without inventing records: [{\"id\":\"EXP-3\",\"status\":\"REJECTED\"},{\"id\":\"EXP-1\",\"status\":\"FROZEN\"},{\"id\":\"EXP-3\",\"status\":\"REJECTED\"},{\"id\":\"EXP-2\",\"status\":\"ACTIVE\"}]. Return JSON only with keys sortedIds, uniqueCount, rejectedIds. sortedIds must be ascending unique ids.",
+      "required": {
+        "sortedIds": ["EXP-1", "EXP-2", "EXP-3"],
+        "uniqueCount": 3,
+        "rejectedIds": ["EXP-3"]
+      }
+    },
+    {
+      "caseId": "REASON-CAUSAL-001",
+      "role": "LOCAL_REASONER",
+      "weight": 2,
+      "prompt": "Research Lab scenario: Signal is defined as MA5 crossing above MA20 on day D. RSI is 49 on D and becomes 55 on D+1. A proposed implementation applies FRESH_TRUE to the combined boolean (MA5>MA20 AND RSI>50). Diagnose the causal error and propose the smallest falsifiable correction. Return JSON only with keys error, triggerDefinition, filterDefinition, falseSignalDay, executionReference, profitabilityClaim. profitabilityClaim must be false.",
+      "requiredScalar": {
+        "falseSignalDay": "D+1",
+        "profitabilityClaim": false
+      },
+      "requiredContains": {
+        "triggerDefinition": ["cross"],
+        "filterDefinition": ["RSI"],
+        "executionReference": ["D+1", "open"]
+      }
+    },
+    {
+      "caseId": "REASON-INCREMENTAL-001",
+      "role": "LOCAL_REASONER",
+      "weight": 2,
+      "prompt": "Baseline feature A has 100 events: 40 winners and 60 losers. Candidate filter B removes 8 winners and 30 losers. Design the correct A versus A+B evaluation. Do not call B profitable or validated. Return JSON only with keys retainedWinners, removedWinners, removedLosers, remainingEvents, winnerRetentionPct, loserRemovalPct, nextValidation, profitabilityClaim. nextValidation must describe unseen chronological/OOS confirmation, and profitabilityClaim must be false.",
+      "requiredScalar": {
+        "retainedWinners": 32,
+        "removedWinners": 8,
+        "removedLosers": 30,
+        "remainingEvents": 62,
+        "winnerRetentionPct": 80,
+        "loserRemovalPct": 50,
+        "profitabilityClaim": false
+      },
+      "requiredContains": {
+        "nextValidation": ["OOS"]
+      }
+    },
+    {
+      "caseId": "CODER-CONTRACT-001",
+      "role": "LOCAL_CODER",
+      "weight": 1,
+      "prompt": "A TypeScript research function must never use future data. Given: function signal(close:number[], i:number){ return close[i+1] > close[i]; }. Return JSON only with keys defect, correctedFunction, invariant. correctedFunction must be a TypeScript function named signal that uses only close[i] and earlier indexes; it must not contain i+1 or i + 1.",
+      "forbiddenContains": {
+        "correctedFunction": ["i+1", "i + 1"]
+      },
+      "requiredContains": {
+        "correctedFunction": ["function signal"],
+        "invariant": ["future"]
+      }
+    }
+  ]
+}
