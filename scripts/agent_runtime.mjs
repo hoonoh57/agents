@@ -1,9 +1,10 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
+import { fileURLToPath } from 'node:url';
 import { DatabaseSync } from 'node:sqlite';
 
-const root = path.resolve(path.dirname(new URL(import.meta.url).pathname.replace(/^\/(.:)/, '$1')), '..');
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
 function readEnvFile(file) {
   const out = {};
@@ -96,7 +97,7 @@ function listQueuedTasks() {
         const task = readJson(file);
         if (task.schema !== 'AgentTask@1.0.0' || task.agentId !== a.agentId || task.status !== 'QUEUED') continue;
         tasks.push({ file, task });
-      } catch { /* malformed files are ignored by worker; validator will surface later */ }
+      } catch { /* malformed files are ignored by worker; validator surfaces structure errors separately */ }
     }
   }
   tasks.sort((x, y) => (Number(y.task.priority || 0) - Number(x.task.priority || 0)) || String(x.task.createdAt).localeCompare(String(y.task.createdAt)));
@@ -197,8 +198,11 @@ async function workerOnce() {
         return;
       } catch (error) {
         const message = String(error?.message || error);
-        updateState(task.agentId, { status: message.startsWith('MODEL_NOT_CONFIGURED') ? 'BLOCKED' : 'ERROR', activeTaskId: null, blockedReason: message });
-        updateBacklog(task.taskId, { status: message.startsWith('MODEL_NOT_CONFIGURED') ? 'BLOCKED' : 'ERROR', error: message });
+        const failedStatus = message.startsWith('MODEL_NOT_CONFIGURED') ? 'BLOCKED' : 'ERROR';
+        writeJson(item.file, { ...task, status: failedStatus, failedAt: nowIso(), error: message });
+        writeJson(workFile, { ...task, status: failedStatus, startedAt, failedAt: nowIso(), error: message, workerId: localEnv.AGENT_WORKER_ID || 'local-01' });
+        updateState(task.agentId, { status: failedStatus, activeTaskId: null, blockedReason: message });
+        updateBacklog(task.taskId, { status: failedStatus, error: message });
         console.error(`[agent-runtime] TASK FAILED ${task.taskId}: ${message}`);
         return;
       } finally {
