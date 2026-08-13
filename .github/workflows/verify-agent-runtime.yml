@@ -1,0 +1,33 @@
+name: verify-agent-runtime
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  verify:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Show versions
+        shell: pwsh
+        run: |
+          node --version
+          git --version
+          $PSVersionTable.PSVersion
+
+      - name: Validate workspaces
+        shell: pwsh
+        run: node .\scripts\agent_runtime.mjs validate
+
+      - name: Smoke lifecycle
+        shell: pwsh
+        run: powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\VERIFY_AGENT_RUNTIME.ps1
