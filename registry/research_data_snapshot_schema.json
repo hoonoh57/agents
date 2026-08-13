@@ -1,0 +1,63 @@
+{
+  "schema": "ResearchDataSnapshotManifestSchema@1.0.0",
+  "manifestSchema": "ResearchDataSnapshotManifest@1.0.0",
+  "purpose": "Freeze exact real-market research inputs so an experiment can be rerun against the same population, period, normalized candles, and chronological plan.",
+  "requiredFields": [
+    "schema",
+    "snapshotId",
+    "experimentId",
+    "sourceRepositoryCommit",
+    "populationDefinition",
+    "populationHash",
+    "symbolsSorted",
+    "dateFrom",
+    "dateTo",
+    "objective",
+    "featureParameters",
+    "minimumSampleCount",
+    "dataContract",
+    "warmupPolicy",
+    "perSymbol",
+    "datasetHash",
+    "chronologicalPlan",
+    "chronologicalPlanHash",
+    "createdAt"
+  ],
+  "dataContract": {
+    "sourceApiId": "ka10081",
+    "sourceListKey": "stk_dt_pole_chart_qry",
+    "sourcePeriod": "DAY",
+    "adjustedPrice": true,
+    "finalPolicy": "Only normalized candles with final=true may enter research calculations.",
+    "candleFieldsForHash": [
+      "tradingDate",
+      "open",
+      "high",
+      "low",
+      "close",
+      "volume",
+      "adjustedPrice",
+      "sourceApiId",
+      "sourceListKey",
+      "sourcePeriod",
+      "final"
+    ]
+  },
+  "hashPolicy": {
+    "algorithm": "SHA-256",
+    "symbolOrdering": "lexicographic ascending",
+    "candleOrdering": "tradingDate ascending",
+    "perSymbolHash": "SHA-256 of canonical UTF-8 JSON array of candleFieldsForHash in candleOrdering",
+    "populationHash": "SHA-256 of canonical UTF-8 JSON of populationDefinition plus symbolsSorted",
+    "datasetHash": "SHA-256 of canonical UTF-8 JSON containing snapshot identity fields and ordered perSymbol hashes",
+    "chronologicalPlanHash": "SHA-256 of canonical UTF-8 JSON of the resolved chronological plan"
+  },
+  "experimentConstraints": {
+    "populationAndDatesMustBeFrozenBeforeAcquisition": true,
+    "noOutcomeDrivenPopulationSelection": true,
+    "noOutcomeDrivenDateSelection": true,
+    "noOosRetuning": true,
+    "profitabilityClaim": false
+  },
+  "status": "CONTRACT_READY_INPUT_VALUES_BLOCKED"
+}
