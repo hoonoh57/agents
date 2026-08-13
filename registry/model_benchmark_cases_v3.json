@@ -1,0 +1,124 @@
+{
+  "schema": "LocalModelBenchmarkCases@1.2.0",
+  "scoringPolicy": {
+    "principle": "Evaluate research correctness separately from structured-output contract compliance.",
+    "runtimeMode": "Pass a JSON Schema to Ollama format so benchmark execution matches the intended production Agent contract.",
+    "qualityFormula": "0.80 * semanticScore + 0.20 * contractScore",
+    "freeText": "Rationale is retained as evidence but is never lexically scored."
+  },
+  "cases": [
+    {
+      "caseId": "FAST-JSON-CRUD-001",
+      "role": "LOCAL_FAST",
+      "weight": 1,
+      "prompt": "Normalize the research-memory records without inventing data. Input: [{\"id\":\"EXP-3\",\"status\":\"REJECTED\"},{\"id\":\"EXP-1\",\"status\":\"FROZEN\"},{\"id\":\"EXP-3\",\"status\":\"REJECTED\"},{\"id\":\"EXP-2\",\"status\":\"ACTIVE\"}]. Return unique ids ascending, the unique count, unique rejected ids, a normalization status code, and a short rationale.",
+      "responseSchema": {
+        "type": "object",
+        "properties": {
+          "sortedIds": {"type": "array", "items": {"type": "string"}},
+          "uniqueCount": {"type": "integer"},
+          "rejectedIds": {"type": "array", "items": {"type": "string"}},
+          "contractCode": {"type": "string", "enum": ["RESEARCH_MEMORY_NORMALIZED", "RESEARCH_MEMORY_INVALID"]},
+          "rationale": {"type": "string"}
+        },
+        "required": ["sortedIds", "uniqueCount", "rejectedIds", "contractCode", "rationale"],
+        "additionalProperties": false
+      },
+      "expected": {
+        "sortedIds": ["EXP-1", "EXP-2", "EXP-3"],
+        "uniqueCount": 3,
+        "rejectedIds": ["EXP-3"],
+        "contractCode": "RESEARCH_MEMORY_NORMALIZED"
+      }
+    },
+    {
+      "caseId": "REASON-CAUSAL-001",
+      "role": "LOCAL_REASONER",
+      "weight": 2,
+      "prompt": "MA5 crosses above MA20 on day D. RSI is 49 on D and 55 on D+1. A proposed implementation applies FRESH_TRUE to the combined boolean MA5>MA20 AND RSI>50. Classify the causal error, choose the smallest correction, identify whether the trigger occurs on D, whether the RSI filter passes on D, whether the combined implementation can create a false event on D+1, and choose the executable entry reference. Do not claim profitability.",
+      "responseSchema": {
+        "type": "object",
+        "properties": {
+          "causalErrorCode": {"type": "string", "enum": ["TRIGGER_FILTER_CONFLATION", "FUTURE_DATA_LEAK", "NO_CAUSAL_ERROR"]},
+          "correctionCode": {"type": "string", "enum": ["SEPARATE_TRIGGER_AND_FILTER", "APPLY_FRESH_TRUE_TO_COMBINED_STATE", "SHIFT_FILTER_TO_NEXT_DAY"]},
+          "triggerOccursOnD": {"type": "boolean"},
+          "filterPassesOnD": {"type": "boolean"},
+          "falseCombinedEventPossibleOnD1": {"type": "boolean"},
+          "executionReference": {"type": "string", "enum": ["D+1_OPEN", "D_CLOSE", "D+1_CLOSE"]},
+          "profitabilityClaim": {"type": "boolean"},
+          "rationale": {"type": "string"}
+        },
+        "required": ["causalErrorCode", "correctionCode", "triggerOccursOnD", "filterPassesOnD", "falseCombinedEventPossibleOnD1", "executionReference", "profitabilityClaim", "rationale"],
+        "additionalProperties": false
+      },
+      "expected": {
+        "causalErrorCode": "TRIGGER_FILTER_CONFLATION",
+        "correctionCode": "SEPARATE_TRIGGER_AND_FILTER",
+        "triggerOccursOnD": true,
+        "filterPassesOnD": false,
+        "falseCombinedEventPossibleOnD1": true,
+        "executionReference": "D+1_OPEN",
+        "profitabilityClaim": false
+      }
+    },
+    {
+      "caseId": "REASON-INCREMENTAL-001",
+      "role": "LOCAL_REASONER",
+      "weight": 2,
+      "prompt": "Baseline A has 100 events: 40 winners and 60 losers. Filter B removes 8 winners and 30 losers. Calculate retained winners, removed winners, removed losers, remaining events, winner-retention percent and loser-removal percent. Choose the correct next validation step. Do not call B profitable or validated.",
+      "responseSchema": {
+        "type": "object",
+        "properties": {
+          "retainedWinners": {"type": "integer"},
+          "removedWinners": {"type": "integer"},
+          "removedLosers": {"type": "integer"},
+          "remainingEvents": {"type": "integer"},
+          "winnerRetentionPct": {"type": "number"},
+          "loserRemovalPct": {"type": "number"},
+          "nextValidationCode": {"type": "string", "enum": ["UNSEEN_CHRONOLOGICAL_OOS", "SAME_SAMPLE_RETUNE", "NO_FURTHER_VALIDATION"]},
+          "profitabilityClaim": {"type": "boolean"},
+          "rationale": {"type": "string"}
+        },
+        "required": ["retainedWinners", "removedWinners", "removedLosers", "remainingEvents", "winnerRetentionPct", "loserRemovalPct", "nextValidationCode", "profitabilityClaim", "rationale"],
+        "additionalProperties": false
+      },
+      "expected": {
+        "retainedWinners": 32,
+        "removedWinners": 8,
+        "removedLosers": 30,
+        "remainingEvents": 62,
+        "winnerRetentionPct": 80,
+        "loserRemovalPct": 50,
+        "nextValidationCode": "UNSEEN_CHRONOLOGICAL_OOS",
+        "profitabilityClaim": false
+      }
+    },
+    {
+      "caseId": "CODER-CONTRACT-001",
+      "role": "LOCAL_CODER",
+      "weight": 1,
+      "prompt": "A TypeScript research signal must never use future data. Given function signal(close:number[], i:number){ return close[i+1] > close[i]; }. Classify the defect, provide a corrected function named signal that uses only close[i] and earlier indexes, state whether the original future reference was detected, and whether the corrected function still uses future data.",
+      "responseSchema": {
+        "type": "object",
+        "properties": {
+          "defectCode": {"type": "string", "enum": ["FUTURE_BAR_ACCESS", "TYPE_ERROR", "NO_DEFECT"]},
+          "correctedFunction": {"type": "string"},
+          "invariantCode": {"type": "string", "enum": ["NO_FUTURE_BAR_ACCESS", "FUTURE_ACCESS_ALLOWED"]},
+          "futureReferenceDetected": {"type": "boolean"},
+          "correctedUsesFuture": {"type": "boolean"},
+          "rationale": {"type": "string"}
+        },
+        "required": ["defectCode", "correctedFunction", "invariantCode", "futureReferenceDetected", "correctedUsesFuture", "rationale"],
+        "additionalProperties": false
+      },
+      "expected": {
+        "defectCode": "FUTURE_BAR_ACCESS",
+        "invariantCode": "NO_FUTURE_BAR_ACCESS",
+        "futureReferenceDetected": true,
+        "correctedUsesFuture": false
+      },
+      "requiredContains": {"correctedFunction": ["function signal"]},
+      "forbiddenContains": {"correctedFunction": ["i+1", "i + 1"]}
+    }
+  ]
+}
