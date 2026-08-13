@@ -14,9 +14,38 @@ function Get-EnvValue([string]$Name, [string]$Default = '') {
     return (($line -split '=', 2)[1]).Trim().Trim('"').Trim("'")
 }
 
+function Get-RegistryModel([string]$Role) {
+    $registryFile = Join-Path $root 'registry\models.json'
+    if (-not (Test-Path $registryFile)) { return '' }
+    $registry = Get-Content $registryFile -Raw -Encoding UTF8 | ConvertFrom-Json
+    $row = $registry.roles | Where-Object { $_.role -eq $Role } | Select-Object -First 1
+    if (-not $row -or -not $row.selectedModel) { return '' }
+    return [string]$row.selectedModel
+}
+
+function Set-ModelDefault([string]$EnvName, [string]$Role) {
+    $configured = Get-EnvValue $EnvName ''
+    if ($configured) {
+        [Environment]::SetEnvironmentVariable($EnvName, $configured, 'Process')
+        Write-Host "[agent-worker] model $Role=$configured source=.env"
+        return
+    }
+    $selected = Get-RegistryModel $Role
+    if (-not $selected) {
+        Write-Host "[agent-worker] model $Role=UNCONFIGURED"
+        return
+    }
+    [Environment]::SetEnvironmentVariable($EnvName, $selected, 'Process')
+    Write-Host "[agent-worker] model $Role=$selected source=registry"
+}
+
 Write-Host '[agent-worker] pull'
 git pull --ff-only origin main
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+Set-ModelDefault 'LOCAL_LLM_FAST_MODEL' 'LOCAL_FAST'
+Set-ModelDefault 'LOCAL_LLM_REASONER_MODEL' 'LOCAL_REASONER'
+Set-ModelDefault 'LOCAL_LLM_CODER_MODEL' 'LOCAL_CODER'
 
 Write-Host '[agent-worker] validate'
 node .\scripts\agent_runtime_stable.mjs validate
