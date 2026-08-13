@@ -1,0 +1,24 @@
+name: verify-real-project-benchmark
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+jobs:
+  verify:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Benchmark self-test
+        shell: pwsh
+        run: node .\scripts\real_project_benchmark.mjs self-test
+      - name: Launcher syntax
+        shell: pwsh
+        run: |
+          $tokens = $null
+          $errors = $null
+          [void][System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path '.\scripts\RUN_REAL_PROJECT_BENCHMARK.ps1'), [ref]$tokens, [ref]$errors)
+          if ($errors.Count) { throw ($errors | Out-String) }
+          Write-Host 'PASS launcher syntax'
