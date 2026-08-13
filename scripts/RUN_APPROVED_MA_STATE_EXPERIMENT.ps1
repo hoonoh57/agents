@@ -12,10 +12,30 @@ if (-not $KiwoomDeskRepo) {
 }
 
 function Get-ProxyStatus {
+    param([string]$BaseUrl)
     try {
-        return Invoke-RestMethod -Uri ($ProxyBaseUrl.TrimEnd('/') + '/api/kiwoom/status') -Method Get -TimeoutSec 3
+        return Invoke-RestMethod -Uri ($BaseUrl.TrimEnd('/') + '/api/kiwoom/status') -Method Get -TimeoutSec 3
     } catch {
         return $null
+    }
+}
+
+function Get-FreeTcpPort {
+    $listener = New-Object System.Net.Sockets.TcpListener([System.Net.IPAddress]::Loopback, 0)
+    $listener.Start()
+    try {
+        return ([System.Net.IPEndPoint]$listener.LocalEndpoint).Port
+    } finally {
+        $listener.Stop()
+    }
+}
+
+function Restore-EnvValue {
+    param([string]$Name, [object]$Value)
+    if ($null -eq $Value) {
+        Remove-Item ("Env:{0}" -f $Name) -ErrorAction SilentlyContinue
+    } else {
+        Set-Item ("Env:{0}" -f $Name) -Value ([string]$Value)
     }
 }
 
@@ -46,12 +66,24 @@ if ($LASTEXITCODE -ne 0) { throw 'runner self-test failed' }
 $startedProxy = $null
 $proxyStdout = $null
 $proxyStderr = $null
+$activeProxyBaseUrl = $ProxyBaseUrl
 $oldProxyEnv = $env:KIWOOM_RESEARCH_PROXY_BASE_URL
 
 try {
-    $status = Get-ProxyStatus
-    if (-not $status) {
-        Write-Host "[ma-state-approved] proxy unavailable at $ProxyBaseUrl; start existing kiwoom-desk API"
+    $status = Get-ProxyStatus -BaseUrl $ProxyBaseUrl
+
+    if ($status -and "$($status.mode)" -eq '실투자') {
+        if (-not [bool]$status.tokenValid) {
+            throw "existing real Kiwoom proxy has invalid token: $($status.error)"
+        }
+        Write-Host "[ma-state-approved] reuse real proxy at $ProxyBaseUrl tokenValid=$($status.tokenValid)"
+    } else {
+        if ($status) {
+            Write-Host "[ma-state-approved] existing proxy mode=$($status.mode) at $ProxyBaseUrl; preserve it and start isolated real proxy"
+        } else {
+            Write-Host "[ma-state-approved] proxy unavailable at $ProxyBaseUrl; start isolated real proxy"
+        }
+
         if (-not (Test-Path -LiteralPath $KiwoomDeskRepo)) {
             throw "kiwoom-desk repo not found: $KiwoomDeskRepo"
         }
@@ -64,27 +96,48 @@ try {
             throw "kiwoom-desk dependencies missing. Run once: Set-Location '$KiwoomDeskRepo'; npm install"
         }
 
+        $realPort = Get-FreeTcpPort
+        $activeProxyBaseUrl = "http://127.0.0.1:$realPort"
         $proxyLogDir = Join-Path $TradingRepo '.research-data\proxy'
         New-Item -ItemType Directory -Force $proxyLogDir | Out-Null
         $stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
-        $proxyStdout = Join-Path $proxyLogDir ("kiwoom-api-$stamp.stdout.log")
-        $proxyStderr = Join-Path $proxyLogDir ("kiwoom-api-$stamp.stderr.log")
-        $startedProxy = Start-Process -FilePath 'node.exe' -ArgumentList @($tsxCli, 'server/index.ts') -WorkingDirectory $KiwoomDeskRepo -WindowStyle Hidden -RedirectStandardOutput $proxyStdout -RedirectStandardError $proxyStderr -PassThru
+        $proxyStdout = Join-Path $proxyLogDir ("kiwoom-real-api-$stamp.stdout.log")
+        $proxyStderr = Join-Path $proxyLogDir ("kiwoom-real-api-$stamp.stderr.log")
 
+        $oldMock = $env:KIWOOM_MOCK
+        $oldPort = $env:PORT
+        try {
+            $env:KIWOOM_MOCK = 'false'
+            $env:PORT = [string]$realPort
+            $startedProxy = Start-Process -FilePath 'node.exe' -ArgumentList @($tsxCli, 'server/index.ts') -WorkingDirectory $KiwoomDeskRepo -WindowStyle Hidden -RedirectStandardOutput $proxyStdout -RedirectStandardError $proxyStderr -PassThru
+        } finally {
+            Restore-EnvValue -Name 'KIWOOM_MOCK' -Value $oldMock
+            Restore-EnvValue -Name 'PORT' -Value $oldPort
+        }
+
+        $status = $null
         for ($i = 0; $i -lt 40; $i++) {
             Start-Sleep -Milliseconds 500
             if ($startedProxy.HasExited) { break }
-            $status = Get-ProxyStatus
+            $status = Get-ProxyStatus -BaseUrl $activeProxyBaseUrl
             if ($status) { break }
         }
         if (-not $status) {
             Show-ProxyLogs -StdoutPath $proxyStdout -StderrPath $proxyStderr
-            throw "Kiwoom API proxy did not become ready at $ProxyBaseUrl"
+            throw "real Kiwoom API proxy did not become ready at $activeProxyBaseUrl"
         }
+        if ("$($status.mode)" -ne '실투자') {
+            Show-ProxyLogs -StdoutPath $proxyStdout -StderrPath $proxyStderr
+            throw "isolated proxy did not enter real mode: mode=$($status.mode)"
+        }
+        if (-not [bool]$status.tokenValid) {
+            Show-ProxyLogs -StdoutPath $proxyStdout -StderrPath $proxyStderr
+            throw "real Kiwoom proxy token is invalid: $($status.error)"
+        }
+        Write-Host "[ma-state-approved] isolated real proxy ready at $activeProxyBaseUrl tokenValid=$($status.tokenValid)"
     }
 
-    Write-Host "[ma-state-approved] proxy ready mode=$($status.mode) tokenValid=$($status.tokenValid)"
-    $env:KIWOOM_RESEARCH_PROXY_BASE_URL = $ProxyBaseUrl
+    $env:KIWOOM_RESEARCH_PROXY_BASE_URL = $activeProxyBaseUrl
 
     Write-Host '[ma-state-approved] execute read-only real-data experiment'
     $savedPreference = $ErrorActionPreference
@@ -131,13 +184,9 @@ try {
     Write-Host '[ma-state-approved] PASS evidence synchronized'
     Write-Host "[ma-state-approved] RESULT=$evidenceDir\result.json"
 } finally {
-    if ($null -eq $oldProxyEnv) {
-        Remove-Item Env:KIWOOM_RESEARCH_PROXY_BASE_URL -ErrorAction SilentlyContinue
-    } else {
-        $env:KIWOOM_RESEARCH_PROXY_BASE_URL = $oldProxyEnv
-    }
+    Restore-EnvValue -Name 'KIWOOM_RESEARCH_PROXY_BASE_URL' -Value $oldProxyEnv
     if ($startedProxy -and -not $startedProxy.HasExited) {
-        Write-Host "[ma-state-approved] stop temporary Kiwoom API pid=$($startedProxy.Id)"
+        Write-Host "[ma-state-approved] stop temporary real Kiwoom API pid=$($startedProxy.Id)"
         $savedPreference = $ErrorActionPreference
         $ErrorActionPreference = 'Continue'
         try { & taskkill.exe /PID $startedProxy.Id /T /F 2>&1 | Out-Null } finally { $ErrorActionPreference = $savedPreference }
