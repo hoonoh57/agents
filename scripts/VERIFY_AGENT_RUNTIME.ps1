@@ -2,15 +2,81 @@ $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
 Set-Location $root
 
+$agentId = 'experiment-validation'
+$smokeGoalId = 'GOAL-RUNTIME-SMOKE'
+$smokeCreatedBy = 'SYSTEM_SMOKE'
+$agentRoot = Join-Path $root "agents\$agentId"
+$inboxDir = Join-Path $agentRoot 'inbox'
+$workDir = Join-Path $agentRoot 'work'
+$resultDir = Join-Path $agentRoot 'results'
+$statePath = Join-Path $agentRoot 'STATE.json'
+$backlogPath = Join-Path $root 'coordinator\BACKLOG.json'
+$tempDir = Join-Path $root 'runtime\agent-runtime-smoke'
+$quarantineDir = Join-Path $tempDir 'inbox-quarantine'
+New-Item -ItemType Directory -Path $tempDir -Force | Out-Null
+New-Item -ItemType Directory -Path $quarantineDir -Force | Out-Null
+
+function Read-JsonSafe([string]$Path) {
+    try {
+        return Get-Content $Path -Raw | ConvertFrom-Json
+    }
+    catch {
+        return $null
+    }
+}
+
+function Remove-StaleSmokeArtifacts {
+    $smokeTaskIds = New-Object System.Collections.Generic.HashSet[string]
+
+    foreach ($dir in @($inboxDir, $workDir)) {
+        if (-not (Test-Path $dir)) { continue }
+        Get-ChildItem $dir -Filter '*.json' -File -ErrorAction SilentlyContinue | ForEach-Object {
+            $doc = Read-JsonSafe $_.FullName
+            if ($null -eq $doc) { return }
+            if ($doc.goalId -eq $smokeGoalId -or $doc.createdBy -eq $smokeCreatedBy) {
+                if ($doc.taskId) { [void]$smokeTaskIds.Add([string]$doc.taskId) }
+            }
+        }
+    }
+
+    if ($smokeTaskIds.Count -eq 0) { return }
+
+    Write-Host "[verify-agent-runtime] cleanup stale smoke artifacts count=$($smokeTaskIds.Count)"
+    foreach ($task in $smokeTaskIds) {
+        Remove-Item (Join-Path $inboxDir "$task.json") -Force -ErrorAction SilentlyContinue
+        Remove-Item (Join-Path $workDir "$task.json") -Force -ErrorAction SilentlyContinue
+        if ($task.StartsWith('TASK-')) {
+            $rid = 'RESULT-' + $task.Substring(5)
+            Remove-Item (Join-Path $resultDir "$rid.json") -Force -ErrorAction SilentlyContinue
+        }
+    }
+}
+
+function Quarantine-OtherInboxTasks([string]$KeepTaskId) {
+    $moved = @()
+    Get-ChildItem $inboxDir -Filter '*.json' -File -ErrorAction SilentlyContinue | ForEach-Object {
+        if ($_.BaseName -eq $KeepTaskId) { return }
+        $dest = Join-Path $quarantineDir $_.Name
+        Move-Item $_.FullName $dest -Force
+        $moved += $dest
+    }
+    return ,$moved
+}
+
+function Restore-QuarantinedInboxTasks([object[]]$Moved) {
+    foreach ($file in @($Moved)) {
+        if ($file -and (Test-Path $file)) {
+            Move-Item $file (Join-Path $inboxDir (Split-Path $file -Leaf)) -Force
+        }
+    }
+}
+
+Remove-StaleSmokeArtifacts
+
 Write-Host '[verify-agent-runtime] validate workspace'
 node .\scripts\agent_runtime_stable.mjs validate
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
-$agentId = 'experiment-validation'
-$statePath = Join-Path $root "agents\$agentId\STATE.json"
-$backlogPath = Join-Path $root 'coordinator\BACKLOG.json'
-$tempDir = Join-Path $root 'runtime\agent-runtime-smoke'
-New-Item -ItemType Directory -Path $tempDir -Force | Out-Null
 $stateBackup = Join-Path $tempDir 'STATE.json.bak'
 $backlogBackup = Join-Path $tempDir 'BACKLOG.json.bak'
 Copy-Item $statePath $stateBackup -Force
@@ -18,14 +84,15 @@ Copy-Item $backlogPath $backlogBackup -Force
 
 $taskId = $null
 $resultId = $null
+$quarantined = @()
 try {
     Write-Host '[verify-agent-runtime] enqueue smoke task'
     $enqueueOutput = & node .\scripts\agent_runtime_stable.mjs enqueue `
         --agent $agentId `
-        --goal GOAL-RUNTIME-SMOKE `
+        --goal $smokeGoalId `
         --objective 'Verify queue, lease, state transition, result persistence and completion semantics only.' `
         --priority 99 `
-        --created-by SYSTEM_SMOKE 2>&1
+        --created-by $smokeCreatedBy 2>&1
     $enqueueOutput | ForEach-Object { Write-Host $_ }
     if ($LASTEXITCODE -ne 0) { throw 'enqueue failed' }
     $joined = ($enqueueOutput -join "`n")
@@ -33,13 +100,18 @@ try {
     $taskId = $Matches[1]
     $resultId = 'RESULT-' + $taskId.Substring(5)
 
+    $quarantined = @(Quarantine-OtherInboxTasks -KeepTaskId $taskId)
+    if ($quarantined.Count -gt 0) {
+        Write-Host "[verify-agent-runtime] isolated smoke task; preserved other inbox tasks=$($quarantined.Count)"
+    }
+
     Write-Host "[verify-agent-runtime] worker mock task=$taskId"
     node .\scripts\agent_runtime_stable.mjs worker-once --mock
     if ($LASTEXITCODE -ne 0) { throw 'mock worker failed' }
 
-    $resultPath = Join-Path $root "agents\$agentId\results\$resultId.json"
-    $workPath = Join-Path $root "agents\$agentId\work\$taskId.json"
-    $inboxPath = Join-Path $root "agents\$agentId\inbox\$taskId.json"
+    $resultPath = Join-Path $resultDir "$resultId.json"
+    $workPath = Join-Path $workDir "$taskId.json"
+    $inboxPath = Join-Path $inboxDir "$taskId.json"
     if (-not (Test-Path $resultPath)) { throw "missing result $resultPath" }
     if (-not (Test-Path $workPath)) { throw "missing work snapshot $workPath" }
     if (Test-Path $inboxPath) { throw "completed task still present in inbox $inboxPath" }
@@ -65,12 +137,13 @@ finally {
     Copy-Item $stateBackup $statePath -Force
     Copy-Item $backlogBackup $backlogPath -Force
     if ($taskId) {
-        Remove-Item (Join-Path $root "agents\$agentId\inbox\$taskId.json") -Force -ErrorAction SilentlyContinue
-        Remove-Item (Join-Path $root "agents\$agentId\work\$taskId.json") -Force -ErrorAction SilentlyContinue
+        Remove-Item (Join-Path $inboxDir "$taskId.json") -Force -ErrorAction SilentlyContinue
+        Remove-Item (Join-Path $workDir "$taskId.json") -Force -ErrorAction SilentlyContinue
     }
     if ($resultId) {
-        Remove-Item (Join-Path $root "agents\$agentId\results\$resultId.json") -Force -ErrorAction SilentlyContinue
+        Remove-Item (Join-Path $resultDir "$resultId.json") -Force -ErrorAction SilentlyContinue
     }
+    Restore-QuarantinedInboxTasks -Moved $quarantined
 }
 
 Write-Host '[verify-agent-runtime] validate restored workspace'
