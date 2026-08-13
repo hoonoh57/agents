@@ -1,0 +1,31 @@
+{
+  "schema": "CoordinatorDecision@1.0.0",
+  "decisionId": "FEATURE_ARCHITECT_MA_STATE_001",
+  "status": "PARTIAL_ACCEPT_WITH_CORRECTIONS",
+  "subjectResultId": "RESULT-20260813214743-f46e06",
+  "subjectTaskId": "TASK-20260813214743-f46e06",
+  "repositoryHead": "118acb5bbf334720df78e8213d48fef126ef5c9d",
+  "accepted": [
+    "A is every fresh Short-MA cross above Medium-MA at one frozen MA parameter set with D+1 open entry.",
+    "A+B changes only one discovery-selected orderingState context filter.",
+    "The chronological validation partition remains untouched while B is selected only from Discovery."
+  ],
+  "corrections": [
+    "A must remain unfiltered; only A+B applies the selected orderingState.",
+    "B selection must reuse the executable discovery eligibility and rankProfitStateSummaries ordering, not raw positiveBeforeNegativePct alone.",
+    "Do not invent an undefined statistical-significance gate. Store absolute outcomes and the multidimensional incremental delta vector.",
+    "Do not use retention<0.70 as the sole A-vs-A+B falsification rule; retention in the existing optimizer is a Discovery-to-OOS persistence check, not the complete incremental comparison."
+  ],
+  "frozenExperiment": {
+    "experimentId": "EXP-MA-STATE-INCREMENTAL-001",
+    "parameters": {"short":20,"medium":60,"long":120},
+    "objective": {"horizonSessions":5,"positivePct":3,"negativePct":1,"validationFraction":0.30},
+    "minimumSampleCount": 8,
+    "A": "all fresh Short↑Medium observations",
+    "BSelection": "Discovery-only bestState using current eligibility + rankProfitStateSummaries",
+    "AplusB": "the same validation events restricted to the frozen Discovery-selected bestState",
+    "requiredOutcomeVector": ["eventCount","meanReturnPct","medianReturnPct","meanMfePct","meanMaePct","positiveBeforeNegativePct","winnerRetention","loserRemoval","oosStatus"],
+    "profitabilityClaim": false
+  },
+  "nextGate": "Resolve an exact reproducible real-data universe/date snapshot and provenance before implementation/execution."
+}
