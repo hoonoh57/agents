@@ -1,7 +1,7 @@
 {
   "schema": "ResearchDataSnapshotManifestSchema@1.0.0",
   "manifestSchema": "ResearchDataSnapshotManifest@1.0.0",
-  "purpose": "Freeze exact real-market research inputs so an experiment can be rerun against the same population, period, normalized candles, and chronological plan.",
+  "purpose": "Freeze exact market-research inputs so an experiment can be rerun against the same population, period, normalized candles, source anomalies, and chronological plan.",
   "requiredFields": [
     "schema",
     "snapshotId",
@@ -29,6 +29,7 @@
     "sourcePeriod": "DAY",
     "adjustedPrice": true,
     "finalPolicy": "Only normalized candles with final=true may enter research calculations.",
+    "malformedRowPolicy": "Rows without an 8-digit trading date are quarantined before strict candle normalization. They are never repaired or used as candles. Per-symbol anomaly count/hash and full anomaly provenance are stored with the snapshot.",
     "candleFieldsForHash": [
       "tradingDate",
       "open",
@@ -41,6 +42,16 @@
       "sourceListKey",
       "sourcePeriod",
       "final"
+    ],
+    "perSymbolProvenanceFields": [
+      "symbol",
+      "candleCount",
+      "firstTradingDate",
+      "lastTradingDate",
+      "candleHash",
+      "fetchedPages",
+      "sourceAnomalyCount",
+      "sourceAnomalyHash"
     ]
   },
   "hashPolicy": {
@@ -48,8 +59,9 @@
     "symbolOrdering": "lexicographic ascending",
     "candleOrdering": "tradingDate ascending",
     "perSymbolHash": "SHA-256 of canonical UTF-8 JSON array of candleFieldsForHash in candleOrdering",
+    "sourceAnomalyHash": "SHA-256 of canonical UTF-8 JSON source-anomaly records; null when no anomalies exist",
     "populationHash": "SHA-256 of canonical UTF-8 JSON of populationDefinition plus symbolsSorted",
-    "datasetHash": "SHA-256 of canonical UTF-8 JSON containing snapshot identity fields and ordered perSymbol hashes",
+    "datasetHash": "SHA-256 of canonical UTF-8 JSON containing snapshot identity fields, ordered perSymbol candle hashes, and source anomaly provenance",
     "chronologicalPlanHash": "SHA-256 of canonical UTF-8 JSON of the resolved chronological plan"
   },
   "experimentConstraints": {
@@ -57,7 +69,8 @@
     "noOutcomeDrivenPopulationSelection": true,
     "noOutcomeDrivenDateSelection": true,
     "noOosRetuning": true,
+    "strictDatedRowsStillRequired": true,
     "profitabilityClaim": false
   },
-  "status": "CONTRACT_READY_INPUT_VALUES_BLOCKED"
+  "status": "CONTRACT_READY_APPROVED_INPUTS"
 }
