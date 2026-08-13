@@ -28,6 +28,22 @@ jobs:
         shell: pwsh
         run: node .\scripts\agent_runtime_stable.mjs validate
 
+      - name: Verify local project context adapter
+        shell: pwsh
+        run: node .\scripts\verify_project_context.mjs self-test
+
+      - name: Validate first real task template
+        shell: pwsh
+        run: node -e "const fs=require('fs'); const x=JSON.parse(fs.readFileSync('task-templates/current-logic-baseline-review.json','utf8')); if(x.schema!=='AgentTaskTemplate@1.0.0'||x.agentId!=='current-logic-analyst'||!Array.isArray(x.inputs)||x.inputs.length!==4) process.exit(1); console.log('TASK_TEMPLATE_PASS inputs='+x.inputs.length)"
+
+      - name: Parse first real task launcher
+        shell: pwsh
+        run: |
+          $errors = $null
+          [System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path '.\scripts\RUN_FIRST_CURRENT_LOGIC_TASK.ps1'), [ref]$null, [ref]$errors) | Out-Null
+          if ($errors.Count -gt 0) { $errors | Format-List | Out-String | Write-Host; exit 1 }
+          Write-Host 'RUN_FIRST_CURRENT_LOGIC_TASK_PARSE_PASS'
+
       - name: Verify semantic benchmark scorer
         shell: pwsh
         run: node .\scripts\model_benchmark_v2.mjs self-test
