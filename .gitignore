@@ -1,0 +1,62 @@
+# Secrets / local environment
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Node / JS
+node_modules/
+dist/
+build/
+coverage/
+.npm/
+.pnpm-store/
+
+# Local LLM / model runtime
+models/
+model-cache/
+.gguf/
+*.gguf
+*.safetensors
+*.bin
+
+# Research runtime state (Git stores metadata/refs, not heavy artifacts)
+runtime/
+leases/
+logs/
+cache/
+tmp/
+temp/
+research-data/
+research-artifacts/
+experiment-cache/
+vector-index/
+charts/
+
+# Local databases
+*.db
+*.sqlite
+*.sqlite3
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.user
+*.suo
+
+# Generated files
+*.log
+*.tmp
+*.bak
+*.zip
