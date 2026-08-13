@@ -1,4 +1,13 @@
 {
   "schema": "CoordinatorBacklog@1.0.0",
-  "items": []
+  "items": [
+    {
+      "taskId": "TASK-20260813212146-8a6847",
+      "agentId": "current-logic-analyst",
+      "goalId": "GOAL-CURRENT-LOGIC-BASELINE-001",
+      "priority": 90,
+      "status": "QUEUED",
+      "createdAt": "2026-08-13T21:21:46.278Z"
+    }
+  ]
 }
