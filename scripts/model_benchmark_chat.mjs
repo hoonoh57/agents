@@ -120,7 +120,13 @@ async function ask(model, testCase, options) {
       }
     })
   });
-  if (!response.ok) throw new Error(`HTTP_${response.status}`);
+  if (!response.ok) {
+    const errorBody = (await response.text()).replace(/\s+/g, ' ').trim().slice(0, 800);
+    const error = new Error(`HTTP_${response.status}${errorBody ? `:${errorBody}` : ''}`);
+    error.httpStatus = response.status;
+    error.wallSeconds = (Date.now() - started) / 1000;
+    throw error;
+  }
   const body = await response.json();
   const evalSeconds = Number(body.eval_duration || 0) / 1e9;
   return {
@@ -160,6 +166,7 @@ async function run() {
     if (!selectedCases.length) throw new Error(`no matching cases for ${model}`);
 
     for (const testCase of selectedCases) {
+      const caseStarted = Date.now();
       try {
         const answer = await ask(model, testCase, { context, maxOutputTokens, timeoutSeconds });
         const semantic = semanticScore(testCase, answer.parsed.value);
@@ -167,12 +174,13 @@ async function run() {
         const quality = semantic * 0.8 + contract * 0.2;
         rows.push({ weight: testCase.weight, semantic, contract, quality, speed: answer.tokensPerSecond, wall: answer.wallSeconds, timedOut: false });
         console.log(`[model-benchmark-chat] CASE_RESULT ${model} ${testCase.caseId} semantic=${round2(semantic)} contract=${round2(contract)} quality=${round2(quality)} strict=${answer.parsed.strict} recovered=${answer.parsed.recovered} trailing=${answer.parsed.trailing} wall_s=${round2(answer.wallSeconds)} out_tok=${answer.outputTokens} tok_s=${answer.tokensPerSecond?.toFixed?.(2) ?? 'n/a'} think_chars=${answer.thinkingChars} done=${answer.doneReason ?? 'n/a'}`);
-        if (!answer.parsed.strict) console.log(`[model-benchmark-chat] PARSED ${JSON.stringify(answer.parsed.value)}`);
+        if (!answer.parsed.strict || semantic < 100) console.log(`[model-benchmark-chat] PARSED ${JSON.stringify(answer.parsed.value)}`);
       } catch (error) {
         const message = String(error?.message || error);
         const timedOut = error?.name === 'TimeoutError' || error?.name === 'AbortError';
-        rows.push({ weight: testCase.weight, semantic: 0, contract: 0, quality: 0, speed: null, wall: timeoutSeconds, timedOut });
-        console.log(`[model-benchmark-chat] CASE_FAIL ${model} ${testCase.caseId} timeout=${timedOut} error=${message}`);
+        const actualWall = Number.isFinite(error?.wallSeconds) ? error.wallSeconds : (Date.now() - caseStarted) / 1000;
+        rows.push({ weight: testCase.weight, semantic: 0, contract: 0, quality: 0, speed: null, wall: actualWall, timedOut });
+        console.log(`[model-benchmark-chat] CASE_FAIL ${model} ${testCase.caseId} timeout=${timedOut} wall_s=${round2(actualWall)} error=${message}`);
       }
     }
 
