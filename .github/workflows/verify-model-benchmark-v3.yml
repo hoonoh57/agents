@@ -1,0 +1,25 @@
+name: verify-model-benchmark-v3
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'registry/model_benchmark_candidates.json'
+      - 'registry/model_benchmark_cases_v3.json'
+      - 'scripts/model_benchmark_v3.mjs'
+      - '.github/workflows/verify-model-benchmark-v3.yml'
+  workflow_dispatch:
+
+jobs:
+  verify:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Self-test schema-constrained benchmark scorer
+        shell: pwsh
+        run: node .\scripts\model_benchmark_v3.mjs self-test
