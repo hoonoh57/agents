@@ -1,0 +1,51 @@
+{
+  "schema": "LocalModelScreenResult@1.0.0",
+  "screenId": "SCREEN-20260814-003",
+  "createdAt": "2026-08-14T00:03:00+09:00",
+  "hardware": {
+    "gpu": "NVIDIA GeForce RTX 4070 Laptop GPU",
+    "vramGiB": 8,
+    "ramGiB": 32
+  },
+  "diagnostic": {
+    "model": "gpt-oss:20b",
+    "case": "REASON-INCREMENTAL-001",
+    "context": 4096,
+    "maxOutputTokens": 192,
+    "timeoutSeconds": 60,
+    "wallSeconds": 1.33,
+    "status": "LOCAL_MODEL_LOAD_FAILURE",
+    "qualityScored": false,
+    "error": "HTTP_500: llama-server process has terminated: exit status 1: error loading model: llama_model_loader: failed to load model from local Ollama blob sha256-b112e727c6f18875636c56a779790a590d705aec9e1c0eb5a97d51fc2a778583"
+  },
+  "interpretation": {
+    "residentModelCollisionRejected": true,
+    "benchmarkRequestRejectedAsCause": true,
+    "modelQualityConclusion": "NONE",
+    "localRuntimeConclusion": "The currently installed gpt-oss:20b artifact cannot be loaded by the local llama-server, so it is excluded from model selection until the local installation is repaired or re-pulled."
+  },
+  "finalists": {
+    "qualityLeader": "qwen3.6:35b-a3b",
+    "qualityLeaderEvidence": {
+      "semantic": 100,
+      "contract": 100,
+      "quality": 100,
+      "avgTokensPerSecond": 42.96,
+      "wallSeconds": 36.54
+    },
+    "lighterOperationalFinalist": "gemma4:12b",
+    "lighterOperationalEvidence": {
+      "semantic": 83.33,
+      "contract": 100,
+      "quality": 86.67,
+      "avgTokensPerSecond": 16.53,
+      "wallSeconds": 21.13
+    }
+  },
+  "decision": {
+    "gptOssStatus": "EXCLUDED_LOCAL_INSTALL_FAILURE",
+    "repairNow": false,
+    "reason": "Two healthy finalists already exist; avoid spending time and bandwidth repairing a 14GB model before real-project comparison.",
+    "next": "Move qwen3.6:35b-a3b and gemma4:12b to real-project benchmark: Explorer analysis, repository reasoning/coding, compile/test validation, and local CRUD/RAG."
+  }
+}
