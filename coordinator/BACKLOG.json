@@ -25,6 +25,18 @@
       "failedAt": "2026-08-13T21:34:56.142Z",
       "completedAt": "2026-08-13T21:40:02.099Z",
       "resultId": "RESULT-20260813213200-vld001"
+    },
+    {
+      "taskId": "TASK-20260813214743-f46e06",
+      "agentId": "feature-architect",
+      "goalId": "GOAL-FEATURE-ARCHITECT-MA-STATE-001",
+      "priority": 92,
+      "status": "COMPLETED",
+      "createdAt": "2026-08-13T21:47:43.555Z",
+      "startedAt": "2026-08-13T21:47:46.774Z",
+      "error": null,
+      "completedAt": "2026-08-13T21:48:23.191Z",
+      "resultId": "RESULT-20260813214743-f46e06"
     }
   ]
 }

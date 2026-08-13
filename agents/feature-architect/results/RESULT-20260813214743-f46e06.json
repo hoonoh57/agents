@@ -1,0 +1,171 @@
+{
+  "schema": "AgentResult@1.0.0",
+  "resultId": "RESULT-20260813214743-f46e06",
+  "taskId": "TASK-20260813214743-f46e06",
+  "agentId": "feature-architect",
+  "status": "COMPLETED",
+  "modelProfile": "LOCAL_REASONER",
+  "modelVersion": "qwen3.6:35b-a3b",
+  "startedAt": "2026-08-13T21:47:46.774Z",
+  "completedAt": "2026-08-13T21:48:23.191Z",
+  "summary": "Designs a falsifiable A vs A+B experiment to test if a discovery-selected orderingState filter improves the baseline Short-MA cross above Medium-MA trigger. B is selected via discovery on the discovery window only; validation remains untouched chronological split. Falsification occurs if B's validation retention or MAE does not strictly improve over A.",
+  "claims": [
+    {
+      "kind": "DIRECT",
+      "claim": "The baseline feature 'A' is defined as every fresh Short-MA cross above Medium-MA event at a frozen parameter set, with D+1 entry and fixed horizon. The codebase explicitly treats ordering state as context only (SOURCE foundry-observation).",
+      "sourceInputIds": [
+        "foundry-observation"
+      ]
+    },
+    {
+      "kind": "DIRECT",
+      "claim": "The validation framework uses a chronological split with strict retention and MAE checks. Baseline comparison requires baselineComparable (SOURCE foundry-oos). Validation is independent of discovery selection logic.",
+      "sourceInputIds": [
+        "foundry-oos"
+      ]
+    },
+    {
+      "kind": "DIRECT",
+      "claim": "The orderingState filter 'B' must be selected by a discovery process on the discovery window only. The filter is applied to both A and A+B for comparison, but B's selection criteria are derived solely from discovery data.",
+      "sourceInputIds": [
+        "foundry-observation",
+        "foundry-oos"
+      ]
+    },
+    {
+      "kind": "INFERENCE",
+      "claim": "To ensure falsifiability, B must be a specific, pre-defined orderingState (e.g., 'C>M>S>L') identified by the discovery process. The experiment compares A (all crosses) vs A+B (crosses where orderingState matches B). If B's validation metrics do not show statistically significant improvement in retention or MAE over A, B is falsified.",
+      "sourceInputIds": [
+        "foundry-oos"
+      ]
+    },
+    {
+      "kind": "PROPOSAL",
+      "claim": "Discovery selects B by identifying the orderingState with the highest positiveBeforeNegativePct in the discovery window, provided it meets minimum sample count requirements. Validation compares A vs A+B using identical chronological split, MA parameters, and horizon.",
+      "sourceInputIds": [
+        "foundry-observation",
+        "foundry-oos"
+      ]
+    }
+  ],
+  "sourceRefs": [
+    {
+      "inputId": "foundry-observation",
+      "root": "RESEARCH_LOCAL_ROOT",
+      "relativePath": "src/profit_feature_foundry.mjs",
+      "repositoryHead": "118acb5bbf334720df78e8213d48fef126ef5c9d",
+      "fileSha256": "eac08702eb0be165520abecb475182964e8358e221b39951ab0c0c12564f4004",
+      "excerptSha256": "706619d50ca4ea2d5cc32a11ded8beebaec892057fc676b714696173b6ea0415",
+      "sourceBytes": 28728,
+      "excerptBytes": 4034,
+      "mode": "AROUND",
+      "anchor": "An ordering state is context only."
+    },
+    {
+      "inputId": "foundry-oos",
+      "root": "RESEARCH_LOCAL_ROOT",
+      "relativePath": "src/profit_feature_foundry.mjs",
+      "repositoryHead": "118acb5bbf334720df78e8213d48fef126ef5c9d",
+      "fileSha256": "eac08702eb0be165520abecb475182964e8358e221b39951ab0c0c12564f4004",
+      "excerptSha256": "70a0269170ef1a3318e74e10c85e4222991e9bc6fc2ff1b55b02c7985ff7844d",
+      "sourceBytes": 28728,
+      "excerptBytes": 4460,
+      "mode": "AROUND",
+      "anchor": "const baselineComparable = baselineN >= minimumValidationN"
+    },
+    {
+      "inputId": "foundry-boundaries",
+      "root": "RESEARCH_LOCAL_ROOT",
+      "relativePath": "tests/profit_feature_foundry_live_logic.test.mjs",
+      "repositoryHead": "118acb5bbf334720df78e8213d48fef126ef5c9d",
+      "fileSha256": "75638e7fdb3003110b336da03e555e526225bee314e0a0402c571833e7e6d783",
+      "excerptSha256": "f67a30e583d43fd7db333899509fd8a82fee714545ca2dc5020a989a82f98f8b",
+      "sourceBytes": 4917,
+      "excerptBytes": 2529,
+      "mode": "AROUND",
+      "anchor": "P14-LIVE-005"
+    }
+  ],
+  "proposalRefs": [],
+  "artifactRefs": [],
+  "requiresValidation": true,
+  "externalEscalation": null,
+  "workProduct": {
+    "schema": "AgentWorkProduct@1.0.0",
+    "summary": "Designs a falsifiable A vs A+B experiment to test if a discovery-selected orderingState filter improves the baseline Short-MA cross above Medium-MA trigger. B is selected via discovery on the discovery window only; validation remains untouched chronological split. Falsification occurs if B's validation retention or MAE does not strictly improve over A.",
+    "findings": [
+      {
+        "kind": "DIRECT",
+        "claim": "The baseline feature 'A' is defined as every fresh Short-MA cross above Medium-MA event at a frozen parameter set, with D+1 entry and fixed horizon. The codebase explicitly treats ordering state as context only (SOURCE foundry-observation).",
+        "sourceInputIds": [
+          "foundry-observation"
+        ]
+      },
+      {
+        "kind": "DIRECT",
+        "claim": "The validation framework uses a chronological split with strict retention and MAE checks. Baseline comparison requires baselineComparable (SOURCE foundry-oos). Validation is independent of discovery selection logic.",
+        "sourceInputIds": [
+          "foundry-oos"
+        ]
+      },
+      {
+        "kind": "DIRECT",
+        "claim": "The orderingState filter 'B' must be selected by a discovery process on the discovery window only. The filter is applied to both A and A+B for comparison, but B's selection criteria are derived solely from discovery data.",
+        "sourceInputIds": [
+          "foundry-observation",
+          "foundry-oos"
+        ]
+      },
+      {
+        "kind": "INFERENCE",
+        "claim": "To ensure falsifiability, B must be a specific, pre-defined orderingState (e.g., 'C>M>S>L') identified by the discovery process. The experiment compares A (all crosses) vs A+B (crosses where orderingState matches B). If B's validation metrics do not show statistically significant improvement in retention or MAE over A, B is falsified.",
+        "sourceInputIds": [
+          "foundry-oos"
+        ]
+      },
+      {
+        "kind": "PROPOSAL",
+        "claim": "Discovery selects B by identifying the orderingState with the highest positiveBeforeNegativePct in the discovery window, provided it meets minimum sample count requirements. Validation compares A vs A+B using identical chronological split, MA parameters, and horizon.",
+        "sourceInputIds": [
+          "foundry-observation",
+          "foundry-oos"
+        ]
+      }
+    ],
+    "nextActions": [
+      "Define the specific orderingState B to be tested based on discovery window analysis.",
+      "Run A vs A+B experiment with identical validation parameters.",
+      "Evaluate falsification conditions: retention < 0.70 or MAE not improved."
+    ],
+    "profitabilityClaim": false
+  },
+  "runtimeMetrics": {
+    "wallSeconds": 36.254,
+    "outputTokens": 645,
+    "tokensPerSecond": 42.08569391120493,
+    "contextBytes": 11023,
+    "doneReason": "stop",
+    "outputAttempts": 1,
+    "outputStrict": true,
+    "outputRecovered": false,
+    "outputTrailingChars": 0,
+    "outputDiagnostics": [
+      {
+        "attempt": 1,
+        "doneReason": "stop",
+        "outputTokens": 645,
+        "contentChars": 2640,
+        "contentSha256": "308564494b23cda025ba6377aed5e2a545d06f8b17deb405e7d1130de4d1e12a",
+        "preview": "{\n  \"schema\": \"AgentWorkProduct@1.0.0\",\n  \"summary\": \"Designs a falsifiable A vs A+B experiment to test if a discovery-selected orderingState filter improves the baseline Short-MA cross above Medium-MA trigger. B is selected via discovery on the discovery window only; validation remains untouched chronological split. Falsification occurs if B's validation retention or MAE does not strictly improve over A.\",\n  \"findings\": [\n    {\n      \"kind\": \"DIRECT\",\n      \"claim\": \"The baseline feature 'A' is defined as every fresh Short-MA cross above Medium-MA event at a frozen parameter set, with D+1 entry and fixed horizon. The codebase explicitly treats ordering state as context only (SOURCE foundry-",
+        "validationError": null,
+        "maxOutputTokens": 1024,
+        "parse": {
+          "strict": true,
+          "recovered": false,
+          "trailing": 0,
+          "error": null
+        }
+      }
+    ]
+  }
+}

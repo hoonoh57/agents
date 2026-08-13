@@ -1,0 +1,149 @@
+{
+  "schema": "AgentTask@1.0.0",
+  "taskId": "TASK-20260813214743-f46e06",
+  "agentId": "feature-architect",
+  "goalId": "GOAL-FEATURE-ARCHITECT-MA-STATE-001",
+  "priority": 92,
+  "status": "COMPLETED",
+  "createdBy": "COORDINATOR_AFTER_VALIDATION_GATE",
+  "createdAt": "2026-08-13T21:47:43.555Z",
+  "objective": "Design exactly one falsifiable A versus A+B experiment. A is every fresh Short-MA cross above Medium-MA event at one frozen MA parameter set. A+B uses the same trigger, MA periods, D+1 entry, outcome horizon, universe and chronological split, adding only one discovery-selected orderingState filter. Specify how discovery chooses B, how validation stays untouched, which incremental metrics are compared, and what evidence falsifies B. Do not implement code or change parameters while evaluating B.",
+  "inputs": [
+    {
+      "schema": "ProjectContextInput@1.0.0",
+      "inputId": "foundry-observation",
+      "root": "RESEARCH_LOCAL_ROOT",
+      "path": "src/profit_feature_foundry.mjs",
+      "mode": "AROUND",
+      "anchor": "An ordering state is context only.",
+      "beforeChars": 500,
+      "afterChars": 3500,
+      "maxBytes": 4500
+    },
+    {
+      "schema": "ProjectContextInput@1.0.0",
+      "inputId": "foundry-oos",
+      "root": "RESEARCH_LOCAL_ROOT",
+      "path": "src/profit_feature_foundry.mjs",
+      "mode": "AROUND",
+      "anchor": "const baselineComparable = baselineN >= minimumValidationN",
+      "beforeChars": 1800,
+      "afterChars": 2600,
+      "maxBytes": 4800
+    },
+    {
+      "schema": "ProjectContextInput@1.0.0",
+      "inputId": "foundry-boundaries",
+      "root": "RESEARCH_LOCAL_ROOT",
+      "path": "tests/profit_feature_foundry_live_logic.test.mjs",
+      "mode": "AROUND",
+      "anchor": "P14-LIVE-005",
+      "beforeChars": 700,
+      "afterChars": 3000,
+      "maxBytes": 4000
+    }
+  ],
+  "requiredOutputs": [
+    "One experiment hypothesis",
+    "A and A+B contracts",
+    "Discovery-only B selection",
+    "Untouched chronological validation",
+    "Incremental outcome metrics",
+    "Falsification conditions"
+  ],
+  "constraints": [
+    "Use only resolved SOURCE inputIds",
+    "Ordering state is context, not trigger",
+    "A and A+B must keep identical MA parameters",
+    "Do not inspect validation while choosing B",
+    "Do not add a threshold to rescue results",
+    "Do not mutate code"
+  ],
+  "artifactRefs": [
+    "CURRENT_LOGIC_AUDIT_001",
+    "RESULT-20260813212146-8a6847",
+    "RESULT-20260813213200-vld001",
+    "kiwoom-autotrade-template@118acb5bbf334720df78e8213d48fef126ef5c9d"
+  ],
+  "dependsOn": [
+    "TASK-20260813212146-8a6847",
+    "TASK-20260813213200-vld001"
+  ],
+  "modelRoleHint": "LOCAL_REASONER",
+  "externalEscalationAllowed": true,
+  "attempt": 1,
+  "taskTemplate": "task-templates/feature-architect-ma-state-incremental.json",
+  "startedAt": "2026-08-13T21:47:46.774Z",
+  "completedAt": "2026-08-13T21:48:23.191Z",
+  "resultId": "RESULT-20260813214743-f46e06",
+  "workerId": "local-01",
+  "runtimeRun": 1,
+  "resolvedSourceRefs": [
+    {
+      "inputId": "foundry-observation",
+      "root": "RESEARCH_LOCAL_ROOT",
+      "relativePath": "src/profit_feature_foundry.mjs",
+      "repositoryHead": "118acb5bbf334720df78e8213d48fef126ef5c9d",
+      "fileSha256": "eac08702eb0be165520abecb475182964e8358e221b39951ab0c0c12564f4004",
+      "excerptSha256": "706619d50ca4ea2d5cc32a11ded8beebaec892057fc676b714696173b6ea0415",
+      "sourceBytes": 28728,
+      "excerptBytes": 4034,
+      "mode": "AROUND",
+      "anchor": "An ordering state is context only."
+    },
+    {
+      "inputId": "foundry-oos",
+      "root": "RESEARCH_LOCAL_ROOT",
+      "relativePath": "src/profit_feature_foundry.mjs",
+      "repositoryHead": "118acb5bbf334720df78e8213d48fef126ef5c9d",
+      "fileSha256": "eac08702eb0be165520abecb475182964e8358e221b39951ab0c0c12564f4004",
+      "excerptSha256": "70a0269170ef1a3318e74e10c85e4222991e9bc6fc2ff1b55b02c7985ff7844d",
+      "sourceBytes": 28728,
+      "excerptBytes": 4460,
+      "mode": "AROUND",
+      "anchor": "const baselineComparable = baselineN >= minimumValidationN"
+    },
+    {
+      "inputId": "foundry-boundaries",
+      "root": "RESEARCH_LOCAL_ROOT",
+      "relativePath": "tests/profit_feature_foundry_live_logic.test.mjs",
+      "repositoryHead": "118acb5bbf334720df78e8213d48fef126ef5c9d",
+      "fileSha256": "75638e7fdb3003110b336da03e555e526225bee314e0a0402c571833e7e6d783",
+      "excerptSha256": "f67a30e583d43fd7db333899509fd8a82fee714545ca2dc5020a989a82f98f8b",
+      "sourceBytes": 4917,
+      "excerptBytes": 2529,
+      "mode": "AROUND",
+      "anchor": "P14-LIVE-005"
+    }
+  ],
+  "contextBytes": 11023,
+  "runtimeMetrics": {
+    "wallSeconds": 36.254,
+    "outputTokens": 645,
+    "tokensPerSecond": 42.08569391120493,
+    "contextBytes": 11023,
+    "doneReason": "stop",
+    "outputAttempts": 1,
+    "outputStrict": true,
+    "outputRecovered": false,
+    "outputTrailingChars": 0,
+    "outputDiagnostics": [
+      {
+        "attempt": 1,
+        "doneReason": "stop",
+        "outputTokens": 645,
+        "contentChars": 2640,
+        "contentSha256": "308564494b23cda025ba6377aed5e2a545d06f8b17deb405e7d1130de4d1e12a",
+        "preview": "{\n  \"schema\": \"AgentWorkProduct@1.0.0\",\n  \"summary\": \"Designs a falsifiable A vs A+B experiment to test if a discovery-selected orderingState filter improves the baseline Short-MA cross above Medium-MA trigger. B is selected via discovery on the discovery window only; validation remains untouched chronological split. Falsification occurs if B's validation retention or MAE does not strictly improve over A.\",\n  \"findings\": [\n    {\n      \"kind\": \"DIRECT\",\n      \"claim\": \"The baseline feature 'A' is defined as every fresh Short-MA cross above Medium-MA event at a frozen parameter set, with D+1 entry and fixed horizon. The codebase explicitly treats ordering state as context only (SOURCE foundry-",
+        "validationError": null,
+        "maxOutputTokens": 1024,
+        "parse": {
+          "strict": true,
+          "recovered": false,
+          "trailing": 0,
+          "error": null
+        }
+      }
+    ]
+  }
+}
