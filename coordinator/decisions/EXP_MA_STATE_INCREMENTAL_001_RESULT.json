@@ -1,0 +1,41 @@
+{
+  "schema": "CoordinatorDecision@1.0.0",
+  "decisionId": "EXP_MA_STATE_INCREMENTAL_001_RESULT",
+  "experimentId": "EXP-MA-STATE-INCREMENTAL-001",
+  "datasetHash": "c4f56e2dae66fa09739797c9bac43b82b48d972591fe618dff16e5d4bacb5b3f",
+  "status": "NO_GO_SPARSE_OOS",
+  "requestedSymbolCount": 38,
+  "effectiveSymbolCount": 37,
+  "technicalExclusions": [
+    {
+      "symbol": "057050",
+      "reason": "historical daily page contained no dated rows"
+    }
+  ],
+  "evidence": {
+    "validationStart": "2026-07-10",
+    "discoveryEventCount": 12,
+    "discoveryUniqueSymbols": 12,
+    "discoveryUniqueDecisionDates": 6,
+    "discoveryMeanReturnPct": -1.4837128823071712,
+    "discoveryPositiveBeforeNegativePct": 16.666666666666664,
+    "discoveryNegativeBeforePositivePct": 75,
+    "bestOrderingState": null,
+    "validationEventCount": 0,
+    "oosStatus": "NO_DISCOVERY_STATE"
+  },
+  "interpretation": [
+    "The 20/60/120 fresh Short-MA cross baseline is too sparse for this frozen population and period to support the intended A versus A+B validation.",
+    "Discovery evidence is loss-dominant rather than promising: negative-before-positive events materially outnumber positive-before-negative events.",
+    "No recurring eligible orderingState was selected in Discovery, so B was never frozen.",
+    "The single technical data exclusion does not justify expanding data infrastructure or rescuing this hypothesis."
+  ],
+  "doNotDo": [
+    "do not add rescue filters to this experiment",
+    "do not extend the period merely to manufacture validation events",
+    "do not change MA periods inside this frozen experiment",
+    "do not treat zero validation events as profitability evidence"
+  ],
+  "nextGate": "Start a separate experiment with an existing chart-ready trigger that produces adequate Discovery event density; keep the same WYSIWYG and chronological validation discipline.",
+  "profitabilityClaim": false
+}
