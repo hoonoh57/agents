@@ -56,11 +56,11 @@ try {
             throw "kiwoom-desk repo not found: $KiwoomDeskRepo"
         }
         $serverFile = Join-Path $KiwoomDeskRepo 'server\index.ts'
-        $tsx = Join-Path $KiwoomDeskRepo 'node_modules\.bin\tsx.cmd'
+        $tsxCli = Join-Path $KiwoomDeskRepo 'node_modules\tsx\dist\cli.mjs'
         if (-not (Test-Path -LiteralPath $serverFile)) {
             throw "Kiwoom API server source missing: $serverFile"
         }
-        if (-not (Test-Path -LiteralPath $tsx)) {
+        if (-not (Test-Path -LiteralPath $tsxCli)) {
             throw "kiwoom-desk dependencies missing. Run once: Set-Location '$KiwoomDeskRepo'; npm install"
         }
 
@@ -69,7 +69,7 @@ try {
         $stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
         $proxyStdout = Join-Path $proxyLogDir ("kiwoom-api-$stamp.stdout.log")
         $proxyStderr = Join-Path $proxyLogDir ("kiwoom-api-$stamp.stderr.log")
-        $startedProxy = Start-Process -FilePath $tsx -ArgumentList 'server/index.ts' -WorkingDirectory $KiwoomDeskRepo -WindowStyle Hidden -RedirectStandardOutput $proxyStdout -RedirectStandardError $proxyStderr -PassThru
+        $startedProxy = Start-Process -FilePath 'node.exe' -ArgumentList @($tsxCli, 'server/index.ts') -WorkingDirectory $KiwoomDeskRepo -WindowStyle Hidden -RedirectStandardOutput $proxyStdout -RedirectStandardError $proxyStderr -PassThru
 
         for ($i = 0; $i -lt 40; $i++) {
             Start-Sleep -Milliseconds 500
