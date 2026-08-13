@@ -19,14 +19,14 @@ git pull --ff-only origin main
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
 Write-Host '[agent-worker] validate'
-node .\scripts\agent_runtime.mjs validate
+node .\scripts\agent_runtime_stable.mjs validate
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
 Write-Host '[agent-worker] run once'
 if ($Mock) {
-    node .\scripts\agent_runtime.mjs worker-once --mock
+    node .\scripts\agent_runtime_stable.mjs worker-once --mock
 } else {
-    node .\scripts\agent_runtime.mjs worker-once
+    node .\scripts\agent_runtime_stable.mjs worker-once
 }
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
