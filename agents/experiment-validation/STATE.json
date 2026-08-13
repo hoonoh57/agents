@@ -1,0 +1,10 @@
+{
+  "schema": "AgentState@1.0.0",
+  "agentId": "experiment-validation",
+  "status": "IDLE",
+  "activeTaskId": null,
+  "lastCompletedTaskId": null,
+  "modelRole": "LOCAL_FAST",
+  "blockedReason": null,
+  "updatedAt": null
+}

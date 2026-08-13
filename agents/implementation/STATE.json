@@ -1,0 +1,10 @@
+{
+  "schema": "AgentState@1.0.0",
+  "agentId": "implementation",
+  "status": "IDLE",
+  "activeTaskId": null,
+  "lastCompletedTaskId": null,
+  "modelRole": "LOCAL_CODER",
+  "blockedReason": null,
+  "updatedAt": null
+}

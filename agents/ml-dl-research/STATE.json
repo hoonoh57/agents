@@ -1,0 +1,10 @@
+{
+  "schema": "AgentState@1.0.0",
+  "agentId": "ml-dl-research",
+  "status": "IDLE",
+  "activeTaskId": null,
+  "lastCompletedTaskId": null,
+  "modelRole": "LOCAL_REASONER",
+  "blockedReason": null,
+  "updatedAt": null
+}
