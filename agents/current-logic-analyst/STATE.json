@@ -1,10 +1,10 @@
 {
   "schema": "AgentState@1.0.0",
   "agentId": "current-logic-analyst",
-  "status": "QUEUED",
+  "status": "ERROR",
   "activeTaskId": null,
   "lastCompletedTaskId": null,
   "modelRole": "LOCAL_REASONER",
-  "blockedReason": null,
-  "updatedAt": "2026-08-13T21:21:46.280Z"
+  "blockedReason": "OUTPUT_JSON_PARSE_FAILED",
+  "updatedAt": "2026-08-13T21:22:57.187Z"
 }

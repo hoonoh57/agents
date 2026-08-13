@@ -6,8 +6,10 @@
       "agentId": "current-logic-analyst",
       "goalId": "GOAL-CURRENT-LOGIC-BASELINE-001",
       "priority": 90,
-      "status": "QUEUED",
-      "createdAt": "2026-08-13T21:21:46.278Z"
+      "status": "ERROR",
+      "createdAt": "2026-08-13T21:21:46.278Z",
+      "startedAt": "2026-08-13T21:21:49.773Z",
+      "error": "OUTPUT_JSON_PARSE_FAILED"
     }
   ]
 }

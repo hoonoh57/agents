@@ -1,0 +1,124 @@
+{
+  "schema": "AgentTask@1.0.0",
+  "taskId": "TASK-20260813212146-8a6847",
+  "agentId": "current-logic-analyst",
+  "goalId": "GOAL-CURRENT-LOGIC-BASELINE-001",
+  "priority": 90,
+  "status": "RUNNING",
+  "createdBy": "HUMAN_RESEARCH_DIRECTOR",
+  "createdAt": "2026-08-13T21:21:46.278Z",
+  "objective": "Using only the resolved current repository evidence, diagnose the executable Profit Feature Explorer and Foundry baseline. Recover the trigger/context/entry semantics and fail-closed boundaries, identify evidence-backed strengths and the highest-risk missing evidence, then recommend one next experiment that measures incremental value without changing the hypothesis during evaluation. Do not write code and do not claim profitability.",
+  "inputs": [
+    {
+      "schema": "ProjectContextInput@1.0.0",
+      "inputId": "pfx-catalog",
+      "root": "RESEARCH_LOCAL_ROOT",
+      "path": "template/feature-packs/swing-research/ProfitFeatureCatalog.ts",
+      "mode": "FULL",
+      "maxBytes": 5000
+    },
+    {
+      "schema": "ProjectContextInput@1.0.0",
+      "inputId": "pfx-events",
+      "root": "RESEARCH_LOCAL_ROOT",
+      "path": "template/feature-packs/swing-research/ProfitFeatureExplorer.ts",
+      "mode": "AROUND",
+      "anchor": "export interface ExplorerSignalEvent",
+      "beforeChars": 500,
+      "afterChars": 3200,
+      "maxBytes": 4500
+    },
+    {
+      "schema": "ProjectContextInput@1.0.0",
+      "inputId": "foundry-causality",
+      "root": "RESEARCH_LOCAL_ROOT",
+      "path": "src/profit_feature_foundry.mjs",
+      "mode": "AROUND",
+      "anchor": "An ordering state is context only.",
+      "beforeChars": 500,
+      "afterChars": 3600,
+      "maxBytes": 5000
+    },
+    {
+      "schema": "ProjectContextInput@1.0.0",
+      "inputId": "foundry-live-regression",
+      "root": "RESEARCH_LOCAL_ROOT",
+      "path": "tests/profit_feature_foundry_live_logic.test.mjs",
+      "mode": "FULL",
+      "maxBytes": 5000
+    }
+  ],
+  "requiredOutputs": [
+    "Current executable trigger/context/decision/entry semantics",
+    "Fail-closed research boundaries supported by source evidence",
+    "Evidence-backed strengths",
+    "Highest-risk missing evidence or blind spots",
+    "Exactly one next experiment with measurable evidence requirements"
+  ],
+  "constraints": [
+    "Use only resolved SOURCE inputIds as evidence",
+    "Separate DIRECT evidence from INFERENCE and PROPOSAL",
+    "Do not mutate code or broker state",
+    "Do not call any feature profitable",
+    "Do not change the hypothesis during evaluation"
+  ],
+  "artifactRefs": [],
+  "dependsOn": [],
+  "modelRoleHint": "LOCAL_REASONER",
+  "externalEscalationAllowed": true,
+  "attempt": 1,
+  "taskTemplate": "task-templates/current-logic-baseline-review.json",
+  "startedAt": "2026-08-13T21:21:49.773Z",
+  "workerId": "local-01",
+  "resolvedSourceRefs": [
+    {
+      "inputId": "pfx-catalog",
+      "root": "RESEARCH_LOCAL_ROOT",
+      "relativePath": "template/feature-packs/swing-research/ProfitFeatureCatalog.ts",
+      "repositoryHead": "28877f60c2a0550ce62c053ddb38beb20249657c",
+      "fileSha256": "d5162b93d50d1488ad4af9fe9c7569c51defac85da79e051e046487473808101",
+      "excerptSha256": "d5162b93d50d1488ad4af9fe9c7569c51defac85da79e051e046487473808101",
+      "sourceBytes": 3033,
+      "excerptBytes": 3033,
+      "mode": "FULL",
+      "anchor": null
+    },
+    {
+      "inputId": "pfx-events",
+      "root": "RESEARCH_LOCAL_ROOT",
+      "relativePath": "template/feature-packs/swing-research/ProfitFeatureExplorer.ts",
+      "repositoryHead": "28877f60c2a0550ce62c053ddb38beb20249657c",
+      "fileSha256": "e4504f29f2d9f8d26a7616d3f95d5cf118c2f60b420d1619e84291f4385c62bb",
+      "excerptSha256": "ea19afebe702d0457c7f80a21fd57bd48a861cd11e82445d85f344c20b563b49",
+      "sourceBytes": 27781,
+      "excerptBytes": 3736,
+      "mode": "AROUND",
+      "anchor": "export interface ExplorerSignalEvent"
+    },
+    {
+      "inputId": "foundry-causality",
+      "root": "RESEARCH_LOCAL_ROOT",
+      "relativePath": "src/profit_feature_foundry.mjs",
+      "repositoryHead": "28877f60c2a0550ce62c053ddb38beb20249657c",
+      "fileSha256": "eac08702eb0be165520abecb475182964e8358e221b39951ab0c0c12564f4004",
+      "excerptSha256": "b5f3527871673c69f8e749ef6292560f1fcec6d2d1fd65e547e2633d2e2056dc",
+      "sourceBytes": 28728,
+      "excerptBytes": 4134,
+      "mode": "AROUND",
+      "anchor": "An ordering state is context only."
+    },
+    {
+      "inputId": "foundry-live-regression",
+      "root": "RESEARCH_LOCAL_ROOT",
+      "relativePath": "tests/profit_feature_foundry_live_logic.test.mjs",
+      "repositoryHead": "28877f60c2a0550ce62c053ddb38beb20249657c",
+      "fileSha256": "e41380c90113943c27c7104154b4b86da50f4012bf97e57d3cad6e75d57a90e1",
+      "excerptSha256": "e41380c90113943c27c7104154b4b86da50f4012bf97e57d3cad6e75d57a90e1",
+      "sourceBytes": 3106,
+      "excerptBytes": 3106,
+      "mode": "FULL",
+      "anchor": null
+    }
+  ],
+  "contextBytes": 14009
+}
