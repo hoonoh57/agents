@@ -37,6 +37,14 @@
       "error": null,
       "completedAt": "2026-08-13T21:48:23.191Z",
       "resultId": "RESULT-20260813214743-f46e06"
+    },
+    {
+      "taskId": "TASK-20260813215100-dat001",
+      "agentId": "data-capability",
+      "goalId": "GOAL-DATA-MA-STATE-SNAPSHOT-001",
+      "priority": 94,
+      "status": "QUEUED",
+      "createdAt": "2026-08-13T21:51:00.000Z"
     }
   ]
 }
