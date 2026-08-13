@@ -28,6 +28,10 @@ jobs:
         shell: pwsh
         run: node .\scripts\agent_runtime_stable.mjs validate
 
+      - name: Verify semantic benchmark scorer
+        shell: pwsh
+        run: node .\scripts\model_benchmark_v2.mjs self-test
+
       - name: Smoke lifecycle through Windows PowerShell 5.1
         shell: pwsh
         run: powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\VERIFY_AGENT_RUNTIME.ps1
