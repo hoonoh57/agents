@@ -12,6 +12,14 @@
       "error": null,
       "completedAt": "2026-08-13T21:29:37.032Z",
       "resultId": "RESULT-20260813212146-8a6847"
+    },
+    {
+      "taskId": "TASK-20260813213200-vld001",
+      "agentId": "experiment-validation",
+      "goalId": "GOAL-VALIDATE-CURRENT-LOGIC-001",
+      "priority": 95,
+      "status": "QUEUED",
+      "createdAt": "2026-08-13T21:32:00.000Z"
     }
   ]
 }
