@@ -6,10 +6,12 @@
       "agentId": "current-logic-analyst",
       "goalId": "GOAL-CURRENT-LOGIC-BASELINE-001",
       "priority": 90,
-      "status": "ERROR",
+      "status": "COMPLETED",
       "createdAt": "2026-08-13T21:21:46.278Z",
-      "startedAt": "2026-08-13T21:21:49.773Z",
-      "error": "OUTPUT_JSON_PARSE_FAILED"
+      "startedAt": "2026-08-13T21:29:17.614Z",
+      "error": null,
+      "completedAt": "2026-08-13T21:29:37.032Z",
+      "resultId": "RESULT-20260813212146-8a6847"
     }
   ]
 }

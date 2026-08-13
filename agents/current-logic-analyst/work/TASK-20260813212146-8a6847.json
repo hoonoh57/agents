@@ -4,7 +4,7 @@
   "agentId": "current-logic-analyst",
   "goalId": "GOAL-CURRENT-LOGIC-BASELINE-001",
   "priority": 90,
-  "status": "RUNNING",
+  "status": "COMPLETED",
   "createdBy": "HUMAN_RESEARCH_DIRECTOR",
   "createdAt": "2026-08-13T21:21:46.278Z",
   "objective": "Using only the resolved current repository evidence, diagnose the executable Profit Feature Explorer and Foundry baseline. Recover the trigger/context/entry semantics and fail-closed boundaries, identify evidence-backed strengths and the highest-risk missing evidence, then recommend one next experiment that measures incremental value without changing the hypothesis during evaluation. Do not write code and do not claim profitability.",
@@ -68,8 +68,11 @@
   "externalEscalationAllowed": true,
   "attempt": 1,
   "taskTemplate": "task-templates/current-logic-baseline-review.json",
-  "startedAt": "2026-08-13T21:21:49.773Z",
+  "startedAt": "2026-08-13T21:29:17.614Z",
+  "completedAt": "2026-08-13T21:29:37.032Z",
+  "resultId": "RESULT-20260813212146-8a6847",
   "workerId": "local-01",
+  "runtimeRun": 1,
   "resolvedSourceRefs": [
     {
       "inputId": "pfx-catalog",
@@ -120,5 +123,34 @@
       "anchor": null
     }
   ],
-  "contextBytes": 14009
+  "contextBytes": 14009,
+  "runtimeMetrics": {
+    "wallSeconds": 19.214,
+    "outputTokens": 655,
+    "tokensPerSecond": 42.433698964974056,
+    "contextBytes": 14009,
+    "doneReason": "stop",
+    "outputAttempts": 1,
+    "outputStrict": true,
+    "outputRecovered": false,
+    "outputTrailingChars": 0,
+    "outputDiagnostics": [
+      {
+        "attempt": 1,
+        "doneReason": "stop",
+        "outputTokens": 655,
+        "contentChars": 2610,
+        "contentSha256": "feba8d3e3d1bb5066c1d84375e31278fe3f2aa53e4caa5b4989b00ed8b3be820",
+        "preview": "{\n  \"schema\": \"AgentWorkProduct@1.0.0\",\n  \"summary\": \"The Profit Feature Explorer and Foundry baseline are structurally sound but rely on a specific 'Short-MA cross above Medium-MA' trigger with D+1 entry semantics. Evidence confirms fail-closed boundaries for data availability and ordering state, though validation eligibility logic shows high-risk blind spots regarding sparse discovery samples.\",\n  \"findings\": [\n    {\n      \"kind\": \"DIRECT\",\n      \"claim\": \"Trigger/Context Semantics: The system triggers on a Short-MA crossing above Medium-MA using completed Day (D) data. Entry occurs at the Day+1 open price. This is strictly context-only; no order state is mutated.\",\n      \"sourceInputIds\":",
+        "validationError": null,
+        "maxOutputTokens": 1024,
+        "parse": {
+          "strict": true,
+          "recovered": false,
+          "trailing": 0,
+          "error": null
+        }
+      }
+    ]
+  }
 }

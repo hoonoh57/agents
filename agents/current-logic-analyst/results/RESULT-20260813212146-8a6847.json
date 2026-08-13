@@ -1,0 +1,180 @@
+{
+  "schema": "AgentResult@1.0.0",
+  "resultId": "RESULT-20260813212146-8a6847",
+  "taskId": "TASK-20260813212146-8a6847",
+  "agentId": "current-logic-analyst",
+  "status": "COMPLETED",
+  "modelProfile": "LOCAL_REASONER",
+  "modelVersion": "qwen3.6:35b-a3b",
+  "startedAt": "2026-08-13T21:29:17.614Z",
+  "completedAt": "2026-08-13T21:29:37.032Z",
+  "summary": "The Profit Feature Explorer and Foundry baseline are structurally sound but rely on a specific 'Short-MA cross above Medium-MA' trigger with D+1 entry semantics. Evidence confirms fail-closed boundaries for data availability and ordering state, though validation eligibility logic shows high-risk blind spots regarding sparse discovery samples.",
+  "claims": [
+    {
+      "kind": "DIRECT",
+      "claim": "Trigger/Context Semantics: The system triggers on a Short-MA crossing above Medium-MA using completed Day (D) data. Entry occurs at the Day+1 open price. This is strictly context-only; no order state is mutated.",
+      "sourceInputIds": [
+        "foundry-causality"
+      ]
+    },
+    {
+      "kind": "DIRECT",
+      "claim": "Fail-Closed Boundaries: The system throws errors for non-finite parameters, invalid date ranges (from > to), and missing symbols. It also filters out candles where moving averages are not finite.",
+      "sourceInputIds": [
+        "pfx-events",
+        "foundry-causality"
+      ]
+    },
+    {
+      "kind": "DIRECT",
+      "claim": "Evidence-Backed Strength: The Foundry includes a live regression test (P14-LIVE-002) that explicitly rejects sparse discovery winners before Out-of-Sample (OOS) evaluation, preventing false optimums.",
+      "sourceInputIds": [
+        "foundry-live-regression"
+      ]
+    },
+    {
+      "kind": "INFERENCE",
+      "claim": "Highest-Risk Missing Evidence: The validation eligibility logic in P14-LIVE-002 uses a specific threshold (8) for 'screenshotLikeState'. It is unclear if this threshold is dynamically calculated or hardcoded, creating a potential blind spot for edge-case sample sizes.",
+      "sourceInputIds": [
+        "foundry-live-regression"
+      ]
+    },
+    {
+      "kind": "NEGATIVE_EVIDENCE",
+      "claim": "Baseline OOS Unavailability: The system no longer blocks optimized candidates due to 'BASELINE_UNEVALUABLE' status, instead using 'NO_BASELINE_IMPROVEMENT' or 'STATE_DID_NOT_RECUR', indicating a shift in how baseline comparability is handled.",
+      "sourceInputIds": [
+        "foundry-live-regression"
+      ]
+    }
+  ],
+  "sourceRefs": [
+    {
+      "inputId": "pfx-catalog",
+      "root": "RESEARCH_LOCAL_ROOT",
+      "relativePath": "template/feature-packs/swing-research/ProfitFeatureCatalog.ts",
+      "repositoryHead": "28877f60c2a0550ce62c053ddb38beb20249657c",
+      "fileSha256": "d5162b93d50d1488ad4af9fe9c7569c51defac85da79e051e046487473808101",
+      "excerptSha256": "d5162b93d50d1488ad4af9fe9c7569c51defac85da79e051e046487473808101",
+      "sourceBytes": 3033,
+      "excerptBytes": 3033,
+      "mode": "FULL",
+      "anchor": null
+    },
+    {
+      "inputId": "pfx-events",
+      "root": "RESEARCH_LOCAL_ROOT",
+      "relativePath": "template/feature-packs/swing-research/ProfitFeatureExplorer.ts",
+      "repositoryHead": "28877f60c2a0550ce62c053ddb38beb20249657c",
+      "fileSha256": "e4504f29f2d9f8d26a7616d3f95d5cf118c2f60b420d1619e84291f4385c62bb",
+      "excerptSha256": "ea19afebe702d0457c7f80a21fd57bd48a861cd11e82445d85f344c20b563b49",
+      "sourceBytes": 27781,
+      "excerptBytes": 3736,
+      "mode": "AROUND",
+      "anchor": "export interface ExplorerSignalEvent"
+    },
+    {
+      "inputId": "foundry-causality",
+      "root": "RESEARCH_LOCAL_ROOT",
+      "relativePath": "src/profit_feature_foundry.mjs",
+      "repositoryHead": "28877f60c2a0550ce62c053ddb38beb20249657c",
+      "fileSha256": "eac08702eb0be165520abecb475182964e8358e221b39951ab0c0c12564f4004",
+      "excerptSha256": "b5f3527871673c69f8e749ef6292560f1fcec6d2d1fd65e547e2633d2e2056dc",
+      "sourceBytes": 28728,
+      "excerptBytes": 4134,
+      "mode": "AROUND",
+      "anchor": "An ordering state is context only."
+    },
+    {
+      "inputId": "foundry-live-regression",
+      "root": "RESEARCH_LOCAL_ROOT",
+      "relativePath": "tests/profit_feature_foundry_live_logic.test.mjs",
+      "repositoryHead": "28877f60c2a0550ce62c053ddb38beb20249657c",
+      "fileSha256": "e41380c90113943c27c7104154b4b86da50f4012bf97e57d3cad6e75d57a90e1",
+      "excerptSha256": "e41380c90113943c27c7104154b4b86da50f4012bf97e57d3cad6e75d57a90e1",
+      "sourceBytes": 3106,
+      "excerptBytes": 3106,
+      "mode": "FULL",
+      "anchor": null
+    }
+  ],
+  "proposalRefs": [],
+  "artifactRefs": [],
+  "requiresValidation": true,
+  "externalEscalation": null,
+  "workProduct": {
+    "schema": "AgentWorkProduct@1.0.0",
+    "summary": "The Profit Feature Explorer and Foundry baseline are structurally sound but rely on a specific 'Short-MA cross above Medium-MA' trigger with D+1 entry semantics. Evidence confirms fail-closed boundaries for data availability and ordering state, though validation eligibility logic shows high-risk blind spots regarding sparse discovery samples.",
+    "findings": [
+      {
+        "kind": "DIRECT",
+        "claim": "Trigger/Context Semantics: The system triggers on a Short-MA crossing above Medium-MA using completed Day (D) data. Entry occurs at the Day+1 open price. This is strictly context-only; no order state is mutated.",
+        "sourceInputIds": [
+          "foundry-causality"
+        ]
+      },
+      {
+        "kind": "DIRECT",
+        "claim": "Fail-Closed Boundaries: The system throws errors for non-finite parameters, invalid date ranges (from > to), and missing symbols. It also filters out candles where moving averages are not finite.",
+        "sourceInputIds": [
+          "pfx-events",
+          "foundry-causality"
+        ]
+      },
+      {
+        "kind": "DIRECT",
+        "claim": "Evidence-Backed Strength: The Foundry includes a live regression test (P14-LIVE-002) that explicitly rejects sparse discovery winners before Out-of-Sample (OOS) evaluation, preventing false optimums.",
+        "sourceInputIds": [
+          "foundry-live-regression"
+        ]
+      },
+      {
+        "kind": "INFERENCE",
+        "claim": "Highest-Risk Missing Evidence: The validation eligibility logic in P14-LIVE-002 uses a specific threshold (8) for 'screenshotLikeState'. It is unclear if this threshold is dynamically calculated or hardcoded, creating a potential blind spot for edge-case sample sizes.",
+        "sourceInputIds": [
+          "foundry-live-regression"
+        ]
+      },
+      {
+        "kind": "NEGATIVE_EVIDENCE",
+        "claim": "Baseline OOS Unavailability: The system no longer blocks optimized candidates due to 'BASELINE_UNEVALUABLE' status, instead using 'NO_BASELINE_IMPROVEMENT' or 'STATE_DID_NOT_RECUR', indicating a shift in how baseline comparability is handled.",
+        "sourceInputIds": [
+          "foundry-live-regression"
+        ]
+      }
+    ],
+    "nextActions": [
+      "Conduct a targeted review of the `isDiscoveryStateValidationEligible` function logic to verify if the threshold '8' is hardcoded or derived, and assess its impact on sparse sample rejection.",
+      "Verify that the 'D+1 entry' semantics are consistently applied across all overlay series calculations in the Explorer to ensure no lookahead bias in historical backtests."
+    ],
+    "profitabilityClaim": false
+  },
+  "runtimeMetrics": {
+    "wallSeconds": 19.214,
+    "outputTokens": 655,
+    "tokensPerSecond": 42.433698964974056,
+    "contextBytes": 14009,
+    "doneReason": "stop",
+    "outputAttempts": 1,
+    "outputStrict": true,
+    "outputRecovered": false,
+    "outputTrailingChars": 0,
+    "outputDiagnostics": [
+      {
+        "attempt": 1,
+        "doneReason": "stop",
+        "outputTokens": 655,
+        "contentChars": 2610,
+        "contentSha256": "feba8d3e3d1bb5066c1d84375e31278fe3f2aa53e4caa5b4989b00ed8b3be820",
+        "preview": "{\n  \"schema\": \"AgentWorkProduct@1.0.0\",\n  \"summary\": \"The Profit Feature Explorer and Foundry baseline are structurally sound but rely on a specific 'Short-MA cross above Medium-MA' trigger with D+1 entry semantics. Evidence confirms fail-closed boundaries for data availability and ordering state, though validation eligibility logic shows high-risk blind spots regarding sparse discovery samples.\",\n  \"findings\": [\n    {\n      \"kind\": \"DIRECT\",\n      \"claim\": \"Trigger/Context Semantics: The system triggers on a Short-MA crossing above Medium-MA using completed Day (D) data. Entry occurs at the Day+1 open price. This is strictly context-only; no order state is mutated.\",\n      \"sourceInputIds\":",
+        "validationError": null,
+        "maxOutputTokens": 1024,
+        "parse": {
+          "strict": true,
+          "recovered": false,
+          "trailing": 0,
+          "error": null
+        }
+      }
+    ]
+  }
+}
