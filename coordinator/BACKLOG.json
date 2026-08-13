@@ -18,8 +18,11 @@
       "agentId": "experiment-validation",
       "goalId": "GOAL-VALIDATE-CURRENT-LOGIC-001",
       "priority": 95,
-      "status": "QUEUED",
-      "createdAt": "2026-08-13T21:32:00.000Z"
+      "status": "ERROR",
+      "createdAt": "2026-08-13T21:32:00.000Z",
+      "startedAt": "2026-08-13T21:34:18.979Z",
+      "error": "OUTPUT_INVALID_AFTER_RETRY:OUTPUT_SCHEMA_INVALID:missing",
+      "failedAt": "2026-08-13T21:34:56.142Z"
     }
   ]
 }

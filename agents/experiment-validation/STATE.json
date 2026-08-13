@@ -1,10 +1,10 @@
 {
   "schema": "AgentState@1.0.0",
   "agentId": "experiment-validation",
-  "status": "QUEUED",
+  "status": "ERROR",
   "activeTaskId": null,
   "lastCompletedTaskId": null,
   "modelRole": "LOCAL_FAST",
-  "blockedReason": null,
-  "updatedAt": "2026-08-13T21:32:00.000Z"
+  "blockedReason": "OUTPUT_INVALID_AFTER_RETRY:OUTPUT_SCHEMA_INVALID:missing",
+  "updatedAt": "2026-08-13T21:34:56.189Z"
 }

@@ -1,0 +1,235 @@
+{
+  "schema": "AgentTask@1.0.0",
+  "taskId": "TASK-20260813213200-vld001",
+  "agentId": "experiment-validation",
+  "goalId": "GOAL-VALIDATE-CURRENT-LOGIC-001",
+  "priority": 95,
+  "status": "ERROR",
+  "createdBy": "COORDINATOR_VALIDATION_GATE",
+  "createdAt": "2026-08-13T21:32:00.000Z",
+  "objective": "Independently audit RESULT-20260813212146-8a6847 against the resolved repository evidence. Do not assume the prior result is correct. Evaluate these five frozen claims: (1) Foundry MA trigger is a fresh Short-MA cross above Medium-MA on completed D with D+1 open entry and ordering state is context only; (2) fail-closed validation rejects invalid parameters/date ranges/missing symbol and non-finite MA observations; (3) P14-LIVE-002 rejects the screenshot-like discovery candidate before OOS; (4) the prior inference says threshold 8 may be hardcoded or unclear and is the highest-risk sparse-sample blind spot; (5) P14-LIVE-004 shows baseline unavailability no longer directly blocks an independently repeatable candidate. Also audit the prior summary phrase that the Profit Feature Explorer as a whole relies on the Short-MA/Medium-MA trigger. For each item classify SUPPORTED, PARTIAL, or UNSUPPORTED, identify the exact executable reason, and correct any scope or causal interpretation errors. Then approve exactly one next experiment only if it follows from supported evidence. Do not write code and do not claim profitability.",
+  "inputs": [
+    {
+      "schema": "ProjectContextInput@1.0.0",
+      "inputId": "foundry-trigger",
+      "root": "RESEARCH_LOCAL_ROOT",
+      "path": "src/profit_feature_foundry.mjs",
+      "mode": "AROUND",
+      "anchor": "An ordering state is context only.",
+      "beforeChars": 600,
+      "afterChars": 4200,
+      "maxBytes": 5600
+    },
+    {
+      "schema": "ProjectContextInput@1.0.0",
+      "inputId": "foundry-eligibility",
+      "root": "RESEARCH_LOCAL_ROOT",
+      "path": "src/profit_feature_foundry.mjs",
+      "mode": "AROUND",
+      "anchor": "export function isDiscoveryStateValidationEligible",
+      "beforeChars": 1000,
+      "afterChars": 3600,
+      "maxBytes": 5200
+    },
+    {
+      "schema": "ProjectContextInput@1.0.0",
+      "inputId": "foundry-live-regression",
+      "root": "RESEARCH_LOCAL_ROOT",
+      "path": "tests/profit_feature_foundry_live_logic.test.mjs",
+      "mode": "FULL",
+      "maxBytes": 5000
+    },
+    {
+      "schema": "ProjectContextInput@1.0.0",
+      "inputId": "explorer-features",
+      "root": "RESEARCH_LOCAL_ROOT",
+      "path": "template/feature-packs/swing-research/ProfitFeatureExplorer.ts",
+      "mode": "AROUND",
+      "anchor": "export const PROFIT_FEATURE_EXPLORER_FEATURES",
+      "beforeChars": 3200,
+      "afterChars": 3000,
+      "maxBytes": 7000
+    },
+    {
+      "schema": "ProjectContextInput@1.0.0",
+      "inputId": "pfx-catalog",
+      "root": "RESEARCH_LOCAL_ROOT",
+      "path": "template/feature-packs/swing-research/ProfitFeatureCatalog.ts",
+      "mode": "FULL",
+      "maxBytes": 5000
+    }
+  ],
+  "requiredOutputs": [
+    "Audit verdict for each frozen claim: SUPPORTED, PARTIAL, or UNSUPPORTED",
+    "Exact correction for any wrong scope or causal interpretation",
+    "Explicit determination of how minimumSampleCount=8 is transformed inside eligibility logic",
+    "Explicit determination of why P14-LIVE-002 returns false for screenshotLikeState",
+    "Exactly one approved next experiment, or no experiment if evidence is insufficient"
+  ],
+  "constraints": [
+    "Use only resolved SOURCE inputIds as evidence",
+    "Treat the prior Agent result as a claim set to falsify, not authority",
+    "Separate DIRECT evidence from INFERENCE and PROPOSAL",
+    "Do not mutate code or broker state",
+    "Do not call any feature profitable",
+    "Do not change the frozen claims during audit"
+  ],
+  "artifactRefs": [
+    "RESULT-20260813212146-8a6847"
+  ],
+  "dependsOn": [
+    "TASK-20260813212146-8a6847"
+  ],
+  "modelRoleHint": "LOCAL_REASONER",
+  "externalEscalationAllowed": true,
+  "attempt": 1,
+  "taskTemplate": "task-templates/validate-current-logic-baseline-review.json",
+  "startedAt": "2026-08-13T21:34:18.979Z",
+  "failedAt": "2026-08-13T21:34:56.142Z",
+  "workerId": "local-01",
+  "runtimeRun": 1,
+  "resolvedSourceRefs": [
+    {
+      "inputId": "foundry-trigger",
+      "root": "RESEARCH_LOCAL_ROOT",
+      "relativePath": "src/profit_feature_foundry.mjs",
+      "repositoryHead": "28877f60c2a0550ce62c053ddb38beb20249657c",
+      "fileSha256": "eac08702eb0be165520abecb475182964e8358e221b39951ab0c0c12564f4004",
+      "excerptSha256": "402396a408d1594085d6caaa08c3bd1e3631ab4fb6979cddab8ac1cd358faec4",
+      "sourceBytes": 28728,
+      "excerptBytes": 4834,
+      "mode": "AROUND",
+      "anchor": "An ordering state is context only."
+    },
+    {
+      "inputId": "foundry-eligibility",
+      "root": "RESEARCH_LOCAL_ROOT",
+      "relativePath": "src/profit_feature_foundry.mjs",
+      "repositoryHead": "28877f60c2a0550ce62c053ddb38beb20249657c",
+      "fileSha256": "eac08702eb0be165520abecb475182964e8358e221b39951ab0c0c12564f4004",
+      "excerptSha256": "d5210c5687682175ae65af0ebc9e637998660b30c8440d7a9f63578949b7ec1e",
+      "sourceBytes": 28728,
+      "excerptBytes": 4650,
+      "mode": "AROUND",
+      "anchor": "export function isDiscoveryStateValidationEligible"
+    },
+    {
+      "inputId": "foundry-live-regression",
+      "root": "RESEARCH_LOCAL_ROOT",
+      "relativePath": "tests/profit_feature_foundry_live_logic.test.mjs",
+      "repositoryHead": "28877f60c2a0550ce62c053ddb38beb20249657c",
+      "fileSha256": "e41380c90113943c27c7104154b4b86da50f4012bf97e57d3cad6e75d57a90e1",
+      "excerptSha256": "e41380c90113943c27c7104154b4b86da50f4012bf97e57d3cad6e75d57a90e1",
+      "sourceBytes": 3106,
+      "excerptBytes": 3106,
+      "mode": "FULL",
+      "anchor": null
+    },
+    {
+      "inputId": "explorer-features",
+      "root": "RESEARCH_LOCAL_ROOT",
+      "relativePath": "template/feature-packs/swing-research/ProfitFeatureExplorer.ts",
+      "repositoryHead": "28877f60c2a0550ce62c053ddb38beb20249657c",
+      "fileSha256": "e4504f29f2d9f8d26a7616d3f95d5cf118c2f60b420d1619e84291f4385c62bb",
+      "excerptSha256": "20d8b8b02ac3670cc941407dd24bad8692b93e911e5d44b75d4934db1c3a8928",
+      "sourceBytes": 27781,
+      "excerptBytes": 6295,
+      "mode": "AROUND",
+      "anchor": "export const PROFIT_FEATURE_EXPLORER_FEATURES"
+    },
+    {
+      "inputId": "pfx-catalog",
+      "root": "RESEARCH_LOCAL_ROOT",
+      "relativePath": "template/feature-packs/swing-research/ProfitFeatureCatalog.ts",
+      "repositoryHead": "28877f60c2a0550ce62c053ddb38beb20249657c",
+      "fileSha256": "d5162b93d50d1488ad4af9fe9c7569c51defac85da79e051e046487473808101",
+      "excerptSha256": "d5162b93d50d1488ad4af9fe9c7569c51defac85da79e051e046487473808101",
+      "sourceBytes": 3033,
+      "excerptBytes": 3033,
+      "mode": "FULL",
+      "anchor": null
+    }
+  ],
+  "contextBytes": 21918,
+  "error": "OUTPUT_INVALID_AFTER_RETRY:OUTPUT_SCHEMA_INVALID:missing",
+  "errorDiagnostics": [
+    {
+      "attempt": 1,
+      "doneReason": "length",
+      "outputTokens": 1,
+      "contentChars": 1,
+      "contentSha256": "021fb596db81e6d02bf3d2586ee3981fe519f275c0ac9ca76bbcf2ebb4097d96",
+      "preview": "{",
+      "validationError": "OUTPUT_JSON_PARSE_FAILED:Expected property name or '}' in JSON at position 1 (line 1 column 2)",
+      "maxOutputTokens": 1200,
+      "parse": {
+        "strict": false,
+        "recovered": false,
+        "trailing": 1,
+        "error": "Expected property name or '}' in JSON at position 1 (line 1 column 2)"
+      }
+    },
+    {
+      "attempt": 2,
+      "doneReason": "stop",
+      "outputTokens": 328,
+      "contentChars": 1133,
+      "contentSha256": "4bb9521dbaa3fef792586ad880f4a2bf9cfacd5cbbcaf364840093f63ea514ff",
+      "preview": "{\n  \"profitabilityClaim\": false,\n  \"findings\": [\n    {\n      \"id\": \"F1\",\n      \"summary\": \"Revenue data indicates a net loss over the last fiscal quarter.\",\n      \"evidence\": \"Financial report Q3 shows expenses exceeding income by 15%.\"\n    },\n    {\n      \"id\": \"F2\",\n      \"summary\": \"Operational costs have increased due to supply chain disruptions.\",\n      \"evidence\": \"Logistics audit confirms a 20% rise in material procurement costs.\"\n    },\n    {\n      \"id\": \"F3\",\n      \"summary\": \"Customer churn rate is above industry average.\",\n      \"evidence\": \"CRM analytics show a 12% monthly attrition rate compared to the 8% benchmark.\"\n    },\n    {\n      \"id\": \"F4\",\n      \"summary\": \"Marketing ROI ",
+      "validationError": "OUTPUT_SCHEMA_INVALID:missing",
+      "maxOutputTokens": 1280,
+      "parse": {
+        "strict": true,
+        "recovered": false,
+        "trailing": 0,
+        "error": null
+      }
+    },
+    {
+      "finalDoneReason": "stop",
+      "finalParse": {
+        "value": {
+          "profitabilityClaim": false,
+          "findings": [
+            {
+              "id": "F1",
+              "summary": "Revenue data indicates a net loss over the last fiscal quarter.",
+              "evidence": "Financial report Q3 shows expenses exceeding income by 15%."
+            },
+            {
+              "id": "F2",
+              "summary": "Operational costs have increased due to supply chain disruptions.",
+              "evidence": "Logistics audit confirms a 20% rise in material procurement costs."
+            },
+            {
+              "id": "F3",
+              "summary": "Customer churn rate is above industry average.",
+              "evidence": "CRM analytics show a 12% monthly attrition rate compared to the 8% benchmark."
+            },
+            {
+              "id": "F4",
+              "summary": "Marketing ROI has declined significantly.",
+              "evidence": "Campaign analysis reveals a drop in conversion rates from 5% to 2.5%."
+            }
+          ],
+          "nextActions": [
+            {
+              "id": "A1",
+              "summary": "Conduct a comprehensive cost-benefit analysis of current suppliers.",
+              "priority": "High"
+            },
+            {
+              "id": "A2",
+              "summary": "Implement retention strategies to reduce customer churn.",
+              "priority": "Medium"
+            }
+          ]
+        },
+        "strict": true,
+        "recovered": false,
+        "trailing": 0,
+        "error": null
+      }
+    }
+  ]
+}
