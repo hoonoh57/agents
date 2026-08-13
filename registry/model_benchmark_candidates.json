@@ -2,7 +2,7 @@
   "schema": "LocalModelBenchmarkCandidates@1.0.0",
   "asOf": "2026-08-13",
   "hardwareTarget": {
-    "gpu": "NVIDIA RTX 4070",
+    "gpu": "NVIDIA GeForce RTX 4070 Laptop GPU",
     "vramGiB": 8,
     "ramGiB": 32
   },
@@ -11,24 +11,16 @@
     "defaultContextTokens": 4096,
     "extendedContextTokens": 8192,
     "doNotAutoPullExtended": true,
+    "preferAlreadyInstalled": true,
     "sources": [
       "https://ollama.com/library/gemma4",
-      "https://ai.google.dev/gemma/docs/core/model_card_4",
+      "https://ollama.com/library/qwen3.6",
+      "https://ollama.com/library/gpt-oss",
       "https://docs.ollama.com/api/generate",
       "https://docs.ollama.com/api/ps"
     ]
   },
   "candidates": [
-    {
-      "model": "gemma4:e2b",
-      "family": "gemma4",
-      "tier": "CORE",
-      "roles": ["LOCAL_FAST", "LOCAL_REASONER", "LOCAL_VISION"],
-      "ollamaSizeGiBApprox": 7.2,
-      "advertisedContextTokens": 131072,
-      "modalities": ["text", "image"],
-      "notes": "Edge-oriented Gemma 4 candidate; benchmark as the lower-cost local baseline."
-    },
     {
       "model": "gemma4:12b",
       "family": "gemma4",
@@ -37,27 +29,67 @@
       "ollamaSizeGiBApprox": 7.6,
       "advertisedContextTokens": 262144,
       "modalities": ["text", "image"],
-      "notes": "Primary RTX 4070 quality candidate. Measure actual VRAM/offload and latency; do not assume full-GPU residency."
+      "notes": "Primary near-VRAM-fit candidate. Measure actual VRAM residency, offload, quality and latency."
     },
     {
       "model": "gemma4:e4b",
       "family": "gemma4",
-      "tier": "EXTENDED",
+      "tier": "INSTALLED_EXTENDED",
       "roles": ["LOCAL_FAST", "LOCAL_REASONER", "LOCAL_CODER", "LOCAL_VISION"],
       "ollamaSizeGiBApprox": 9.6,
       "advertisedContextTokens": 131072,
       "modalities": ["text", "image"],
-      "notes": "Exceeds 8 GiB model size; benchmark only as explicit extended/offload experiment."
+      "notes": "Installed edge MoE candidate. Slightly exceeds VRAM capacity; benchmark real offload cost."
     },
     {
       "model": "gemma4:26b",
       "family": "gemma4",
-      "tier": "EXTENDED",
+      "tier": "INSTALLED_EXTENDED",
       "roles": ["LOCAL_REASONER", "LOCAL_CODER", "LOCAL_VISION"],
       "ollamaSizeGiBApprox": 18.0,
       "advertisedContextTokens": 262144,
       "modalities": ["text", "image"],
-      "notes": "25.2B MoE with about 3.8B active parameters; requires substantial RAM/offload on this machine. Never auto-pull in core run."
+      "notes": "Installed workstation MoE candidate with roughly 4B active parameters. Evaluate RAM/offload cost rather than rejecting by file size alone."
+    },
+    {
+      "model": "qwen3.6:35b-a3b",
+      "family": "qwen3.6",
+      "tier": "INSTALLED_FRONTIER",
+      "roles": ["LOCAL_REASONER", "LOCAL_CODER", "LOCAL_VISION"],
+      "ollamaSizeGiBApprox": 24.0,
+      "advertisedContextTokens": null,
+      "modalities": ["text", "image"],
+      "notes": "Installed Qwen3.6 MoE frontier candidate; prioritize repository reasoning and agentic coding quality while measuring offload latency."
+    },
+    {
+      "model": "gpt-oss:20b",
+      "family": "gpt-oss",
+      "tier": "INSTALLED_FRONTIER",
+      "roles": ["LOCAL_FAST", "LOCAL_REASONER", "LOCAL_CODER"],
+      "ollamaSizeGiBApprox": 14.0,
+      "advertisedContextTokens": 131072,
+      "modalities": ["text"],
+      "notes": "Installed MXFP4 agentic/reasoning candidate. Compare structured-output reliability and latency under RAM/GPU offload."
+    },
+    {
+      "model": "qwen2.5-coder:7b",
+      "family": "qwen2.5-coder",
+      "tier": "INSTALLED_BASELINE",
+      "roles": ["LOCAL_CODER"],
+      "ollamaSizeGiBApprox": 4.7,
+      "advertisedContextTokens": null,
+      "modalities": ["text"],
+      "notes": "Installed coding baseline used to determine whether larger frontier models justify their runtime cost for implementation tasks."
+    },
+    {
+      "model": "gemma4:e2b",
+      "family": "gemma4",
+      "tier": "OPTIONAL_UNINSTALLED",
+      "roles": ["LOCAL_FAST", "LOCAL_REASONER", "LOCAL_VISION"],
+      "ollamaSizeGiBApprox": 7.2,
+      "advertisedContextTokens": 131072,
+      "modalities": ["text", "image"],
+      "notes": "Optional lower-cost Gemma 4 comparison. Do not download automatically because stronger candidates are already installed."
     }
   ]
 }
