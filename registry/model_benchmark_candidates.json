@@ -1,0 +1,63 @@
+{
+  "schema": "LocalModelBenchmarkCandidates@1.0.0",
+  "asOf": "2026-08-13",
+  "hardwareTarget": {
+    "gpu": "NVIDIA RTX 4070",
+    "vramGiB": 8,
+    "ramGiB": 32
+  },
+  "policy": {
+    "selection": "Benchmark on project-specific Agent tasks before assigning any LOCAL_* role.",
+    "defaultContextTokens": 4096,
+    "extendedContextTokens": 8192,
+    "doNotAutoPullExtended": true,
+    "sources": [
+      "https://ollama.com/library/gemma4",
+      "https://ai.google.dev/gemma/docs/core/model_card_4",
+      "https://docs.ollama.com/api/generate",
+      "https://docs.ollama.com/api/ps"
+    ]
+  },
+  "candidates": [
+    {
+      "model": "gemma4:e2b",
+      "family": "gemma4",
+      "tier": "CORE",
+      "roles": ["LOCAL_FAST", "LOCAL_REASONER", "LOCAL_VISION"],
+      "ollamaSizeGiBApprox": 7.2,
+      "advertisedContextTokens": 131072,
+      "modalities": ["text", "image"],
+      "notes": "Edge-oriented Gemma 4 candidate; benchmark as the lower-cost local baseline."
+    },
+    {
+      "model": "gemma4:12b",
+      "family": "gemma4",
+      "tier": "CORE",
+      "roles": ["LOCAL_REASONER", "LOCAL_CODER", "LOCAL_VISION"],
+      "ollamaSizeGiBApprox": 7.6,
+      "advertisedContextTokens": 262144,
+      "modalities": ["text", "image"],
+      "notes": "Primary RTX 4070 quality candidate. Measure actual VRAM/offload and latency; do not assume full-GPU residency."
+    },
+    {
+      "model": "gemma4:e4b",
+      "family": "gemma4",
+      "tier": "EXTENDED",
+      "roles": ["LOCAL_FAST", "LOCAL_REASONER", "LOCAL_CODER", "LOCAL_VISION"],
+      "ollamaSizeGiBApprox": 9.6,
+      "advertisedContextTokens": 131072,
+      "modalities": ["text", "image"],
+      "notes": "Exceeds 8 GiB model size; benchmark only as explicit extended/offload experiment."
+    },
+    {
+      "model": "gemma4:26b",
+      "family": "gemma4",
+      "tier": "EXTENDED",
+      "roles": ["LOCAL_REASONER", "LOCAL_CODER", "LOCAL_VISION"],
+      "ollamaSizeGiBApprox": 18.0,
+      "advertisedContextTokens": 262144,
+      "modalities": ["text", "image"],
+      "notes": "25.2B MoE with about 3.8B active parameters; requires substantial RAM/offload on this machine. Never auto-pull in core run."
+    }
+  ]
+}
