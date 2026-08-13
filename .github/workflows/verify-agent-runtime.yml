@@ -44,6 +44,14 @@ jobs:
           if ($errors.Count -gt 0) { $errors | Format-List | Out-String | Write-Host; exit 1 }
           Write-Host 'RUN_FIRST_CURRENT_LOGIC_TASK_PARSE_PASS'
 
+      - name: Parse approved MA state experiment launcher
+        shell: pwsh
+        run: |
+          $errors = $null
+          [System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path '.\scripts\RUN_APPROVED_MA_STATE_EXPERIMENT.ps1'), [ref]$null, [ref]$errors) | Out-Null
+          if ($errors.Count -gt 0) { $errors | Format-List | Out-String | Write-Host; exit 1 }
+          Write-Host 'RUN_APPROVED_MA_STATE_EXPERIMENT_PARSE_PASS'
+
       - name: Verify semantic benchmark scorer
         shell: pwsh
         run: node .\scripts\model_benchmark_v2.mjs self-test
