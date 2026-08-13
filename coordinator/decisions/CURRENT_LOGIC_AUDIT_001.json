@@ -1,0 +1,27 @@
+{
+  "schema": "CoordinatorDecision@1.0.0",
+  "decisionId": "CURRENT_LOGIC_AUDIT_001",
+  "status": "REJECTED_WITH_EVIDENCE",
+  "subjectResultId": "RESULT-20260813213200-vld001",
+  "subjectTaskId": "TASK-20260813213200-vld001",
+  "priorResultId": "RESULT-20260813212146-8a6847",
+  "repositoryHead": "28877f60c2a0550ce62c053ddb38beb20249657c",
+  "reason": "The validation agent successfully corrected Explorer scope but produced an internally contradictory audit verdict and an incorrect causal explanation for P14-LIVE-002 eligibility rejection.",
+  "acceptedFindings": [
+    "Foundry MA observations use a fresh Short-MA cross above Medium-MA on completed D information with D+1 open entry; ordering state is context only.",
+    "ProfitFeatureExplorer as a whole is not limited to the Short-MA/Medium-MA trigger; multiple chart-ready trigger implementations are registered.",
+    "P14-LIVE-004 preserves NO_BASELINE_IMPROVEMENT and STATE_DID_NOT_RECUR while BASELINE_UNEVALUABLE is not an executable OOS reason."
+  ],
+  "rejectedFindings": [
+    {
+      "claim": "Claim 4 SUPPORTED: threshold 8 may be hardcoded or unclear and is the highest-risk sparse-sample blind spot.",
+      "reason": "The same result correctly states that minimumSampleCount=8 is transformed by max(2, ceil(8/4)) to candidateMinN=2, which contradicts the SUPPORTED verdict."
+    },
+    {
+      "claim": "P14-LIVE-002 fails because recurringWindowCount default 0 is below Math.min(2, windows).",
+      "reason": "For screenshotLikeState, discoveryWindowCount is absent so windows=0. The expression fails at windows > 0; recurring=0 satisfies recurring >= Math.min(2,0)."
+    }
+  ],
+  "nextGate": "Add deterministic boundary regression tests to the trading repository before any Feature Architect experiment is approved.",
+  "profitabilityClaim": false
+}
