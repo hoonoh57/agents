@@ -1,0 +1,177 @@
+{
+  "schema": "ResearchExperimentEvidence@1.0.0",
+  "experimentId": "EXP-MA-STATE-INCREMENTAL-001",
+  "status": "MEASURED_WITH_DATA_EXCLUSIONS_NOT_PROFITABILITY_VALIDATED",
+  "approvedLogicCommit": "118acb5bbf334720df78e8213d48fef126ef5c9d",
+  "requestedPopulationHash": "7f397cc3daa6bd7d3b7faaedba5b0524b1e2a5f8c4b350afefeb161e63aee942",
+  "populationHash": "7250d269c191ef9126e6e2349560e8cc47955638b5788e0f62b4ea8d7a0bf657",
+  "requestedSymbolCount": 38,
+  "effectiveSymbolCount": 37,
+  "excludedSymbols": [
+    {
+      "symbol": "057050",
+      "reason": "057050 page 1 contains no dated daily rows",
+      "detailHash": "7791c24a4b0c56c7b16c20aa1dbcbad7ee535ef75e84a43b45522495759aba06"
+    }
+  ],
+  "datasetHash": "c4f56e2dae66fa09739797c9bac43b82b48d972591fe618dff16e5d4bacb5b3f",
+  "chronologicalPlanHash": "1682bff30d62aa1b828c40659b01dda06c08170409f98654dab45ec145d76bcc",
+  "dateFrom": "2026-04-22",
+  "dateTo": "2026-08-13",
+  "parameters": {
+    "short": 20,
+    "medium": 60,
+    "long": 120
+  },
+  "objective": {
+    "horizonSessions": 5,
+    "positivePct": 3,
+    "negativePct": 1,
+    "validationFraction": 0.3
+  },
+  "minimumSampleCount": 8,
+  "researchPlan": {
+    "decisionDateCount": 77,
+    "dateFrom": "2026-04-22",
+    "dateTo": "2026-08-13",
+    "validationStart": "2026-07-10",
+    "discoveryWindows": [
+      {
+        "index": 1,
+        "dateFrom": "2026-04-22",
+        "dateTo": "2026-05-13"
+      },
+      {
+        "index": 2,
+        "dateFrom": "2026-05-14",
+        "dateTo": "2026-06-02"
+      },
+      {
+        "index": 3,
+        "dateFrom": "2026-06-04",
+        "dateTo": "2026-06-22"
+      },
+      {
+        "index": 4,
+        "dateFrom": "2026-06-23",
+        "dateTo": "2026-07-09"
+      }
+    ]
+  },
+  "bestState": null,
+  "discoveryAllEvents": {
+    "sampleCount": 12,
+    "uniqueSymbols": 12,
+    "uniqueDecisionDates": 6,
+    "meanReturnPct": -1.4837128823071712,
+    "medianReturnPct": -4.26933716352803,
+    "winRatePct": 16.666666666666664,
+    "meanMfePct": 9.750376467718564,
+    "medianMfePct": 4.840149302174623,
+    "meanMaePct": -8.309254420846708,
+    "medianMaePct": -8.261169604479672,
+    "positiveBeforeNegativePct": 16.666666666666664,
+    "negativeBeforePositivePct": 75,
+    "ambiguousSameSessionPct": 8.333333333333332,
+    "noHitPct": 0
+  },
+  "discoverySelectedState": null,
+  "validationAllEvents": {
+    "sampleCount": 0,
+    "uniqueSymbols": 0,
+    "uniqueDecisionDates": 0,
+    "meanReturnPct": null,
+    "medianReturnPct": null,
+    "winRatePct": null,
+    "meanMfePct": null,
+    "medianMfePct": null,
+    "meanMaePct": null,
+    "medianMaePct": null,
+    "positiveBeforeNegativePct": null,
+    "negativeBeforePositivePct": null,
+    "ambiguousSameSessionPct": null,
+    "noHitPct": null
+  },
+  "validationSelectedState": null,
+  "incrementalOutcome": {
+    "schema": "ResearchIncrementalOutcome@1.0.0",
+    "experimentId": "EXP-MA-STATE-INCREMENTAL-001",
+    "datasetHash": "c4f56e2dae66fa09739797c9bac43b82b48d972591fe618dff16e5d4bacb5b3f",
+    "comparison": "A_VS_A_PLUS_B",
+    "A": {
+      "definition": "all fresh Short-MA cross above Medium-MA validation events",
+      "summary": {
+        "sampleCount": 0,
+        "uniqueSymbols": 0,
+        "uniqueDecisionDates": 0,
+        "meanReturnPct": null,
+        "medianReturnPct": null,
+        "winRatePct": null,
+        "meanMfePct": null,
+        "medianMfePct": null,
+        "meanMaePct": null,
+        "medianMaePct": null,
+        "positiveBeforeNegativePct": null,
+        "negativeBeforePositivePct": null,
+        "ambiguousSameSessionPct": null,
+        "noHitPct": null
+      }
+    },
+    "B": {
+      "definition": "Discovery-selected orderingState context only",
+      "orderingState": null
+    },
+    "AplusB": {
+      "definition": "same validation events restricted to B",
+      "summary": {
+        "sampleCount": 0,
+        "uniqueSymbols": 0,
+        "uniqueDecisionDates": 0,
+        "meanReturnPct": null,
+        "medianReturnPct": null,
+        "winRatePct": null,
+        "meanMfePct": null,
+        "medianMfePct": null,
+        "meanMaePct": null,
+        "medianMaePct": null,
+        "positiveBeforeNegativePct": null,
+        "negativeBeforePositivePct": null,
+        "ambiguousSameSessionPct": null,
+        "noHitPct": null
+      }
+    },
+    "delta": {
+      "eventCount": 0,
+      "meanReturnPct": null,
+      "medianReturnPct": null,
+      "meanMfePct": null,
+      "meanMaePct": null,
+      "positiveBeforeNegativePct": null,
+      "winnerRetentionPct": null,
+      "loserRemovalPct": null
+    },
+    "counts": {
+      "baselinePositiveFirst": 0,
+      "candidatePositiveFirst": 0,
+      "baselineNegativeFirst": 0,
+      "candidateNegativeFirst": 0
+    },
+    "oosStatus": "NO_DISCOVERY_STATE",
+    "validationEventIdsA": [],
+    "validationEventIdsAplusB": [],
+    "profitabilityClaim": false
+  },
+  "metadata": {
+    "sourceRepositoryCommit": "009d05d6b3cd527adcc88e7346bc35148e73fa79",
+    "logicSourceSha256": "eac08702eb0be165520abecb475182964e8358e221b39951ab0c0c12564f4004",
+    "proxyMode": "모의투자",
+    "requestedSymbolCount": 38,
+    "effectiveSymbolCount": 37,
+    "dataExclusionCount": 1,
+    "sourceAnomalyCount": 1,
+    "sourceAnomalyHash": "4ae33a4280e3ac03e63ded822b906ee37266860d8c1856fa75341eda5c3f0255",
+    "rawSnapshotSha256": "5d1aba18969efa50797527ffd02623f654334bf433ec95ddf6e51406757f223d",
+    "manifestSha256": "b8d32f5acb7f040c1125cbafbb8c948bf7fe978549107600302721024beea13b"
+  },
+  "profitabilityClaim": false
+}

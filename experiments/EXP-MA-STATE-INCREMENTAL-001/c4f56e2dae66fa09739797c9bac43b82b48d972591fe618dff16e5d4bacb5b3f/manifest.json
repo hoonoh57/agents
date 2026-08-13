@@ -1,0 +1,548 @@
+{
+  "schema": "ResearchDataSnapshotManifest@1.0.0",
+  "snapshotId": "SNAP-EXP-MA-STATE-INCREMENTAL-001-c4f56e2dae66",
+  "experimentId": "EXP-MA-STATE-INCREMENTAL-001",
+  "sourceRepositoryCommit": "009d05d6b3cd527adcc88e7346bc35148e73fa79",
+  "logicSourceSha256": "eac08702eb0be165520abecb475182964e8358e221b39951ab0c0c12564f4004",
+  "populationDefinition": {
+    "type": "FROZEN_HISTORICAL_COHORT_FILE",
+    "sourceFile": "aris_target_20260422_0905_1516_7h.csv",
+    "sourceFileSha256": "e55e29d9834a6114eaf406a1ae66471116857a3766bab4738e2672c5309d7d58",
+    "captureDate": "2026-04-22",
+    "captureTime": "09:05:00",
+    "rowCount": 38,
+    "identityRule": "sourceFileSha256 plus symbolsSorted; legacy condition_name is not semantic identity",
+    "requestedPopulationHash": "7f397cc3daa6bd7d3b7faaedba5b0524b1e2a5f8c4b350afefeb161e63aee942",
+    "requestedRowCount": 38,
+    "technicalExclusionPolicy": {
+      "maxExcludedSymbols": 3,
+      "criterion": "exclude only when historical daily data cannot be normalized or warm-up is insufficient before evaluation"
+    },
+    "exclusions": [
+      {
+        "symbol": "057050",
+        "reason": "057050 page 1 contains no dated daily rows",
+        "detailHash": "7791c24a4b0c56c7b16c20aa1dbcbad7ee535ef75e84a43b45522495759aba06"
+      }
+    ]
+  },
+  "populationHash": "7250d269c191ef9126e6e2349560e8cc47955638b5788e0f62b4ea8d7a0bf657",
+  "symbolsSorted": [
+    "004020",
+    "004980",
+    "005440",
+    "006360",
+    "006910",
+    "008770",
+    "014940",
+    "017550",
+    "018880",
+    "028050",
+    "038060",
+    "042370",
+    "047040",
+    "049800",
+    "060370",
+    "065350",
+    "067730",
+    "077500",
+    "083930",
+    "084850",
+    "088130",
+    "105840",
+    "114190",
+    "161000",
+    "183300",
+    "195870",
+    "222080",
+    "256840",
+    "259630",
+    "336370",
+    "353200",
+    "355390",
+    "375500",
+    "378340",
+    "417840",
+    "437730",
+    "476040"
+  ],
+  "dateFrom": "2026-04-22",
+  "dateTo": "2026-08-13",
+  "objective": {
+    "horizonSessions": 5,
+    "positivePct": 3,
+    "negativePct": 1,
+    "validationFraction": 0.3
+  },
+  "featureParameters": {
+    "short": 20,
+    "medium": 60,
+    "long": 120
+  },
+  "minimumSampleCount": 8,
+  "dataContract": {
+    "sourceApiId": "ka10081",
+    "sourceListKey": "stk_dt_pole_chart_qry",
+    "sourcePeriod": "DAY",
+    "adjustedPrice": true,
+    "finalPolicy": "Only normalized candles with final=true enter research calculations.",
+    "candleHashFields": [
+      "tradingDate",
+      "open",
+      "high",
+      "low",
+      "close",
+      "volume",
+      "adjustedPrice",
+      "sourceApiId",
+      "sourceListKey",
+      "sourcePeriod",
+      "final"
+    ],
+    "malformedRowPolicy": "Rows without an 8-digit trading date are excluded before strict candle normalization and preserved by sourceAnomalyCount/sourceAnomalyHash."
+  },
+  "warmupPolicy": {
+    "minimumBarsBeforeDateFrom": 120,
+    "decisionEventsBeforeDateFrom": false,
+    "fetchBaseDate": "20260813",
+    "outcomeDataThrough": "2026-08-13",
+    "maxTechnicalDataExclusions": 3,
+    "excludedSymbols": [
+      "057050"
+    ]
+  },
+  "perSymbol": [
+    {
+      "symbol": "004020",
+      "candleCount": 600,
+      "firstTradingDate": "2024-02-26",
+      "lastTradingDate": "2026-08-13",
+      "candleHash": "27f92bc10fc14b48cd539470af823a10520dd786fba9799d0b598fccad4ca903",
+      "fetchedPages": 1,
+      "sourceAnomalyCount": 0,
+      "sourceAnomalyHash": null
+    },
+    {
+      "symbol": "004980",
+      "candleCount": 600,
+      "firstTradingDate": "2024-02-26",
+      "lastTradingDate": "2026-08-13",
+      "candleHash": "b1b4be02e6731bb13cc6ac6c1e4d05657af34d3a1477e036407bb3445fc41367",
+      "fetchedPages": 1,
+      "sourceAnomalyCount": 0,
+      "sourceAnomalyHash": null
+    },
+    {
+      "symbol": "005440",
+      "candleCount": 600,
+      "firstTradingDate": "2024-02-26",
+      "lastTradingDate": "2026-08-13",
+      "candleHash": "3b2ba6eeba60e34bdf7a4e83fb709b94e898638cfd8913249219650ae17be35e",
+      "fetchedPages": 1,
+      "sourceAnomalyCount": 0,
+      "sourceAnomalyHash": null
+    },
+    {
+      "symbol": "006360",
+      "candleCount": 600,
+      "firstTradingDate": "2024-02-26",
+      "lastTradingDate": "2026-08-13",
+      "candleHash": "5ffd4a47520428b4b387fe9ae1237ade6bee80f090cc30598ce6e11d79c27321",
+      "fetchedPages": 1,
+      "sourceAnomalyCount": 0,
+      "sourceAnomalyHash": null
+    },
+    {
+      "symbol": "006910",
+      "candleCount": 600,
+      "firstTradingDate": "2024-02-26",
+      "lastTradingDate": "2026-08-13",
+      "candleHash": "5e580babb7660094f0d416faa6d65d464133db07b6b75c3b303ee522ba18abad",
+      "fetchedPages": 1,
+      "sourceAnomalyCount": 0,
+      "sourceAnomalyHash": null
+    },
+    {
+      "symbol": "008770",
+      "candleCount": 600,
+      "firstTradingDate": "2024-02-26",
+      "lastTradingDate": "2026-08-13",
+      "candleHash": "41636cc6799d529c0a1576b69ae405775ae8bc7489792f2dca2532d26791edcc",
+      "fetchedPages": 1,
+      "sourceAnomalyCount": 0,
+      "sourceAnomalyHash": null
+    },
+    {
+      "symbol": "014940",
+      "candleCount": 600,
+      "firstTradingDate": "2024-02-26",
+      "lastTradingDate": "2026-08-13",
+      "candleHash": "95b7b59f305eab338455c17767d00efed8f86fbc811ee2b00f4d296fd95260e0",
+      "fetchedPages": 1,
+      "sourceAnomalyCount": 0,
+      "sourceAnomalyHash": null
+    },
+    {
+      "symbol": "017550",
+      "candleCount": 600,
+      "firstTradingDate": "2024-02-26",
+      "lastTradingDate": "2026-08-13",
+      "candleHash": "5081375e19358871ff2d615ecb74e5f6bf095d3377cfb30723891fc46569de45",
+      "fetchedPages": 1,
+      "sourceAnomalyCount": 0,
+      "sourceAnomalyHash": null
+    },
+    {
+      "symbol": "018880",
+      "candleCount": 600,
+      "firstTradingDate": "2024-02-26",
+      "lastTradingDate": "2026-08-13",
+      "candleHash": "6f6cd60e25bfdc9b2d658fa82142ef4b6cf060490f39fc0d7be805fdba314c58",
+      "fetchedPages": 1,
+      "sourceAnomalyCount": 0,
+      "sourceAnomalyHash": null
+    },
+    {
+      "symbol": "028050",
+      "candleCount": 600,
+      "firstTradingDate": "2024-02-26",
+      "lastTradingDate": "2026-08-13",
+      "candleHash": "53137461bc30adb1c7eb6a09cf2628f13a42e2ff6b15248ab03fa7fe63ee2d9c",
+      "fetchedPages": 1,
+      "sourceAnomalyCount": 0,
+      "sourceAnomalyHash": null
+    },
+    {
+      "symbol": "038060",
+      "candleCount": 600,
+      "firstTradingDate": "2024-02-26",
+      "lastTradingDate": "2026-08-13",
+      "candleHash": "ffaa0d4efd257ca3d34a0c37298192c6f4d7695060d4bbf15db2fd863b87585d",
+      "fetchedPages": 1,
+      "sourceAnomalyCount": 0,
+      "sourceAnomalyHash": null
+    },
+    {
+      "symbol": "042370",
+      "candleCount": 600,
+      "firstTradingDate": "2024-02-26",
+      "lastTradingDate": "2026-08-13",
+      "candleHash": "ccf20b8e32520ecd23a1a44c26ac150ced0a53af5ded8b9d501621859421f82a",
+      "fetchedPages": 1,
+      "sourceAnomalyCount": 0,
+      "sourceAnomalyHash": null
+    },
+    {
+      "symbol": "047040",
+      "candleCount": 600,
+      "firstTradingDate": "2024-02-26",
+      "lastTradingDate": "2026-08-13",
+      "candleHash": "3c4e22db99ca77d4cd875edf391cd52fa4400d7dc50a8b5ff9c1ee4b3e1a0ff5",
+      "fetchedPages": 1,
+      "sourceAnomalyCount": 0,
+      "sourceAnomalyHash": null
+    },
+    {
+      "symbol": "049800",
+      "candleCount": 600,
+      "firstTradingDate": "2024-02-26",
+      "lastTradingDate": "2026-08-13",
+      "candleHash": "263faa6b47f64b45905abf3ae8fc8dcb9547ef0fa75dd7fe034e2d668cd71b90",
+      "fetchedPages": 1,
+      "sourceAnomalyCount": 0,
+      "sourceAnomalyHash": null
+    },
+    {
+      "symbol": "060370",
+      "candleCount": 600,
+      "firstTradingDate": "2024-02-26",
+      "lastTradingDate": "2026-08-13",
+      "candleHash": "a0496124ae565c8f65a88d7461c99131403fb746fc9aec67ac0d524649f5cdc4",
+      "fetchedPages": 1,
+      "sourceAnomalyCount": 0,
+      "sourceAnomalyHash": null
+    },
+    {
+      "symbol": "065350",
+      "candleCount": 600,
+      "firstTradingDate": "2024-02-26",
+      "lastTradingDate": "2026-08-13",
+      "candleHash": "be8eb507564a017a8082edfc7c8352583f5ca396a98c33e924e3b8aea2885653",
+      "fetchedPages": 1,
+      "sourceAnomalyCount": 0,
+      "sourceAnomalyHash": null
+    },
+    {
+      "symbol": "067730",
+      "candleCount": 600,
+      "firstTradingDate": "2024-02-26",
+      "lastTradingDate": "2026-08-13",
+      "candleHash": "a6d72b2fa0b297750b1be2c7c46af74e4dd161f13faf3487f1ad15aad99f63c5",
+      "fetchedPages": 1,
+      "sourceAnomalyCount": 0,
+      "sourceAnomalyHash": null
+    },
+    {
+      "symbol": "077500",
+      "candleCount": 600,
+      "firstTradingDate": "2024-02-26",
+      "lastTradingDate": "2026-08-13",
+      "candleHash": "73970afd938b3343128b2d10d5f3be8df0a3a2a434113b76fd65d649ade9b171",
+      "fetchedPages": 1,
+      "sourceAnomalyCount": 0,
+      "sourceAnomalyHash": null
+    },
+    {
+      "symbol": "083930",
+      "candleCount": 600,
+      "firstTradingDate": "2024-02-26",
+      "lastTradingDate": "2026-08-13",
+      "candleHash": "8ed46e551cb7179216313786bd313b94941c645d28d5aca46b155419a4e4a24d",
+      "fetchedPages": 1,
+      "sourceAnomalyCount": 0,
+      "sourceAnomalyHash": null
+    },
+    {
+      "symbol": "084850",
+      "candleCount": 600,
+      "firstTradingDate": "2024-02-26",
+      "lastTradingDate": "2026-08-13",
+      "candleHash": "dfeaa88cdeb29b6a6d05992014178886f8f99f28a8d9c7b7223de0f3855fdfbb",
+      "fetchedPages": 1,
+      "sourceAnomalyCount": 0,
+      "sourceAnomalyHash": null
+    },
+    {
+      "symbol": "088130",
+      "candleCount": 600,
+      "firstTradingDate": "2024-02-26",
+      "lastTradingDate": "2026-08-13",
+      "candleHash": "0cebd088bf1479f67c1d975bc0690a222fdfd45bda9e12630fae8d3c423291ad",
+      "fetchedPages": 1,
+      "sourceAnomalyCount": 0,
+      "sourceAnomalyHash": null
+    },
+    {
+      "symbol": "105840",
+      "candleCount": 600,
+      "firstTradingDate": "2024-02-26",
+      "lastTradingDate": "2026-08-13",
+      "candleHash": "bd137daf7e727689921fa452fec9e8c540abe9e5fe70fb7217582177a1311e48",
+      "fetchedPages": 1,
+      "sourceAnomalyCount": 0,
+      "sourceAnomalyHash": null
+    },
+    {
+      "symbol": "114190",
+      "candleCount": 600,
+      "firstTradingDate": "2024-02-26",
+      "lastTradingDate": "2026-08-13",
+      "candleHash": "d29d011589a6f303dffe01e940c24dbb4095d015ccedb96192c7421d424bdfaa",
+      "fetchedPages": 1,
+      "sourceAnomalyCount": 0,
+      "sourceAnomalyHash": null
+    },
+    {
+      "symbol": "161000",
+      "candleCount": 600,
+      "firstTradingDate": "2024-02-26",
+      "lastTradingDate": "2026-08-13",
+      "candleHash": "9da0537c099fc533271a4c9140fb934cc42355a72a8564641193e61b2efa7571",
+      "fetchedPages": 1,
+      "sourceAnomalyCount": 0,
+      "sourceAnomalyHash": null
+    },
+    {
+      "symbol": "183300",
+      "candleCount": 600,
+      "firstTradingDate": "2024-02-26",
+      "lastTradingDate": "2026-08-13",
+      "candleHash": "7bf1ea99c74f5ca918ef5f0b244d92a402618d03883049ad24d3004900b5b4a7",
+      "fetchedPages": 1,
+      "sourceAnomalyCount": 0,
+      "sourceAnomalyHash": null
+    },
+    {
+      "symbol": "195870",
+      "candleCount": 600,
+      "firstTradingDate": "2024-02-26",
+      "lastTradingDate": "2026-08-13",
+      "candleHash": "526e59a853833c858042f285cab11a4909c45cd481ec4da3179f85ac8b5461b1",
+      "fetchedPages": 1,
+      "sourceAnomalyCount": 0,
+      "sourceAnomalyHash": null
+    },
+    {
+      "symbol": "222080",
+      "candleCount": 600,
+      "firstTradingDate": "2024-02-26",
+      "lastTradingDate": "2026-08-13",
+      "candleHash": "9f22422cfd3cf15c61f81b7f4cb8f697494bc57d7a14237b7c5488f2dc3ca109",
+      "fetchedPages": 1,
+      "sourceAnomalyCount": 0,
+      "sourceAnomalyHash": null
+    },
+    {
+      "symbol": "256840",
+      "candleCount": 600,
+      "firstTradingDate": "2024-02-26",
+      "lastTradingDate": "2026-08-13",
+      "candleHash": "a4e87fa7e0e145595e6eaf045a139376414050f592c75f0c8b71dd7816f74e41",
+      "fetchedPages": 1,
+      "sourceAnomalyCount": 0,
+      "sourceAnomalyHash": null
+    },
+    {
+      "symbol": "259630",
+      "candleCount": 600,
+      "firstTradingDate": "2024-02-26",
+      "lastTradingDate": "2026-08-13",
+      "candleHash": "084de3096e2c9b0d0ceccd0d786b07eeece53cd4974e0fef449560c4f24847ef",
+      "fetchedPages": 1,
+      "sourceAnomalyCount": 0,
+      "sourceAnomalyHash": null
+    },
+    {
+      "symbol": "336370",
+      "candleCount": 600,
+      "firstTradingDate": "2024-02-26",
+      "lastTradingDate": "2026-08-13",
+      "candleHash": "e76afd42b2c93a7bf18d9a04b921131d954760d7187033a866ebd5f13a67b13d",
+      "fetchedPages": 1,
+      "sourceAnomalyCount": 0,
+      "sourceAnomalyHash": null
+    },
+    {
+      "symbol": "353200",
+      "candleCount": 600,
+      "firstTradingDate": "2024-02-26",
+      "lastTradingDate": "2026-08-13",
+      "candleHash": "36354c46779e13caad3e7aac3eee55904e9de930fcdf02ab982982c13b856f91",
+      "fetchedPages": 1,
+      "sourceAnomalyCount": 0,
+      "sourceAnomalyHash": null
+    },
+    {
+      "symbol": "355390",
+      "candleCount": 600,
+      "firstTradingDate": "2024-02-26",
+      "lastTradingDate": "2026-08-13",
+      "candleHash": "bf0f5737edafe6fca238a987b91d02e02f1e0f03dbfde0f55b5e9332422a96ed",
+      "fetchedPages": 1,
+      "sourceAnomalyCount": 0,
+      "sourceAnomalyHash": null
+    },
+    {
+      "symbol": "375500",
+      "candleCount": 600,
+      "firstTradingDate": "2024-02-26",
+      "lastTradingDate": "2026-08-13",
+      "candleHash": "ecc67457d0d4ec6b8b9c5d6d87f3f7e9e9a5ec6953d966496ced4b69f41428eb",
+      "fetchedPages": 1,
+      "sourceAnomalyCount": 0,
+      "sourceAnomalyHash": null
+    },
+    {
+      "symbol": "378340",
+      "candleCount": 600,
+      "firstTradingDate": "2024-02-26",
+      "lastTradingDate": "2026-08-13",
+      "candleHash": "d680a9205eb94faeef2058c6294048cdaa0d5f99d12e2c6b325da07a028ea525",
+      "fetchedPages": 1,
+      "sourceAnomalyCount": 0,
+      "sourceAnomalyHash": null
+    },
+    {
+      "symbol": "417840",
+      "candleCount": 600,
+      "firstTradingDate": "2024-02-26",
+      "lastTradingDate": "2026-08-13",
+      "candleHash": "8e56dfa056d8b2d8b0b1dc381f51d0e5e9f5d251a3ecf9d31d2ec24e408e6d1a",
+      "fetchedPages": 1,
+      "sourceAnomalyCount": 0,
+      "sourceAnomalyHash": null
+    },
+    {
+      "symbol": "437730",
+      "candleCount": 583,
+      "firstTradingDate": "2024-03-21",
+      "lastTradingDate": "2026-08-13",
+      "candleHash": "b40e916063feefec9faf9722d8760a74d1730dc89b9a84af1c59aa4e59dabcd0",
+      "fetchedPages": 1,
+      "sourceAnomalyCount": 0,
+      "sourceAnomalyHash": null
+    },
+    {
+      "symbol": "476040",
+      "candleCount": 310,
+      "firstTradingDate": "2025-05-09",
+      "lastTradingDate": "2026-08-13",
+      "candleHash": "bab86c1f7b4127ea04bed219202da19d1af2c1a051ef096de46f9f4b05ec3414",
+      "fetchedPages": 1,
+      "sourceAnomalyCount": 0,
+      "sourceAnomalyHash": null
+    }
+  ],
+  "chronologicalPlanHash": "1682bff30d62aa1b828c40659b01dda06c08170409f98654dab45ec145d76bcc",
+  "datasetHash": "c4f56e2dae66fa09739797c9bac43b82b48d972591fe618dff16e5d4bacb5b3f",
+  "chronologicalPlan": {
+    "decisionDateCount": 77,
+    "dateFrom": "2026-04-22",
+    "dateTo": "2026-08-13",
+    "validationStart": "2026-07-10",
+    "discoveryWindows": [
+      {
+        "index": 1,
+        "dateFrom": "2026-04-22",
+        "dateTo": "2026-05-13"
+      },
+      {
+        "index": 2,
+        "dateFrom": "2026-05-14",
+        "dateTo": "2026-06-02"
+      },
+      {
+        "index": 3,
+        "dateFrom": "2026-06-04",
+        "dateTo": "2026-06-22"
+      },
+      {
+        "index": 4,
+        "dateFrom": "2026-06-23",
+        "dateTo": "2026-07-09"
+      }
+    ]
+  },
+  "createdAt": "2026-08-13T23:44:18.901Z",
+  "profitabilityClaim": false,
+  "approvedLogicCommit": "118acb5bbf334720df78e8213d48fef126ef5c9d",
+  "requestedPopulationHash": "7f397cc3daa6bd7d3b7faaedba5b0524b1e2a5f8c4b350afefeb161e63aee942",
+  "exclusions": [
+    {
+      "symbol": "057050",
+      "reason": "057050 page 1 contains no dated daily rows",
+      "detailHash": "7791c24a4b0c56c7b16c20aa1dbcbad7ee535ef75e84a43b45522495759aba06"
+    }
+  ],
+  "sourceAnomalies": [
+    {
+      "symbol": "057050",
+      "index": 0,
+      "dt": "",
+      "rowHash": "c5f27ab7fe88edb6664cebc2b69df4114861c3f1aa40ac79a62a70f82c7ae730",
+      "keys": [
+        "cur_prc",
+        "dt",
+        "high_pric",
+        "low_pric",
+        "open_pric",
+        "pred_pre",
+        "pred_pre_sig",
+        "trde_prica",
+        "trde_qty",
+        "trde_tern_rt"
+      ],
+      "page": 1
+    }
+  ]
+}
