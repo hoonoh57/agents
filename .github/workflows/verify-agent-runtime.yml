@@ -52,14 +52,6 @@ jobs:
           if ($errors.Count -gt 0) { $errors | Format-List | Out-String | Write-Host; exit 1 }
           Write-Host 'RUN_APPROVED_MA_STATE_EXPERIMENT_PARSE_PASS'
 
-      - name: Parse CYBOS daily capability probe launcher
-        shell: pwsh
-        run: |
-          $errors = $null
-          [System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path '.\scripts\RUN_CYBOS_DAILY_CAPABILITY_PROBE.ps1'), [ref]$null, [ref]$errors) | Out-Null
-          if ($errors.Count -gt 0) { $errors | Format-List | Out-String | Write-Host; exit 1 }
-          Write-Host 'RUN_CYBOS_DAILY_CAPABILITY_PROBE_PARSE_PASS'
-
       - name: Verify semantic benchmark scorer
         shell: pwsh
         run: node .\scripts\model_benchmark_v2.mjs self-test
