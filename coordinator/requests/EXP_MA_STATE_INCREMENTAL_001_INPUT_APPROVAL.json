@@ -1,0 +1,36 @@
+{
+  "schema": "CoordinatorInputApprovalRequest@1.0.0",
+  "requestId": "EXP_MA_STATE_INCREMENTAL_001_INPUT_APPROVAL",
+  "status": "AWAITING_HUMAN_APPROVAL",
+  "experimentId": "EXP-MA-STATE-INCREMENTAL-001",
+  "rationale": "Use a pre-existing historical cohort that predates this experiment and begin evaluation no earlier than the cohort definition date. Fix the end date by calendar cutoff before running the experiment, not by observed experiment outcomes.",
+  "proposedPopulation": {
+    "type": "FROZEN_HISTORICAL_COHORT_FILE",
+    "sourceFile": "aris_target_20260422_0905_1516_7h.csv",
+    "sourceFileSha256": "e55e29d9834a6114eaf406a1ae66471116857a3766bab4738e2672c5309d7d58",
+    "captureDate": "2026-04-22",
+    "captureTime": "09:05:00",
+    "rowCount": 38,
+    "populationHash": "7f397cc3daa6bd7d3b7faaedba5b0524b1e2a5f8c4b350afefeb161e63aee942",
+    "identityRule": "The population is identified by sourceFileSha256 plus symbolsSorted. The historical condition_name field is not used as semantic identity because legacy data labels and the current strict collector disagree about whether 1516 is a condition name or screen number.",
+    "symbolsSorted": [
+      "004020","004980","005440","006360","006910","008770","014940","017550","018880","028050","038060","042370","047040","049800","057050","060370","065350","067730","077500","083930","084850","088130","105840","114190","161000","183300","195870","222080","256840","259630","336370","353200","355390","375500","378340","417840","437730","476040"
+    ]
+  },
+  "proposedPeriod": {
+    "dateFrom": "2026-04-22",
+    "dateTo": "2026-08-13",
+    "selectionRule": "Start at the frozen cohort capture date; end at the calendar cutoff fixed before experiment execution on 2026-08-14 KST. Warm-up bars before dateFrom may be fetched for MA calculation but may not create decision events before dateFrom."
+  },
+  "frozenExperimentSettings": {
+    "featureParameters": {"short":20,"medium":60,"long":120},
+    "objective": {"horizonSessions":5,"positivePct":3,"negativePct":1,"validationFraction":0.30},
+    "minimumSampleCount": 8,
+    "A": "all fresh Short-MA cross above Medium-MA observations",
+    "AplusB": "same events restricted only by the Discovery-selected orderingState",
+    "profitabilityClaim": false
+  },
+  "onApproval": "Create ResearchDataSnapshotManifest@1.0.0, acquire/freeze ka10081 adjusted finalized daily candles, compute per-symbol/dataset/chronological-plan hashes, then run A vs A+B without changing inputs.",
+  "onRejection": "Do not acquire or evaluate data; request a different predeclared population/period.",
+  "createdAt": "2026-08-14T06:56:00+09:00"
+}
