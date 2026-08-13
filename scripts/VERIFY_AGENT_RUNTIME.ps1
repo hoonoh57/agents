@@ -3,7 +3,7 @@ $root = Split-Path -Parent $PSScriptRoot
 Set-Location $root
 
 Write-Host '[verify-agent-runtime] validate workspace'
-node .\scripts\agent_runtime.mjs validate
+node .\scripts\agent_runtime_stable.mjs validate
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
 $agentId = 'experiment-validation'
@@ -20,7 +20,7 @@ $taskId = $null
 $resultId = $null
 try {
     Write-Host '[verify-agent-runtime] enqueue smoke task'
-    $enqueueOutput = & node .\scripts\agent_runtime.mjs enqueue `
+    $enqueueOutput = & node .\scripts\agent_runtime_stable.mjs enqueue `
         --agent $agentId `
         --goal GOAL-RUNTIME-SMOKE `
         --objective 'Verify queue, lease, state transition, result persistence and completion semantics only.' `
@@ -34,7 +34,7 @@ try {
     $resultId = 'RESULT-' + $taskId.Substring(5)
 
     Write-Host "[verify-agent-runtime] worker mock task=$taskId"
-    node .\scripts\agent_runtime.mjs worker-once --mock
+    node .\scripts\agent_runtime_stable.mjs worker-once --mock
     if ($LASTEXITCODE -ne 0) { throw 'mock worker failed' }
 
     $resultPath = Join-Path $root "agents\$agentId\results\$resultId.json"
@@ -74,7 +74,7 @@ finally {
 }
 
 Write-Host '[verify-agent-runtime] validate restored workspace'
-node .\scripts\agent_runtime.mjs validate
+node .\scripts\agent_runtime_stable.mjs validate
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
 $dirty = git status --porcelain
