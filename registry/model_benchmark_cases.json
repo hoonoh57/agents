@@ -1,37 +1,44 @@
 {
-  "schema": "LocalModelBenchmarkCases@1.0.0",
+  "schema": "LocalModelBenchmarkCases@1.1.0",
+  "scoringPolicy": {
+    "principle": "Score deterministic semantic fields, numbers and booleans. Free-form rationale is evidence only and is never a required lexical match.",
+    "contract": "Models are evaluated both for research correctness and for strict structured-output compliance required by the agent runtime."
+  },
   "cases": [
     {
       "caseId": "FAST-JSON-CRUD-001",
       "role": "LOCAL_FAST",
       "weight": 1,
-      "prompt": "You maintain a research memory index. Normalize this input without inventing records: [{\"id\":\"EXP-3\",\"status\":\"REJECTED\"},{\"id\":\"EXP-1\",\"status\":\"FROZEN\"},{\"id\":\"EXP-3\",\"status\":\"REJECTED\"},{\"id\":\"EXP-2\",\"status\":\"ACTIVE\"}]. Return JSON only with keys sortedIds, uniqueCount, rejectedIds. sortedIds must be ascending unique ids.",
+      "prompt": "You maintain a research memory index. Normalize this input without inventing records: [{\"id\":\"EXP-3\",\"status\":\"REJECTED\"},{\"id\":\"EXP-1\",\"status\":\"FROZEN\"},{\"id\":\"EXP-3\",\"status\":\"REJECTED\"},{\"id\":\"EXP-2\",\"status\":\"ACTIVE\"}]. Return JSON only with exactly these keys: sortedIds, uniqueCount, rejectedIds, contractCode. sortedIds must contain ascending unique ids. contractCode must be exactly RESEARCH_MEMORY_NORMALIZED.",
       "required": {
         "sortedIds": ["EXP-1", "EXP-2", "EXP-3"],
-        "uniqueCount": 3,
         "rejectedIds": ["EXP-3"]
+      },
+      "requiredScalar": {
+        "uniqueCount": 3,
+        "contractCode": "RESEARCH_MEMORY_NORMALIZED"
       }
     },
     {
       "caseId": "REASON-CAUSAL-001",
       "role": "LOCAL_REASONER",
       "weight": 2,
-      "prompt": "Research Lab scenario: Signal is defined as MA5 crossing above MA20 on day D. RSI is 49 on D and becomes 55 on D+1. A proposed implementation applies FRESH_TRUE to the combined boolean (MA5>MA20 AND RSI>50). Diagnose the causal error and propose the smallest falsifiable correction. Return JSON only with keys error, triggerDefinition, filterDefinition, falseSignalDay, executionReference, profitabilityClaim. profitabilityClaim must be false.",
+      "prompt": "Research Lab scenario: Signal is MA5 crossing above MA20 on day D. RSI is 49 on D and becomes 55 on D+1. A proposed implementation applies FRESH_TRUE to the combined boolean (MA5>MA20 AND RSI>50), which can create a false new event on D+1. Diagnose and correct it. Return JSON only with exactly these keys: causalErrorCode, correctionCode, triggerEventCode, filterCode, falseSignalDay, executionReference, profitabilityClaim, rationale. Use these exact enum values when correct: causalErrorCode=TRIGGER_FILTER_CONFLATION; correctionCode=SEPARATE_TRIGGER_AND_FILTER; triggerEventCode=MA5_CROSS_UP_MA20_ON_D; filterCode=RSI_GT_50_AT_TRIGGER; falseSignalDay=D+1; executionReference=D+1_OPEN. profitabilityClaim must be false. rationale is free text and is not scored.",
       "requiredScalar": {
+        "causalErrorCode": "TRIGGER_FILTER_CONFLATION",
+        "correctionCode": "SEPARATE_TRIGGER_AND_FILTER",
+        "triggerEventCode": "MA5_CROSS_UP_MA20_ON_D",
+        "filterCode": "RSI_GT_50_AT_TRIGGER",
         "falseSignalDay": "D+1",
+        "executionReference": "D+1_OPEN",
         "profitabilityClaim": false
-      },
-      "requiredContains": {
-        "triggerDefinition": ["cross"],
-        "filterDefinition": ["RSI"],
-        "executionReference": ["D+1", "open"]
       }
     },
     {
       "caseId": "REASON-INCREMENTAL-001",
       "role": "LOCAL_REASONER",
       "weight": 2,
-      "prompt": "Baseline feature A has 100 events: 40 winners and 60 losers. Candidate filter B removes 8 winners and 30 losers. Design the correct A versus A+B evaluation. Do not call B profitable or validated. Return JSON only with keys retainedWinners, removedWinners, removedLosers, remainingEvents, winnerRetentionPct, loserRemovalPct, nextValidation, profitabilityClaim. nextValidation must describe unseen chronological/OOS confirmation, and profitabilityClaim must be false.",
+      "prompt": "Baseline feature A has 100 events: 40 winners and 60 losers. Candidate filter B removes 8 winners and 30 losers. Evaluate A versus A+B without calling B profitable or validated. Return JSON only with exactly these keys: retainedWinners, removedWinners, removedLosers, remainingEvents, winnerRetentionPct, loserRemovalPct, nextValidationCode, profitabilityClaim, rationale. Calculate the numeric fields exactly. nextValidationCode must be exactly UNSEEN_CHRONOLOGICAL_OOS. profitabilityClaim must be false. rationale is free text and is not scored.",
       "requiredScalar": {
         "retainedWinners": 32,
         "removedWinners": 8,
@@ -39,23 +46,26 @@
         "remainingEvents": 62,
         "winnerRetentionPct": 80,
         "loserRemovalPct": 50,
+        "nextValidationCode": "UNSEEN_CHRONOLOGICAL_OOS",
         "profitabilityClaim": false
-      },
-      "requiredContains": {
-        "nextValidation": ["OOS"]
       }
     },
     {
       "caseId": "CODER-CONTRACT-001",
       "role": "LOCAL_CODER",
       "weight": 1,
-      "prompt": "A TypeScript research function must never use future data. Given: function signal(close:number[], i:number){ return close[i+1] > close[i]; }. Return JSON only with keys defect, correctedFunction, invariant. correctedFunction must be a TypeScript function named signal that uses only close[i] and earlier indexes; it must not contain i+1 or i + 1.",
-      "forbiddenContains": {
-        "correctedFunction": ["i+1", "i + 1"]
+      "prompt": "A TypeScript research function must never use future data. Given: function signal(close:number[], i:number){ return close[i+1] > close[i]; }. Return JSON only with exactly these keys: defectCode, correctedFunction, invariantCode, futureReferenceDetected, correctedUsesFuture, rationale. Use exact enum values defectCode=FUTURE_BAR_ACCESS and invariantCode=NO_FUTURE_BAR_ACCESS. futureReferenceDetected must be true and correctedUsesFuture must be false. correctedFunction must be a TypeScript function named signal that uses only close[i] and earlier indexes and must not contain i+1 or i + 1. rationale is free text and is not scored.",
+      "requiredScalar": {
+        "defectCode": "FUTURE_BAR_ACCESS",
+        "invariantCode": "NO_FUTURE_BAR_ACCESS",
+        "futureReferenceDetected": true,
+        "correctedUsesFuture": false
       },
       "requiredContains": {
-        "correctedFunction": ["function signal"],
-        "invariant": ["future"]
+        "correctedFunction": ["function signal"]
+      },
+      "forbiddenContains": {
+        "correctedFunction": ["i+1", "i + 1"]
       }
     }
   ]
