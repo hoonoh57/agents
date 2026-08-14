@@ -1,0 +1,76 @@
+{
+  "schema": "CoordinatorDecision@1.0.0",
+  "decisionId": "P6_MA_FRESH_CROSS_VOLUME_CONTEXT_FRESH_VALIDATION_PROTOCOL_001",
+  "status": "APPROVED_FRESH_VALIDATION_PROTOCOL",
+  "goalId": "GOAL-COMPOSITE-MA-FRESH-CROSS-VOLUME-FRESH-VALIDATION-001",
+  "sourceDiscoveryDecisionId": "P5_MA_FRESH_CROSS_VOLUME_CONTEXT_DISCOVERY_RESULT_001",
+  "hypothesisId": "COMPOSITE_MA_FRESH_CROSS_VOLUME",
+  "frozenCandidate": {
+    "primaryFeatureId": "MA_FRESH_CROSS_UP",
+    "contextFeatureId": "VOLUME_DENSITY_SHIFT",
+    "contextMode": "FRESH_UP_CROSS",
+    "fast": 7,
+    "slow": 20,
+    "volLookback": 15,
+    "volThreshold": 0.8,
+    "timing": "SAME_D",
+    "entryReference": "D+1 open"
+  },
+  "causalDefinitions": {
+    "primary": "D-1 fastSMA(close) <= slowSMA(close) AND D fastSMA(close) > slowSMA(close)",
+    "contextState": "volume_D / mean(volume_{D-volLookback}..volume_{D-1})",
+    "context": "D-1 contextState <= volThreshold AND D contextState > volThreshold",
+    "baselineExcludesCurrentDecisionBar": true,
+    "composite": "primary(D) AND context(D)",
+    "outcomeEntry": "D+1 open"
+  },
+  "freshBoundary": {
+    "decisionDateMustBeAfter": "2026-08-13",
+    "historicalDiscoveryRowsForbidden": true,
+    "historicalValidationReuseAllowed": false
+  },
+  "objective": {
+    "horizonSessions": 5,
+    "positivePct": 3,
+    "negativePct": 1
+  },
+  "samplePolicy": {
+    "minimumCompositeSampleCount": 8,
+    "basis": "Reuse the pre-existing EXP-MA-STATE-INCREMENTAL-001 MINIMUM_SAMPLE_COUNT=8 research standard; this value is registered before observing any fresh outcome.",
+    "cohortRule": "Use exactly the first 8 chronologically matured composite decision events after 2026-08-13, ordered by decisionDate then symbol.",
+    "maturityRule": "An event is eligible only when D+1 open plus all 5 outcome sessions are finalized and available.",
+    "optionalStoppingForbidden": true,
+    "metricsHiddenBeforeMinimumSample": true,
+    "extraCompositeEventsAfterTheEighthAreExcludedFromThisValidationDecision": true
+  },
+  "baselinePolicy": {
+    "parameters": { "fast": 7, "slow": 20 },
+    "window": "All matured MA_FRESH_CROSS_UP events with decisionDate after 2026-08-13 and on or before the eighth composite event decisionDate.",
+    "sameUniverseAsComposite": true,
+    "sameOutcomeObjective": true
+  },
+  "validationGate": [
+    "freshComposite.sampleCount == 8",
+    "freshComposite.meanReturnPct > 0",
+    "freshComposite.positiveBeforeNegativePct > freshComposite.negativeBeforePositivePct",
+    "freshComposite.meanReturnPct > freshPrimaryBaseline.meanReturnPct",
+    "freshComposite.positiveBeforeNegativePct > freshPrimaryBaseline.positiveBeforeNegativePct",
+    "freshComposite.negativeBeforePositivePct < freshPrimaryBaseline.negativeBeforePositivePct"
+  ],
+  "decisionPolicy": {
+    "ifFewerThanEightMatureCompositeEvents": "WAITING_FOR_FRESH_SAMPLE",
+    "ifGatePasses": "FRESH_VALIDATION_PASS_NOT_PROFITABILITY_VALIDATED",
+    "ifGateFails": "NO_GO_FRESH_VALIDATION",
+    "parameterSearchForbidden": true,
+    "parameterRefitForbidden": true,
+    "lowerRankRescueForbidden": true,
+    "validationRetryWithDifferentParametersForbidden": true
+  },
+  "interpretationBoundary": [
+    "This is prospective validation of one frozen candidate, not another Discovery search.",
+    "The first eight-event cohort rule removes run-date dependence and prevents optional stopping after viewing fresh outcome metrics.",
+    "A pass means the frozen candidate replicated the pre-registered directional criteria on fresh events; it does not establish deployable profitability.",
+    "A fail closes this candidate lineage without parameter rescue."
+  ],
+  "profitabilityClaim": false
+}
