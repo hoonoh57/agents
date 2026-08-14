@@ -23,16 +23,36 @@ Semantic arguments:
 - `periodMax`: inclusive upper bound from the human goal.
 - `periodStep`: deterministic increment from the human goal or the existing capability search contract.
 
-Use this tool when the goal asks to compare a range of periods rather than one fixed period.
+Use this tool only for the already-frozen MA-period experiment lineage whose Validation policy is embedded in the tool evidence.
 
-Method contract is runtime/tool owned and must not be altered by the agent:
+Method contract:
 
 - Rank all legal periods using Discovery evidence only.
 - Freeze exactly one top Discovery candidate before Validation.
 - Evaluate Validation only for that frozen candidate.
 - Never evaluate or request Validation for non-selected periods.
 - Do not rerun the range with a changed ranking rule after seeing Validation.
-- The tool returns `BEST_VALIDATED`, `NO_GO_VALIDATION`, `NO_GO_NO_VALIDATION_EVENTS`, or `NO_GO_NO_DISCOVERY_EVENTS` according to its frozen gate.
+
+## Tool: `RUN_HIGH_BREAKOUT_DISCOVERY_SEARCH`
+
+Purpose: search the existing `PRICE_N_HIGH_BREAKOUT` chart-ready trigger on development data only, without reusing previously exposed historical Validation as a new holdout.
+
+Semantic arguments:
+
+- `featureId`: `PRICE_N_HIGH_BREAKOUT`.
+- `lookbackMin`: inclusive lower bound.
+- `lookbackMax`: inclusive upper bound.
+- `lookbackStep`: deterministic increment.
+
+Method contract is runtime/tool owned:
+
+- All currently frozen historical data through the dataset cutoff is development/Discovery data for this new hypothesis lineage.
+- Rank candidates on Discovery only.
+- A candidate is eligible for freezing only when the pre-registered Discovery gate passes.
+- This tool never runs Validation.
+- Historical data already exposed by prior experiments must not be reused as fresh Validation.
+- If a candidate is frozen, return `WAITING_FOR_FRESH_VALIDATION` and require decision dates strictly after the frozen data cutoff.
+- If Discovery fails its gate, return `NO_GO_DISCOVERY` and do not consume future Validation data.
 
 ## Common boundaries
 
