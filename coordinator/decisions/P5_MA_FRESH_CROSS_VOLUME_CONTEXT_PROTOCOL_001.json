@@ -1,0 +1,67 @@
+{
+  "schema": "CoordinatorDecision@1.0.0",
+  "decisionId": "P5_MA_FRESH_CROSS_VOLUME_CONTEXT_PROTOCOL_001",
+  "status": "APPROVED_DISCOVERY_PROTOCOL",
+  "goalId": "GOAL-COMPOSITE-MA-FRESH-CROSS-VOLUME-DISCOVERY-001",
+  "sourceDesignTaskId": "TASK-20260814050941-9aaff4",
+  "sourceDesignResultId": "RESULT-20260814050941-9aaff4",
+  "hypothesisId": "COMPOSITE_MA_FRESH_CROSS_VOLUME",
+  "primaryFeatureId": "MA_FRESH_CROSS_UP",
+  "contextFeatureId": "VOLUME_DENSITY_SHIFT",
+  "contextMode": "FRESH_UP_CROSS",
+  "timing": "SAME_D",
+  "entryReference": "D+1 open",
+  "dataset": {
+    "snapshotExperiment": "EXP-MA-STATE-INCREMENTAL-001",
+    "datasetHash": "c4f56e2dae66fa09739797c9bac43b82b48d972591fe618dff16e5d4bacb5b3f",
+    "historicalDataCutoff": "2026-08-13",
+    "freshValidationRequiresDecisionDateAfter": "2026-08-13"
+  },
+  "search": {
+    "fast": { "min": 3, "max": 20, "step": 2 },
+    "slow": { "min": 10, "max": 120, "step": 10, "constraint": "fast < slow" },
+    "volLookback": { "min": 15, "max": 55, "step": 5 },
+    "volThreshold": { "min": 0.7, "max": 1.1, "step": 0.1 },
+    "legalCandidateCount": 4635
+  },
+  "causalDefinitions": {
+    "primary": "D-1 fastSMA(close) <= slowSMA(close) AND D fastSMA(close) > slowSMA(close)",
+    "contextState": "volume_D / mean(volume_{D-volLookback}..volume_{D-1})",
+    "context": "D-1 contextState <= volThreshold AND D contextState > volThreshold",
+    "baselineExcludesCurrentDecisionBar": true,
+    "composite": "primary(D) AND context(D)",
+    "outcomeEntry": "D+1 open"
+  },
+  "ranking": [
+    "wilsonLowerBoundPct(composite POSITIVE_FIRST, composite.sampleCount) desc",
+    "composite.meanReturnPct desc",
+    "lift.positiveBeforeNegativePct desc",
+    "lift.negativeBeforePositiveReductionPct desc",
+    "composite.sampleCount desc",
+    "fast asc",
+    "slow asc",
+    "volLookback asc",
+    "volThreshold asc"
+  ],
+  "discoveryGate": [
+    "composite.sampleCount > 0",
+    "composite.meanReturnPct > 0",
+    "composite.positiveBeforeNegativePct > composite.negativeBeforePositivePct",
+    "composite.meanReturnPct > primaryBaseline.meanReturnPct",
+    "composite.positiveBeforeNegativePct > primaryBaseline.positiveBeforeNegativePct",
+    "composite.negativeBeforePositivePct < primaryBaseline.negativeBeforePositivePct"
+  ],
+  "selectionPolicy": {
+    "rankOneOnlyGateEvaluation": true,
+    "lowerRankRescueForbidden": true,
+    "selectedCandidateFrozenBeforeFreshValidation": true,
+    "historicalValidationReuseAllowed": false
+  },
+  "interpretationBoundary": [
+    "The historical volume-density region is reused only to define this new Discovery hypothesis, not as fresh Validation evidence.",
+    "The primary baseline is evaluated on the same frozen dataset and same primary parameters as each composite candidate.",
+    "Discovery measures conditional lift over the unfiltered primary trigger; it does not establish profitability.",
+    "Fresh Validation is authorized only if the pre-registered rank-1 Discovery gate passes."
+  ],
+  "profitabilityClaim": false
+}
