@@ -8,8 +8,8 @@ param(
 $ErrorActionPreference = 'Stop'
 $Root = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 Set-Location $Root
-$Template = 'feature-architect-next-trigger.json'
-$GoalId = 'GOAL-FEATURE-ARCHITECT-NEXT-TRIGGER-001'
+$Template = 'feature-architect-next-trigger-v2.json'
+$GoalId = 'GOAL-FEATURE-ARCHITECT-NEXT-TRIGGER-002'
 $AgentId = 'feature-architect'
 
 function Invoke-NativeChecked {
@@ -36,8 +36,13 @@ function Show-CompletedResult([string]$TaskId) {
     $r = Get-Content $path -Raw -Encoding UTF8 | ConvertFrom-Json
     if ($r.schema -ne 'AgentResult@1.0.0' -or $r.status -ne 'COMPLETED' -or $r.agentId -ne $AgentId) { return $false }
     if (-not $r.workProduct -or $r.workProduct.schema -ne 'AgentWorkProduct@1.0.0' -or $r.workProduct.profitabilityClaim -ne $false) { return $false }
+
+    $verify = Invoke-NativeChecked 'feature design contract' { node .\scripts\verify_feature_design_contract.mjs --result $path }
+    $verify | ForEach-Object { if ($_ -match 'FEATURE_DESIGN_CONTRACT_PASS') { Write-Host "[feature-architect-next] CONTRACT $_" } }
+
     Write-Host "[feature-architect-next] PASS task=$TaskId result=$($r.resultId) model=$($r.modelVersion) findings=$(@($r.workProduct.findings).Count) nextActions=$(@($r.workProduct.nextActions).Count)"
     Write-Host "[feature-architect-next] SUMMARY $($r.summary)"
+    foreach ($finding in @($r.workProduct.findings | Where-Object { $_.kind -eq 'PROPOSAL' })) { Write-Host "[feature-architect-next] PROPOSAL $($finding.claim)" }
     foreach ($action in @($r.workProduct.nextActions)) { Write-Host "[feature-architect-next] NEXT $action" }
     return $true
 }
@@ -52,11 +57,12 @@ Invoke-NativeChecked 'research pull' { git -C $ResearchRoot pull --ff-only origi
 $env:RESEARCH_LOCAL_ROOT = $ResearchRoot
 $env:AGENT_CONTEXT_MAX_BYTES = '22000'
 $env:LOCAL_LLM_CONTEXT_TOKENS = '16384'
-$env:LOCAL_LLM_MAX_OUTPUT_TOKENS = '1600'
+$env:LOCAL_LLM_MAX_OUTPUT_TOKENS = '1800'
 $env:LOCAL_LLM_TIMEOUT_SECONDS = '120'
 
-Write-Host '[feature-architect-next] verify source context contract'
+Write-Host '[feature-architect-next] verify source and design contracts'
 Invoke-NativeChecked 'context adapter self-test' { node .\scripts\verify_project_context.mjs self-test } | Out-Null
+Invoke-NativeChecked 'feature design contract self-test' { node .\scripts\verify_feature_design_contract.mjs --self-test } | Out-Null
 Invoke-NativeChecked 'feature architect template context' { node .\scripts\verify_project_context.mjs template --template $Template } | Out-Null
 
 $backlogPath = Join-Path $Root 'coordinator\BACKLOG.json'
@@ -77,7 +83,7 @@ if ($existing.Count -eq 1 -and -not $ForceNew) {
         throw "existing feature architecture task has unsupported status=$status task=$taskId"
     }
 } else {
-    Write-Host '[feature-architect-next] enqueue evidence-bound design task'
+    Write-Host '[feature-architect-next] enqueue evidence-bound design task v2'
     $out = Invoke-NativeChecked 'enqueue feature architect task' { node .\scripts\agent_runtime_stable.mjs enqueue --template $Template }
     $joined = ($out -join "`n")
     if ($joined -notmatch 'ENQUEUED\s+(TASK-[A-Za-z0-9-]+)') { throw 'could not parse feature architect task id' }
@@ -86,7 +92,7 @@ if ($existing.Count -eq 1 -and -not $ForceNew) {
     Write-Host "[feature-architect-next] persist queued task=$taskId"
     git add -- agents/feature-architect coordinator
     if ($LASTEXITCODE -ne 0) { throw 'git add queued feature architect task failed' }
-    git commit -m 'Queue next trigger feature architecture task'
+    git commit -m 'Queue next trigger feature architecture task v2'
     if ($LASTEXITCODE -ne 0) { throw 'git commit queued feature architect task failed' }
     git push origin main
     if ($LASTEXITCODE -ne 0) { throw 'git push queued feature architect task failed' }
@@ -115,4 +121,4 @@ if (Test-Path $workPath) {
     $work = Get-Content $workPath -Raw -Encoding UTF8 | ConvertFrom-Json
     if ($work.error) { $detail = [string]$work.error }
 }
-throw "feature architect task did not produce a valid result task=$taskId status=$($item[0].status) error=$detail"
+throw "feature architect task did not produce a contract-valid result task=$taskId status=$($item[0].status) error=$detail"
