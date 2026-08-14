@@ -29,6 +29,13 @@
     "historicalDiscoveryRowsForbidden": true,
     "historicalValidationReuseAllowed": false
   },
+  "finalizationSafety": {
+    "finalThroughMustBeActualIsoDate": true,
+    "finalThroughMustBeEarlierThanCurrentKstDate": true,
+    "currentKstDayCandleForbidden": true,
+    "reason": "The daily candle identified by the current KST date can still be provisional during the trading session; validation must only finalize dates that are certainly complete.",
+    "humanLauncher": "scripts/RUN_FROZEN_MA_VOLUME_FRESH_VALIDATION.ps1"
+  },
   "objective": {
     "horizonSessions": 5,
     "positivePct": 3,
@@ -70,7 +77,8 @@
     "This is prospective validation of one frozen candidate, not another Discovery search.",
     "The first eight-event cohort rule removes run-date dependence and prevents optional stopping after viewing fresh outcome metrics.",
     "A pass means the frozen candidate replicated the pre-registered directional criteria on fresh events; it does not establish deployable profitability.",
-    "A fail closes this candidate lineage without parameter rescue."
+    "A fail closes this candidate lineage without parameter rescue.",
+    "The current KST trading date must never be promoted to a finalized daily observation by this validation workflow."
   ],
   "profitabilityClaim": false
 }
