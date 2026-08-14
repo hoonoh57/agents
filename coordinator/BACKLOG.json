@@ -70,8 +70,12 @@
       "goalId": "GOAL-AUTONOMOUS-MA-PERIOD-SEARCH-001",
       "executionMode": "AUTONOMOUS_RESEARCH",
       "priority": 90,
-      "status": "QUEUED",
-      "createdAt": "2026-08-14T02:22:13.624Z"
+      "status": "COMPLETED",
+      "createdAt": "2026-08-14T02:22:13.624Z",
+      "startedAt": "2026-08-14T02:22:17.666Z",
+      "error": null,
+      "completedAt": "2026-08-14T02:23:07.104Z",
+      "resultId": "RESULT-20260814022213-3169a0"
     }
   ]
 }

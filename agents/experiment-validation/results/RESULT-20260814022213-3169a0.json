@@ -1,0 +1,764 @@
+{
+  "schema": "AgentResult@1.0.0",
+  "resultId": "RESULT-20260814022213-3169a0",
+  "taskId": "TASK-20260814022213-3169a0",
+  "agentId": "experiment-validation",
+  "executionMode": "AUTONOMOUS_RESEARCH",
+  "status": "COMPLETED",
+  "modelProfile": "LOCAL_FAST",
+  "modelVersion": "gemma4:12b",
+  "startedAt": "2026-08-14T02:22:17.666Z",
+  "completedAt": "2026-08-14T02:23:07.104Z",
+  "summary": "The search resulted in a NO_GO status as the only candidate permitted to enter the validation holdout failed all required performance thresholds.",
+  "claims": [],
+  "sourceRefs": [],
+  "proposalRefs": [],
+  "artifactRefs": [],
+  "requiresValidation": true,
+  "externalEscalation": null,
+  "workProduct": null,
+  "autonomousResearch": {
+    "schema": "AutonomousResearchTaskEvidence@1.0.0",
+    "goalId": "GOAL-AUTONOMOUS-MA-PERIOD-SEARCH-001",
+    "semanticActionDecision": {
+      "tool": "RUN_FEATURE_PERIOD_SEARCH",
+      "featureId": "PRICE_MA_RECLAIM_UP",
+      "periodMin": 5,
+      "periodMax": 120,
+      "periodStep": 5,
+      "reasoningSummary": "The goal requires searching a range of moving-average periods (5 to 120, step 5) for the PRICE_MA_RECLAIM_UP trigger. The RUN_FEATURE_PERIOD_SEARCH tool is specifically designed for this purpose as it handles discovery ranking and single-candidate validation in one operation, adhering to the requirement to avoid multiple manual experiments."
+    },
+    "firstTurn": {
+      "schema": "ResearchAgentTurn@1.0.0",
+      "goalId": "GOAL-AUTONOMOUS-MA-PERIOD-SEARCH-001",
+      "status": "ACTION_REQUIRED",
+      "reasoningSummary": "The goal requires searching a range of moving-average periods (5 to 120, step 5) for the PRICE_MA_RECLAIM_UP trigger. The RUN_FEATURE_PERIOD_SEARCH tool is specifically designed for this purpose as it handles discovery ranking and single-candidate validation in one operation, adhering to the requirement to avoid multiple manual experiments.",
+      "actions": [
+        {
+          "actionId": "ACTION-6c61ec7b8fa73244",
+          "tool": "RUN_FEATURE_PERIOD_SEARCH",
+          "arguments": {
+            "featureId": "PRICE_MA_RECLAIM_UP",
+            "parameters": {
+              "periodMin": 5,
+              "periodMax": 120,
+              "periodStep": 5
+            }
+          }
+        }
+      ],
+      "evidenceRefs": [],
+      "conclusion": "",
+      "nextResearch": [],
+      "profitabilityClaim": false
+    },
+    "toolEvidence": {
+      "evidenceId": "EVIDENCE-88a51016d62292b6",
+      "actionId": "ACTION-6c61ec7b8fa73244",
+      "createdAt": "2026-08-14T02:22:40.866Z",
+      "evidence": {
+        "schema": "ResearchToolEvidence@1.0.0",
+        "tool": "RUN_FEATURE_PERIOD_SEARCH",
+        "featureId": "PRICE_MA_RECLAIM_UP",
+        "parameters": {
+          "periodMin": 5,
+          "periodMax": 120,
+          "periodStep": 5
+        },
+        "datasetHash": "c4f56e2dae66fa09739797c9bac43b82b48d972591fe618dff16e5d4bacb5b3f",
+        "snapshotExperiment": "EXP-MA-STATE-INCREMENTAL-001",
+        "dateFrom": "2026-04-22",
+        "dateTo": "2026-08-13",
+        "objective": {
+          "horizonSessions": 5,
+          "positivePct": 3,
+          "negativePct": 1,
+          "validationFraction": 0.3
+        },
+        "validationStart": "2026-07-10",
+        "requestedSymbolCount": 38,
+        "effectiveSymbolCount": 37,
+        "excludedSymbols": [
+          {
+            "symbol": "057050",
+            "reason": "057050 page 1 contains no dated daily rows",
+            "detailHash": "7791c24a4b0c56c7b16c20aa1dbcbad7ee535ef75e84a43b45522495759aba06"
+          }
+        ],
+        "method": {
+          "searchSpace": [
+            5,
+            10,
+            15,
+            20,
+            25,
+            30,
+            35,
+            40,
+            45,
+            50,
+            55,
+            60,
+            65,
+            70,
+            75,
+            80,
+            85,
+            90,
+            95,
+            100,
+            105,
+            110,
+            115,
+            120
+          ],
+          "ranking": [
+            "wilsonLowerBoundPct(POSITIVE_FIRST, discovery.sampleCount) desc",
+            "discovery.meanReturnPct desc",
+            "discovery.meanMfePct desc",
+            "discovery.meanMaePct desc",
+            "discovery.sampleCount desc",
+            "period asc"
+          ],
+          "discoveryOnlyRanking": true,
+          "selectedCandidateFrozenBeforeValidation": true,
+          "validationEvaluatedPeriods": [
+            90
+          ],
+          "nonSelectedValidationEvaluated": false,
+          "validationGate": [
+            "validation.sampleCount > 0",
+            "validation.meanReturnPct > 0",
+            "validation.positiveBeforeNegativePct > validation.negativeBeforePositivePct"
+          ]
+        },
+        "discoveryRanking": [
+          {
+            "rank": 1,
+            "period": 90,
+            "discoveryScore": 7.878385829430107,
+            "discovery": {
+              "sampleCount": 28,
+              "uniqueSymbols": 16,
+              "uniqueDecisionDates": 17,
+              "meanReturnPct": -6.479428911844599,
+              "medianReturnPct": -8.802298443265965,
+              "winRatePct": 32.142857142857146,
+              "meanMfePct": 9.497423534740378,
+              "meanMaePct": -13.12339595814919,
+              "positiveBeforeNegativePct": 17.857142857142858,
+              "negativeBeforePositivePct": 46.42857142857143,
+              "ambiguousSameSessionPct": 35.714285714285715,
+              "noHitPct": 0
+            }
+          },
+          {
+            "rank": 2,
+            "period": 5,
+            "discoveryScore": 7.569447304552798,
+            "discovery": {
+              "sampleCount": 195,
+              "uniqueSymbols": 37,
+              "uniqueDecisionDates": 38,
+              "meanReturnPct": -5.0753200444667455,
+              "medianReturnPct": -6.890353505092872,
+              "winRatePct": 26.153846153846157,
+              "meanMfePct": 8.749315706055961,
+              "meanMaePct": -11.32257590936307,
+              "positiveBeforeNegativePct": 11.282051282051283,
+              "negativeBeforePositivePct": 59.48717948717949,
+              "ambiguousSameSessionPct": 29.230769230769234,
+              "noHitPct": 0
+            }
+          },
+          {
+            "rank": 3,
+            "period": 10,
+            "discoveryScore": 5.195664678942481,
+            "discovery": {
+              "sampleCount": 120,
+              "uniqueSymbols": 37,
+              "uniqueDecisionDates": 35,
+              "meanReturnPct": -9.714252833653287,
+              "medianReturnPct": -9.94847231866675,
+              "winRatePct": 13.333333333333334,
+              "meanMfePct": 7.018646204680613,
+              "meanMaePct": -14.044597159496643,
+              "positiveBeforeNegativePct": 9.166666666666666,
+              "negativeBeforePositivePct": 61.66666666666667,
+              "ambiguousSameSessionPct": 29.166666666666668,
+              "noHitPct": 0
+            }
+          },
+          {
+            "rank": 4,
+            "period": 95,
+            "discoveryScore": 4.344255039315584,
+            "discovery": {
+              "sampleCount": 24,
+              "uniqueSymbols": 13,
+              "uniqueDecisionDates": 16,
+              "meanReturnPct": -7.5031609871781555,
+              "medianReturnPct": -8.802298443265965,
+              "winRatePct": 29.166666666666668,
+              "meanMfePct": 8.836770378986245,
+              "meanMaePct": -13.337693607768154,
+              "positiveBeforeNegativePct": 12.5,
+              "negativeBeforePositivePct": 50,
+              "ambiguousSameSessionPct": 37.5,
+              "noHitPct": 0
+            }
+          },
+          {
+            "rank": 5,
+            "period": 105,
+            "discoveryScore": 4.003171821149494,
+            "discovery": {
+              "sampleCount": 26,
+              "uniqueSymbols": 12,
+              "uniqueDecisionDates": 20,
+              "meanReturnPct": -6.489370826132954,
+              "medianReturnPct": -5.041690878736732,
+              "winRatePct": 30.76923076923077,
+              "meanMfePct": 8.223850560785237,
+              "meanMaePct": -13.5473573900238,
+              "positiveBeforeNegativePct": 11.538461538461538,
+              "negativeBeforePositivePct": 50,
+              "ambiguousSameSessionPct": 38.46153846153847,
+              "noHitPct": 0
+            }
+          },
+          {
+            "rank": 6,
+            "period": 100,
+            "discoveryScore": 4.003171821149494,
+            "discovery": {
+              "sampleCount": 26,
+              "uniqueSymbols": 13,
+              "uniqueDecisionDates": 19,
+              "meanReturnPct": -6.86332553215845,
+              "medianReturnPct": -6.608797800422483,
+              "winRatePct": 34.61538461538461,
+              "meanMfePct": 7.833427976525807,
+              "meanMaePct": -12.98126816178268,
+              "positiveBeforeNegativePct": 11.538461538461538,
+              "negativeBeforePositivePct": 53.84615384615385,
+              "ambiguousSameSessionPct": 34.61538461538461,
+              "noHitPct": 0
+            }
+          },
+          {
+            "rank": 7,
+            "period": 120,
+            "discoveryScore": 3.7360469891359287,
+            "discovery": {
+              "sampleCount": 15,
+              "uniqueSymbols": 8,
+              "uniqueDecisionDates": 11,
+              "meanReturnPct": -4.919760204858928,
+              "medianReturnPct": -4.664179104477617,
+              "winRatePct": 26.666666666666668,
+              "meanMfePct": 8.54478916038653,
+              "meanMaePct": -12.11932992581504,
+              "positiveBeforeNegativePct": 13.333333333333334,
+              "negativeBeforePositivePct": 46.666666666666664,
+              "ambiguousSameSessionPct": 40,
+              "noHitPct": 0
+            }
+          },
+          {
+            "rank": 8,
+            "period": 115,
+            "discoveryScore": 3.1018868453582775,
+            "discovery": {
+              "sampleCount": 18,
+              "uniqueSymbols": 10,
+              "uniqueDecisionDates": 15,
+              "meanReturnPct": -6.223630039990661,
+              "medianReturnPct": -5.60953826154102,
+              "winRatePct": 27.77777777777778,
+              "meanMfePct": 7.6133722225775715,
+              "meanMaePct": -13.52803714970074,
+              "positiveBeforeNegativePct": 11.11111111111111,
+              "negativeBeforePositivePct": 50,
+              "ambiguousSameSessionPct": 38.88888888888889,
+              "noHitPct": 0
+            }
+          },
+          {
+            "rank": 9,
+            "period": 65,
+            "discoveryScore": 3.0465390304310147,
+            "discovery": {
+              "sampleCount": 34,
+              "uniqueSymbols": 22,
+              "uniqueDecisionDates": 16,
+              "meanReturnPct": -7.291666656316387,
+              "medianReturnPct": -8.666966907332018,
+              "winRatePct": 29.411764705882355,
+              "meanMfePct": 9.583511335787723,
+              "meanMaePct": -13.71901911634965,
+              "positiveBeforeNegativePct": 8.823529411764707,
+              "negativeBeforePositivePct": 41.17647058823529,
+              "ambiguousSameSessionPct": 50,
+              "noHitPct": 0
+            }
+          },
+          {
+            "rank": 10,
+            "period": 15,
+            "discoveryScore": 3.0453153406264533,
+            "discovery": {
+              "sampleCount": 71,
+              "uniqueSymbols": 30,
+              "uniqueDecisionDates": 27,
+              "meanReturnPct": -10.14369820752528,
+              "medianReturnPct": -9.965437788018438,
+              "winRatePct": 14.084507042253522,
+              "meanMfePct": 7.62512816871022,
+              "meanMaePct": -15.001527661209996,
+              "positiveBeforeNegativePct": 7.042253521126761,
+              "negativeBeforePositivePct": 60.56338028169014,
+              "ambiguousSameSessionPct": 32.3943661971831,
+              "noHitPct": 0
+            }
+          },
+          {
+            "rank": 11,
+            "period": 70,
+            "discoveryScore": 2.7960066396321404,
+            "discovery": {
+              "sampleCount": 37,
+              "uniqueSymbols": 22,
+              "uniqueDecisionDates": 17,
+              "meanReturnPct": -7.077410164155324,
+              "medianReturnPct": -8.916083916083917,
+              "winRatePct": 29.72972972972973,
+              "meanMfePct": 8.7104272552274,
+              "meanMaePct": -13.718145517699897,
+              "positiveBeforeNegativePct": 8.108108108108109,
+              "negativeBeforePositivePct": 51.35135135135135,
+              "ambiguousSameSessionPct": 40.54054054054054,
+              "noHitPct": 0
+            }
+          },
+          {
+            "rank": 12,
+            "period": 110,
+            "discoveryScore": 2.417949540723341,
+            "discovery": {
+              "sampleCount": 23,
+              "uniqueSymbols": 12,
+              "uniqueDecisionDates": 20,
+              "meanReturnPct": -6.242440362259158,
+              "medianReturnPct": -4.56431535269709,
+              "winRatePct": 26.08695652173913,
+              "meanMfePct": 8.1512600475381,
+              "meanMaePct": -13.07797421781593,
+              "positiveBeforeNegativePct": 8.695652173913043,
+              "negativeBeforePositivePct": 52.17391304347826,
+              "ambiguousSameSessionPct": 39.130434782608695,
+              "noHitPct": 0
+            }
+          },
+          {
+            "rank": 13,
+            "period": 55,
+            "discoveryScore": 2.2931616462147075,
+            "discovery": {
+              "sampleCount": 45,
+              "uniqueSymbols": 26,
+              "uniqueDecisionDates": 23,
+              "meanReturnPct": -9.770033091575572,
+              "medianReturnPct": -9.968051118210862,
+              "winRatePct": 17.77777777777778,
+              "meanMfePct": 6.830486802288736,
+              "meanMaePct": -14.266180546481632,
+              "positiveBeforeNegativePct": 6.666666666666667,
+              "negativeBeforePositivePct": 44.44444444444444,
+              "ambiguousSameSessionPct": 48.888888888888886,
+              "noHitPct": 0
+            }
+          },
+          {
+            "rank": 14,
+            "period": 50,
+            "discoveryScore": 2.061459636463048,
+            "discovery": {
+              "sampleCount": 50,
+              "uniqueSymbols": 29,
+              "uniqueDecisionDates": 22,
+              "meanReturnPct": -10.61683928247815,
+              "medianReturnPct": -11.651095724890903,
+              "winRatePct": 16,
+              "meanMfePct": 6.366357033243966,
+              "meanMaePct": -15.168112257789119,
+              "positiveBeforeNegativePct": 6,
+              "negativeBeforePositivePct": 52,
+              "ambiguousSameSessionPct": 42,
+              "noHitPct": 0
+            }
+          },
+          {
+            "rank": 15,
+            "period": 85,
+            "discoveryScore": 1.8476635327693365,
+            "discovery": {
+              "sampleCount": 30,
+              "uniqueSymbols": 19,
+              "uniqueDecisionDates": 19,
+              "meanReturnPct": -7.685293435270008,
+              "medianReturnPct": -9.13249938709037,
+              "winRatePct": 26.666666666666668,
+              "meanMfePct": 9.285351881320599,
+              "meanMaePct": -13.700121170581216,
+              "positiveBeforeNegativePct": 6.666666666666667,
+              "negativeBeforePositivePct": 50,
+              "ambiguousSameSessionPct": 43.333333333333336,
+              "noHitPct": 0
+            }
+          },
+          {
+            "rank": 16,
+            "period": 75,
+            "discoveryScore": 1.6282313063842442,
+            "discovery": {
+              "sampleCount": 34,
+              "uniqueSymbols": 21,
+              "uniqueDecisionDates": 17,
+              "meanReturnPct": -6.841422745514665,
+              "medianReturnPct": -8.303217753260284,
+              "winRatePct": 29.411764705882355,
+              "meanMfePct": 9.28571107366307,
+              "meanMaePct": -12.789008160779291,
+              "positiveBeforeNegativePct": 5.88235294117647,
+              "negativeBeforePositivePct": 47.05882352941176,
+              "ambiguousSameSessionPct": 47.05882352941176,
+              "noHitPct": 0
+            }
+          },
+          {
+            "rank": 17,
+            "period": 60,
+            "discoveryScore": 1.4950662770539938,
+            "discovery": {
+              "sampleCount": 37,
+              "uniqueSymbols": 20,
+              "uniqueDecisionDates": 18,
+              "meanReturnPct": -7.722150568806623,
+              "medianReturnPct": -8.417849898580121,
+              "winRatePct": 21.62162162162162,
+              "meanMfePct": 8.008526211665053,
+              "meanMaePct": -13.512471047778336,
+              "positiveBeforeNegativePct": 5.405405405405405,
+              "negativeBeforePositivePct": 45.94594594594595,
+              "ambiguousSameSessionPct": 48.64864864864865,
+              "noHitPct": 0
+            }
+          },
+          {
+            "rank": 18,
+            "period": 45,
+            "discoveryScore": 1.3820377146101093,
+            "discovery": {
+              "sampleCount": 40,
+              "uniqueSymbols": 25,
+              "uniqueDecisionDates": 20,
+              "meanReturnPct": -10.614096448642913,
+              "medianReturnPct": -9.432805546304984,
+              "winRatePct": 15,
+              "meanMfePct": 6.133005114964474,
+              "meanMaePct": -15.157472781924138,
+              "positiveBeforeNegativePct": 5,
+              "negativeBeforePositivePct": 55.00000000000001,
+              "ambiguousSameSessionPct": 40,
+              "noHitPct": 0
+            }
+          },
+          {
+            "rank": 19,
+            "period": 25,
+            "discoveryScore": 1.315724863920636,
+            "discovery": {
+              "sampleCount": 42,
+              "uniqueSymbols": 23,
+              "uniqueDecisionDates": 20,
+              "meanReturnPct": -9.301081152290388,
+              "medianReturnPct": -8.291823668167753,
+              "winRatePct": 14.285714285714285,
+              "meanMfePct": 6.6621945126044055,
+              "meanMaePct": -15.087048318638747,
+              "positiveBeforeNegativePct": 4.761904761904762,
+              "negativeBeforePositivePct": 61.904761904761905,
+              "ambiguousSameSessionPct": 33.33333333333333,
+              "noHitPct": 0
+            }
+          },
+          {
+            "rank": 20,
+            "period": 20,
+            "discoveryScore": 1.0611488322077558,
+            "discovery": {
+              "sampleCount": 52,
+              "uniqueSymbols": 24,
+              "uniqueDecisionDates": 23,
+              "meanReturnPct": -11.315599800164515,
+              "medianReturnPct": -12.297067295103432,
+              "winRatePct": 13.461538461538462,
+              "meanMfePct": 7.06600782102421,
+              "meanMaePct": -16.34568986244306,
+              "positiveBeforeNegativePct": 3.8461538461538463,
+              "negativeBeforePositivePct": 55.769230769230774,
+              "ambiguousSameSessionPct": 40.38461538461539,
+              "noHitPct": 0
+            }
+          },
+          {
+            "rank": 21,
+            "period": 80,
+            "discoveryScore": 0.571707408694444,
+            "discovery": {
+              "sampleCount": 31,
+              "uniqueSymbols": 20,
+              "uniqueDecisionDates": 17,
+              "meanReturnPct": -6.393054073300978,
+              "medianReturnPct": -8.417849898580121,
+              "winRatePct": 29.03225806451613,
+              "meanMfePct": 10.107920788354487,
+              "meanMaePct": -12.85358687826776,
+              "positiveBeforeNegativePct": 3.225806451612903,
+              "negativeBeforePositivePct": 48.38709677419355,
+              "ambiguousSameSessionPct": 48.38709677419355,
+              "noHitPct": 0
+            }
+          },
+          {
+            "rank": 22,
+            "period": 30,
+            "discoveryScore": 0.5061361365853356,
+            "discovery": {
+              "sampleCount": 35,
+              "uniqueSymbols": 20,
+              "uniqueDecisionDates": 17,
+              "meanReturnPct": -10.07604029904735,
+              "medianReturnPct": -8.39506172839506,
+              "winRatePct": 17.142857142857142,
+              "meanMfePct": 6.4095468208646915,
+              "meanMaePct": -15.492890054596666,
+              "positiveBeforeNegativePct": 2.857142857142857,
+              "negativeBeforePositivePct": 54.285714285714285,
+              "ambiguousSameSessionPct": 42.857142857142854,
+              "noHitPct": 0
+            }
+          },
+          {
+            "rank": 23,
+            "period": 40,
+            "discoveryScore": 0.42152954991002933,
+            "discovery": {
+              "sampleCount": 42,
+              "uniqueSymbols": 27,
+              "uniqueDecisionDates": 21,
+              "meanReturnPct": -9.897892373898292,
+              "medianReturnPct": -8.038590466846536,
+              "winRatePct": 9.523809523809524,
+              "meanMfePct": 6.23994705190392,
+              "meanMaePct": -14.890593453102849,
+              "positiveBeforeNegativePct": 2.380952380952381,
+              "negativeBeforePositivePct": 52.38095238095239,
+              "ambiguousSameSessionPct": 45.23809523809524,
+              "noHitPct": 0
+            }
+          },
+          {
+            "rank": 24,
+            "period": 35,
+            "discoveryScore": 0,
+            "discovery": {
+              "sampleCount": 40,
+              "uniqueSymbols": 23,
+              "uniqueDecisionDates": 19,
+              "meanReturnPct": -8.55759743108266,
+              "medianReturnPct": -7.47733360807748,
+              "winRatePct": 17.5,
+              "meanMfePct": 6.11560354506549,
+              "meanMaePct": -14.43320333890031,
+              "positiveBeforeNegativePct": 0,
+              "negativeBeforePositivePct": 55.00000000000001,
+              "ambiguousSameSessionPct": 45,
+              "noHitPct": 0
+            }
+          }
+        ],
+        "selectedCandidate": {
+          "candidateId": "CANDIDATE-7dd0461f9a20fb73",
+          "rank": 1,
+          "period": 90,
+          "discoveryScore": 7.878385829430107,
+          "discovery": {
+            "sampleCount": 28,
+            "uniqueSymbols": 16,
+            "uniqueDecisionDates": 17,
+            "meanReturnPct": -6.479428911844599,
+            "medianReturnPct": -8.802298443265965,
+            "winRatePct": 32.142857142857146,
+            "meanMfePct": 9.497423534740378,
+            "meanMaePct": -13.12339595814919,
+            "positiveBeforeNegativePct": 17.857142857142858,
+            "negativeBeforePositivePct": 46.42857142857143,
+            "ambiguousSameSessionPct": 35.714285714285715,
+            "noHitPct": 0
+          }
+        },
+        "validation": {
+          "sampleCount": 12,
+          "uniqueSymbols": 6,
+          "uniqueDecisionDates": 7,
+          "meanReturnPct": -11.297842387648721,
+          "medianReturnPct": -9.705456564095304,
+          "winRatePct": 25,
+          "meanMfePct": 8.477265241494194,
+          "meanMaePct": -17.40409119784611,
+          "positiveBeforeNegativePct": 8.333333333333332,
+          "negativeBeforePositivePct": 50,
+          "ambiguousSameSessionPct": 41.66666666666667,
+          "noHitPct": 0
+        },
+        "status": "NO_GO_VALIDATION",
+        "eventCount": 40,
+        "profitabilityClaim": false
+      }
+    },
+    "semanticCompletionDecision": {
+      "featureId": "PRICE_MA_RECLAIM_UP",
+      "searchStatus": "NO_GO_VALIDATION",
+      "candidateCount": 24,
+      "validationSampleCount": 12,
+      "reasoningSummary": "The top-ranked candidate (period 90) failed the validation gate. Specifically, it failed the 'meanReturnPct > 0' requirement and the 'positiveBeforeNegativePct > negativeBeforePositivePct' condition (8.33% vs 50%). Per protocol, no further candidates are evaluated for validation.",
+      "conclusion": "The search resulted in a NO_GO status as the only candidate permitted to enter the validation holdout failed all required performance thresholds.",
+      "selectedPeriod": 90,
+      "discoverySampleCount": 28,
+      "nextResearch": []
+    },
+    "finalTurn": {
+      "schema": "ResearchAgentTurn@1.0.0",
+      "goalId": "GOAL-AUTONOMOUS-MA-PERIOD-SEARCH-001",
+      "status": "COMPLETE",
+      "reasoningSummary": "The top-ranked candidate (period 90) failed the validation gate. Specifically, it failed the 'meanReturnPct > 0' requirement and the 'positiveBeforeNegativePct > negativeBeforePositivePct' condition (8.33% vs 50%). Per protocol, no further candidates are evaluated for validation.",
+      "actions": [],
+      "evidenceRefs": [
+        "EVIDENCE-88a51016d62292b6"
+      ],
+      "conclusion": "The search resulted in a NO_GO status as the only candidate permitted to enter the validation holdout failed all required performance thresholds.",
+      "nextResearch": [],
+      "profitabilityClaim": false
+    },
+    "modelExecution": {
+      "actionDecision": {
+        "role": "LOCAL_FAST",
+        "model": "gemma4:12b",
+        "source": "ENV",
+        "attempts": 1,
+        "escalated": false,
+        "diagnostics": [
+          {
+            "stage": "ACTION_DECISION",
+            "globalAttempt": 1,
+            "role": "LOCAL_FAST",
+            "model": "gemma4:12b",
+            "modelSource": "ENV",
+            "attempt": 1,
+            "error": null,
+            "doneReason": "stop",
+            "parseStrict": true,
+            "parseRecovered": false,
+            "parseTrailing": 0,
+            "returned": {
+              "keys": [
+                "tool",
+                "featureId",
+                "reasoningSummary",
+                "periodMin",
+                "periodMax",
+                "periodStep"
+              ],
+              "tool": "RUN_FEATURE_PERIOD_SEARCH",
+              "featureId": "PRICE_MA_RECLAIM_UP",
+              "period": null,
+              "periodMin": 5,
+              "periodMax": 120,
+              "periodStep": 5,
+              "eventCount": null,
+              "discoverySampleCount": null,
+              "validationSampleCount": null,
+              "selectedPeriod": null,
+              "searchStatus": null,
+              "candidateCount": null,
+              "nextResearchType": "undefined"
+            }
+          }
+        ]
+      },
+      "completionDecision": {
+        "role": "LOCAL_FAST",
+        "model": "gemma4:12b",
+        "source": "ENV",
+        "attempts": 1,
+        "escalated": false,
+        "diagnostics": [
+          {
+            "stage": "COMPLETION_DECISION",
+            "globalAttempt": 1,
+            "role": "LOCAL_FAST",
+            "model": "gemma4:12b",
+            "modelSource": "ENV",
+            "attempt": 1,
+            "error": null,
+            "doneReason": "stop",
+            "parseStrict": false,
+            "parseRecovered": true,
+            "parseTrailing": 10,
+            "returned": {
+              "keys": [
+                "featureId",
+                "searchStatus",
+                "candidateCount",
+                "validationSampleCount",
+                "reasoningSummary",
+                "conclusion",
+                "selectedPeriod",
+                "discoverySampleCount"
+              ],
+              "tool": null,
+              "featureId": "PRICE_MA_RECLAIM_UP",
+              "period": null,
+              "periodMin": null,
+              "periodMax": null,
+              "periodStep": null,
+              "eventCount": null,
+              "discoverySampleCount": 28,
+              "validationSampleCount": 12,
+              "selectedPeriod": 90,
+              "searchStatus": "NO_GO_VALIDATION",
+              "candidateCount": 24,
+              "nextResearchType": "undefined"
+            }
+          }
+        ]
+      }
+    },
+    "profitabilityClaim": false
+  },
+  "runtimeMetrics": {
+    "wallSeconds": 49.433,
+    "contextBytes": 16225,
+    "completionContextBytes": 7235,
+    "contextTokens": 16384,
+    "outputAttempts": 2,
+    "actionAttempts": 1,
+    "completionAttempts": 1,
+    "actionModelRole": "LOCAL_FAST",
+    "completionModelRole": "LOCAL_FAST",
+    "keepAlive": 0
+  }
+}
