@@ -1,0 +1,17 @@
+{
+  "schema": "ResearchToolRegistry@1.0.0",
+  "tools": [
+    {
+      "tool": "RUN_FEATURE_EXPERIMENT",
+      "enabled": true,
+      "executor": "RESEARCH_LOCAL_ROOT/scripts/run_feature_experiment_tool.mjs",
+      "readOnly": true,
+      "brokerAction": false,
+      "allowedFeatureIds": ["PRICE_MA_RECLAIM_UP"],
+      "parameterContract": {
+        "period": {"type": "integer", "min": 2, "max": 240}
+      },
+      "runtimeOwnedContext": ["datasetHash", "snapshotExperiment", "dateFrom", "dateTo", "objective"]
+    }
+  ]
+}
