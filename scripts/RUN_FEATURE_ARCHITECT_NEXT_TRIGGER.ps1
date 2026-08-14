@@ -98,11 +98,11 @@ if ($existing.Count -eq 1 -and -not $ForceNew) {
     if ($LASTEXITCODE -ne 0) { throw 'git push queued feature architect task failed' }
 }
 
-Write-Host "[feature-architect-next] execute one-shot worker task=$taskId testNow=$($TestNow.IsPresent)"
+Write-Host "[feature-architect-next] execute targeted one-shot worker task=$taskId testNow=$($TestNow.IsPresent)"
 if ($TestNow) {
-    powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\RUN_RESEARCH_WINDOW_ONCE.ps1 -TestNow
+    powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\RUN_RESEARCH_WINDOW_ONCE.ps1 -TestNow -TaskId $taskId
 } else {
-    powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\RUN_RESEARCH_WINDOW_ONCE.ps1
+    powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\RUN_RESEARCH_WINDOW_ONCE.ps1 -TaskId $taskId
 }
 if ($LASTEXITCODE -ne 0) { throw "research-window worker failed exit=$LASTEXITCODE" }
 
