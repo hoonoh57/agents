@@ -23,6 +23,26 @@ No generated code execution without normal build/test/validation gates.
 No agent may directly rewrite another agent's workspace; cross-agent work is assigned through Coordinator tasks.
 ```
 
+## Local LLM runtime isolation
+
+The trading/chart runtime has priority over research. Local LLM research must never be designed as a resident 24-hour process.
+
+```text
+DURABLE QUEUE MAY EXIST 24 HOURS.
+LOCAL LLM RESIDENCY MUST NOT.
+```
+
+Production research execution rules:
+
+- Local LLM work is one-shot and background-scheduled after the configured research-window start (default 20:00 KST).
+- The default research window ends at 06:00 KST so resources are released well before live-market operation.
+- At most one local LLM research task may execute concurrently.
+- No polling loop may keep a research worker or model resident while waiting for work.
+- If the queue is empty, no model is loaded.
+- After a one-shot run, configured Ollama models must be unloaded immediately and the worker process must exit.
+- Research scheduling must not start or stop the broker, chart, trading gateway, or main trading application.
+- Live trading/chart processes are never preempted for research throughput.
+
 Every adopted feature must preserve:
 
 ```text
