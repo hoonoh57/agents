@@ -1,0 +1,36 @@
+{
+  "schema": "CoordinatorDecision@1.0.0",
+  "decisionId": "P3_FEATURE_ARCHITECT_NEXT_TRIGGER_003_PROTOCOL_ERROR",
+  "status": "PROTOCOL_ERROR_SOURCE_PROVENANCE",
+  "taskId": "TASK-20260814031141-1b6b04",
+  "agentId": "feature-architect",
+  "executionSucceeded": false,
+  "designEvaluated": false,
+  "error": "OUTPUT_SOURCE_REF_UNKNOWN for coordinator decision artifact paths",
+  "rootCause": "The task exposed coordinator decisions only through artifactRefs while the project context adapter resolved only RESEARCH_LOCAL_ROOT inputs. The model therefore cited visible artifact paths as sourceInputIds, but stable runtime correctly allowed only resolved SOURCE inputIds.",
+  "evidence": {
+    "resolvedSourceCount": 4,
+    "resolvedSourceIds": [
+      "explorer-ma-cross",
+      "explorer-price-reclaim-high-breakout",
+      "daily-candle-contract",
+      "trigger-context-boundary"
+    ],
+    "invalidCitationsObserved": [
+      "coordinator/decisions/P3_FEATURE_ARCHITECT_NEXT_TRIGGER_001_REJECTED.json",
+      "coordinator/decisions/P3_FEATURE_ARCHITECT_NEXT_TRIGGER_002_REJECTED.json"
+    ],
+    "outputAttempts": 2,
+    "resultArtifactCreated": false,
+    "implementationStarted": false,
+    "brokerMutation": false
+  },
+  "fix": {
+    "contextRoot": "AGENT_REPO_ROOT",
+    "decisionInputsBecomeResolvedSources": true,
+    "nextGoalId": "GOAL-FEATURE-ARCHITECT-NEXT-TRIGGER-004",
+    "reuseFailedTaskLineage": false,
+    "reasonForNewLineage": "The evidence/source contract changes materially; mutating the failed task snapshot would break provenance."
+  },
+  "profitabilityClaim": false
+}
