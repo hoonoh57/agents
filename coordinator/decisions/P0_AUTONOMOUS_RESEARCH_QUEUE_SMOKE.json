@@ -1,0 +1,46 @@
+{
+  "schema": "CoordinatorDecision@1.0.0",
+  "decisionId": "P0_AUTONOMOUS_RESEARCH_QUEUE_SMOKE",
+  "status": "PASS",
+  "goalId": "GOAL-AUTONOMOUS-MA5-SMOKE-001",
+  "taskId": "TASK-20260814013836-ef697e",
+  "resultId": "RESULT-20260814013836-ef697e",
+  "evidenceCommit": "333e81cbe8a9d211a8d6849df73d26dc82a556e2",
+  "resultPath": "agents/experiment-validation/results/RESULT-20260814013836-ef697e.json",
+  "verified": {
+    "executionMode": "AUTONOMOUS_RESEARCH",
+    "queueLeaseWorker": true,
+    "semanticActionSelectedByLocalAgent": true,
+    "selectedTool": "RUN_FEATURE_EXPERIMENT",
+    "selectedFeatureId": "PRICE_MA_RECLAIM_UP",
+    "selectedPeriod": 5,
+    "deterministicToolExecuted": true,
+    "eventCount": 335,
+    "discoverySampleCount": 195,
+    "validationSampleCount": 129,
+    "sameAgentEvidenceReadback": true,
+    "canonicalComplete": true,
+    "runtimeOwnedEvidenceRef": true,
+    "profitabilityClaim": false,
+    "localFastActionAttempts": 1,
+    "localFastCompletionAttempts": 1,
+    "modelEscalationRequired": false,
+    "keepAlive": 0,
+    "oneShotProcessExit": true,
+    "completedResultReuseWithoutLlmRerun": true
+  },
+  "interpretation": [
+    "The production queue/lease one-shot lane can execute a ResearchGoal through Local LLM semantic action selection, a whitelisted deterministic research tool, evidence readback, canonical COMPLETE normalization, durable AgentResult storage, model unload and process exit.",
+    "The smoke validates orchestration and evidence plumbing only; it does not validate profitability of the MA5 strategy.",
+    "Completed results are idempotently reusable by the verifier without starting the Local LLM again."
+  ],
+  "operatingBoundary": [
+    "Production Local LLM research remains one-shot and non-polling.",
+    "Daytime execution requires the explicit development test override.",
+    "Scheduled automatic research must remain after-hours only.",
+    "Ollama keep_alive remains 0 for autonomous research calls.",
+    "No broker or order action is allowed in the autonomous research lane."
+  ],
+  "nextGate": "Add a bounded deterministic moving-average sweep capability so a ResearchGoal can ask the agent to search periods 5 through 120, rank Discovery evidence, freeze one candidate, evaluate it on chronological Validation, and return BEST or NO_GO without manually prescribing each period.",
+  "profitabilityClaim": false
+}
