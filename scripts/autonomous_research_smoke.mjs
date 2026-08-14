@@ -7,6 +7,8 @@ import { parseFirstJsonObject } from './structured_output.mjs';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const TURN_SCHEMA='ResearchAgentTurn@1.0.0';
+const ACTION_DECISION_SCHEMA='ResearchActionDecision@1.0.0';
+const COMPLETION_DECISION_SCHEMA='ResearchCompletionDecision@1.0.0';
 const RESULT_SCHEMA='AutonomousResearchSmokeResult@1.0.0';
 
 function fail(message){throw new Error(`[autonomous-smoke] ${message}`);}
@@ -16,6 +18,7 @@ function readEnv(file){const out={};if(!fs.existsSync(file))return out;for(const
 function nowIso(){return new Date().toISOString();}
 function sha(value){return crypto.createHash('sha256').update(typeof value==='string'?value:JSON.stringify(value)).digest('hex');}
 function writeJson(file,value){fs.mkdirSync(path.dirname(file),{recursive:true});fs.writeFileSync(file,JSON.stringify(value,null,2)+'\n','utf8');}
+function flag(name){return process.argv.includes(`--${name}`);}
 
 const env={...readEnv(path.join(root,'.env')),...process.env};
 const goalPath=path.join(root,'goals','GOAL-AUTONOMOUS-MA5-SMOKE-001.json');
@@ -48,65 +51,137 @@ function modelForRole(role){
   return{role,model:'',source:'NONE'};
 }
 function uniqueRoleCandidates(roles){const seen=new Set();return roles.filter(role=>{if(!role||seen.has(role))return false;seen.add(role);return true;}).map(modelForRole).filter(x=>x.model);}
-const primaryRole=agent.modelRoleHint||'LOCAL_REASONER';
-const firstTurnCandidates=uniqueRoleCandidates([primaryRole,'LOCAL_REASONER']);
-if(!firstTurnCandidates.length)fail(`MODEL_NOT_CONFIGURED:${primaryRole}`);
-const base=(env.LOCAL_LLM_BASE_URL||'http://127.0.0.1:11434').replace(/\/$/,'');
-const timeoutSeconds=Math.max(30,Number(env.LOCAL_LLM_TIMEOUT_SECONDS||120));
-const contextTokens=Math.max(4096,Number(env.LOCAL_LLM_CONTEXT_TOKENS||16384));
-const outputTokens=Math.max(768,Number(env.LOCAL_LLM_MAX_OUTPUT_TOKENS||1024));
+function registeredTool(){const tool=toolRegistry.tools.find(x=>x.enabled&&x.tool==='RUN_FEATURE_EXPERIMENT');if(!tool)fail('RUN_FEATURE_EXPERIMENT is not enabled');if(tool.readOnly!==true||tool.brokerAction!==false)fail('research tool must be read-only and non-broker');return tool;}
 
-function actionSchema(minItems,maxItems){return{type:'array',minItems,maxItems,items:{type:'object',additionalProperties:false,required:['actionId','tool','arguments'],properties:{actionId:{type:'string'},tool:{type:'string',enum:['RUN_FEATURE_EXPERIMENT']},arguments:{type:'object',additionalProperties:false,required:['featureId','parameters'],properties:{featureId:{type:'string'},parameters:{type:'object',additionalProperties:false,required:['period'],properties:{period:{type:'integer',minimum:2,maximum:240}}}}}}}};}
-function turnJsonSchema(expectedStatus){return{
+function actionDecisionSchema(){return{
   type:'object',additionalProperties:false,
-  required:['schema','goalId','status','reasoningSummary','actions','evidenceRefs','conclusion','nextResearch','profitabilityClaim'],
+  required:['schema','goalId','status','tool','featureId','period','reasoningSummary','profitabilityClaim'],
   properties:{
-    schema:{type:'string',enum:[TURN_SCHEMA]},goalId:{type:'string',enum:[goal.goalId]},status:{type:'string',enum:[expectedStatus]},reasoningSummary:{type:'string',maxLength:1800},
-    actions:actionSchema(expectedStatus==='ACTION_REQUIRED'?1:0,expectedStatus==='ACTION_REQUIRED'?1:0),
-    evidenceRefs:{type:'array',maxItems:8,items:{type:'string'}},conclusion:{type:'string',maxLength:2200},nextResearch:{type:'array',maxItems:2,items:{type:'string',maxLength:1000}},profitabilityClaim:{type:'boolean',enum:[false]}
+    schema:{type:'string',enum:[ACTION_DECISION_SCHEMA]},
+    goalId:{type:'string',enum:[goal.goalId]},
+    status:{type:'string',enum:['ACTION_REQUIRED']},
+    tool:{type:'string',enum:['RUN_FEATURE_EXPERIMENT']},
+    featureId:{type:'string',enum:registeredTool().allowedFeatureIds},
+    period:{type:'integer',minimum:registeredTool().parameterContract.period.min,maximum:registeredTool().parameterContract.period.max},
+    reasoningSummary:{type:'string',maxLength:1200},
+    profitabilityClaim:{type:'boolean',enum:[false]}
+  }
+};}
+function completionDecisionSchema(evidenceId){return{
+  type:'object',additionalProperties:false,
+  required:['schema','goalId','status','evidenceId','reasoningSummary','conclusion','nextResearch','profitabilityClaim'],
+  properties:{
+    schema:{type:'string',enum:[COMPLETION_DECISION_SCHEMA]},
+    goalId:{type:'string',enum:[goal.goalId]},
+    status:{type:'string',enum:['COMPLETE']},
+    evidenceId:{type:'string',enum:[evidenceId]},
+    reasoningSummary:{type:'string',maxLength:1200},
+    conclusion:{type:'string',maxLength:2200},
+    nextResearch:{type:'array',maxItems:2,items:{type:'string',maxLength:1000}},
+    profitabilityClaim:{type:'boolean',enum:[false]}
   }
 };}
 
-function validateTurnValue(turn,stage,expectedStatus,requiredEvidenceId=null){
-  if(!turn||typeof turn!=='object'||Array.isArray(turn))throw new Error(`${stage}: JSON object required`);
-  if(turn.schema!==TURN_SCHEMA)throw new Error(`${stage}: schema expected=${TURN_SCHEMA} actual=${String(turn.schema??'missing')}`);
-  if(turn.goalId!==goal.goalId)throw new Error(`${stage}: goalId mismatch actual=${String(turn.goalId??'missing')}`);
-  if(turn.status!==expectedStatus)throw new Error(`${stage}: status expected=${expectedStatus} actual=${String(turn.status??'missing')}`);
-  if(turn.profitabilityClaim!==false)throw new Error(`${stage}: profitabilityClaim must be false`);
-  if(!turnContract.status.includes(turn.status))throw new Error(`${stage}: invalid status ${turn.status}`);
-  if(!Array.isArray(turn.actions))throw new Error(`${stage}: actions required`);
-  if(expectedStatus==='ACTION_REQUIRED'&&turn.actions.length!==1)throw new Error(`${stage}: ACTION_REQUIRED needs one action`);
-  if(expectedStatus==='COMPLETE'&&turn.actions.length!==0)throw new Error(`${stage}: COMPLETE must have zero actions`);
-  if(!Array.isArray(turn.evidenceRefs))throw new Error(`${stage}: evidenceRefs required`);
-  if(typeof turn.conclusion!=='string')throw new Error(`${stage}: conclusion must be string`);
-  if(expectedStatus==='COMPLETE'&&requiredEvidenceId&&!turn.evidenceRefs.includes(requiredEvidenceId))throw new Error(`${stage}: COMPLETE must cite ${requiredEvidenceId}`);
+function validateActionDecision(value){
+  if(!value||typeof value!=='object'||Array.isArray(value))throw new Error('ACTION_DECISION object required');
+  if(value.schema!==ACTION_DECISION_SCHEMA)throw new Error(`ACTION_DECISION schema actual=${String(value.schema??'missing')}`);
+  if(value.goalId!==goal.goalId)throw new Error('ACTION_DECISION goalId mismatch');
+  if(value.status!=='ACTION_REQUIRED')throw new Error(`ACTION_DECISION status actual=${String(value.status??'missing')}`);
+  if(value.profitabilityClaim!==false)throw new Error('ACTION_DECISION profitabilityClaim must be false');
+  const tool=registeredTool();
+  if(value.tool!==tool.tool)throw new Error(`ACTION_DECISION tool actual=${String(value.tool??'missing')}`);
+  if(!tool.allowedFeatureIds.includes(value.featureId))throw new Error(`ACTION_DECISION featureId not allowed ${String(value.featureId??'missing')}`);
+  if(!Number.isInteger(value.period)||value.period<tool.parameterContract.period.min||value.period>tool.parameterContract.period.max)throw new Error(`ACTION_DECISION period invalid ${String(value.period)}`);
+  if(typeof value.reasoningSummary!=='string')throw new Error('ACTION_DECISION reasoningSummary required');
+  return value;
+}
+function validateCompletionDecision(value,evidenceId){
+  if(!value||typeof value!=='object'||Array.isArray(value))throw new Error('COMPLETION_DECISION object required');
+  if(value.schema!==COMPLETION_DECISION_SCHEMA)throw new Error(`COMPLETION_DECISION schema actual=${String(value.schema??'missing')}`);
+  if(value.goalId!==goal.goalId)throw new Error('COMPLETION_DECISION goalId mismatch');
+  if(value.status!=='COMPLETE')throw new Error(`COMPLETION_DECISION status actual=${String(value.status??'missing')}`);
+  if(value.evidenceId!==evidenceId)throw new Error(`COMPLETION_DECISION evidenceId mismatch actual=${String(value.evidenceId??'missing')}`);
+  if(value.profitabilityClaim!==false)throw new Error('COMPLETION_DECISION profitabilityClaim must be false');
+  if(typeof value.reasoningSummary!=='string'||typeof value.conclusion!=='string'||!Array.isArray(value.nextResearch))throw new Error('COMPLETION_DECISION shape invalid');
+  return value;
+}
+function validateCanonicalTurn(turn,expectedStatus){
+  if(turn.schema!==TURN_SCHEMA||turn.goalId!==goal.goalId||turn.status!==expectedStatus||turn.profitabilityClaim!==false)fail(`canonical turn invalid status=${expectedStatus}`);
+  if(!turnContract.status.includes(turn.status)||!Array.isArray(turn.actions)||!Array.isArray(turn.evidenceRefs))fail(`canonical turn contract invalid status=${expectedStatus}`);
+  if(expectedStatus==='ACTION_REQUIRED'&&turn.actions.length!==1)fail('canonical ACTION_REQUIRED must contain one action');
+  if(expectedStatus==='COMPLETE'&&(turn.actions.length!==0||turn.evidenceRefs.length!==1))fail('canonical COMPLETE envelope invalid');
   return turn;
 }
-
-async function callModel(messages,expectedStatus,choice){
-  const response=await fetch(`${base}/api/chat`,{method:'POST',headers:{'content-type':'application/json'},signal:AbortSignal.timeout(timeoutSeconds*1000),body:JSON.stringify({model:choice.model,messages,format:turnJsonSchema(expectedStatus),think:false,stream:false,keep_alive:'10m',options:{temperature:0,num_ctx:contextTokens,num_predict:outputTokens}})});
-  const raw=await response.text();if(!response.ok)throw new Error(`OLLAMA_HTTP_${response.status}:${choice.model}: ${raw.slice(0,600)}`);let body;try{body=JSON.parse(raw);}catch{throw new Error(`OLLAMA_ENVELOPE_INVALID:${choice.model}`);}return{body,text:String(body?.message?.content||'').trim()};
+function normalizeActionDecision(decision){
+  const checked=validateActionDecision(decision);
+  const actionId=`ACTION-${sha({goalId:goal.goalId,tool:checked.tool,featureId:checked.featureId,period:checked.period}).slice(0,16)}`;
+  return validateCanonicalTurn({schema:TURN_SCHEMA,goalId:goal.goalId,status:'ACTION_REQUIRED',reasoningSummary:checked.reasoningSummary,actions:[{actionId,tool:checked.tool,arguments:{featureId:checked.featureId,parameters:{period:checked.period}}}],evidenceRefs:[],conclusion:'',nextResearch:[],profitabilityClaim:false},'ACTION_REQUIRED');
+}
+function normalizeCompletionDecision(decision,evidenceId){
+  const checked=validateCompletionDecision(decision,evidenceId);
+  return validateCanonicalTurn({schema:TURN_SCHEMA,goalId:goal.goalId,status:'COMPLETE',reasoningSummary:checked.reasoningSummary,actions:[],evidenceRefs:[evidenceId],conclusion:checked.conclusion,nextResearch:checked.nextResearch,profitabilityClaim:false},'COMPLETE');
 }
 
+if(flag('self-test')){
+  const action=normalizeActionDecision({schema:ACTION_DECISION_SCHEMA,goalId:goal.goalId,status:'ACTION_REQUIRED',tool:'RUN_FEATURE_EXPERIMENT',featureId:'PRICE_MA_RECLAIM_UP',period:5,reasoningSummary:'synthetic',profitabilityClaim:false});
+  if(action.actions[0].arguments.parameters.period!==5)fail('self-test action normalization failed');
+  const completion=normalizeCompletionDecision({schema:COMPLETION_DECISION_SCHEMA,goalId:goal.goalId,status:'COMPLETE',evidenceId:'EVIDENCE-SELFTEST',reasoningSummary:'synthetic',conclusion:'synthetic',nextResearch:[],profitabilityClaim:false},'EVIDENCE-SELFTEST');
+  if(completion.evidenceRefs[0]!=='EVIDENCE-SELFTEST')fail('self-test completion normalization failed');
+  console.log('AUTONOMOUS_SMOKE_SELF_TEST_PASS');
+  process.exit(0);
+}
+
+const primaryRole=agent.modelRoleHint||'LOCAL_REASONER';
+const roleCandidates=uniqueRoleCandidates([primaryRole,'LOCAL_REASONER']);
+if(!roleCandidates.length)fail(`MODEL_NOT_CONFIGURED:${primaryRole}`);
+const base=(env.LOCAL_LLM_BASE_URL||'http://127.0.0.1:11434').replace(/\/$/,'');
+const timeoutSeconds=Math.max(30,Number(env.LOCAL_LLM_TIMEOUT_SECONDS||120));
+const contextTokens=Math.max(8192,Number(env.LOCAL_LLM_CONTEXT_TOKENS||8192));
+const outputTokens=Math.max(768,Number(env.LOCAL_LLM_MAX_OUTPUT_TOKENS||768));
+
+async function callModel(messages,schema,choice){
+  const response=await fetch(`${base}/api/chat`,{method:'POST',headers:{'content-type':'application/json'},signal:AbortSignal.timeout(timeoutSeconds*1000),body:JSON.stringify({model:choice.model,messages,format:schema,think:false,stream:false,keep_alive:'10m',options:{temperature:0,num_ctx:contextTokens,num_predict:outputTokens}})});
+  const raw=await response.text();if(!response.ok)throw new Error(`OLLAMA_HTTP_${response.status}:${choice.model}: ${raw.slice(0,600)}`);let body;try{body=JSON.parse(raw);}catch{throw new Error(`OLLAMA_ENVELOPE_INVALID:${choice.model}`);}return{body,text:String(body?.message?.content||'').trim()};
+}
 function basePrompt(){return[
   '# AGENT',agentMd,'# DURABLE GOALS',agentGoals,'# PLAN',agentPlan,'# MEMORY INDEX',memoryIndex,
   '# SHARED OBJECTIVES',objectives,'# SHARED RULES',rules,
   '# ASSIGNED HUMAN GOAL',JSON.stringify(goal,null,2),
   '# SKILLS',...skills.flatMap(x=>[`## ${x.file}`,x.text]),
   '# TOOL REGISTRY',JSON.stringify(toolRegistry,null,2),
-  '# TURN CONTRACT',JSON.stringify(turnContract,null,2),
-  '# RESPONSE','Return only one ResearchAgentTurn@1.0.0 JSON object. Do not invent tool evidence. The purpose is to prove the autonomous loop; strategy profitability is not the pass criterion.'
+  '# RUNTIME BOUNDARY','You choose semantic research intent and arguments. Runtime owns actionId, actions[] envelopes, evidenceRefs[] envelopes, hashes and execution.',
+  '# P0 PURPOSE','Prove the autonomous goal -> decision -> deterministic tool -> evidence -> completion loop. Strategy profitability is not the pass criterion.'
 ].join('\n\n');}
 
-function validateAction(action){
-  const tool=toolRegistry.tools.find(x=>x.enabled&&x.tool===action.tool);if(!tool)fail(`tool not whitelisted ${action.tool}`);if(tool.brokerAction!==false||tool.readOnly!==true)fail('P0 tool must be read-only non-broker');
-  const featureId=String(action.arguments?.featureId||'');const period=Number(action.arguments?.parameters?.period);if(!tool.allowedFeatureIds.includes(featureId))fail(`feature not allowed ${featureId}`);if(!Number.isInteger(period)||period<tool.parameterContract.period.min||period>tool.parameterContract.period.max)fail(`period out of contract ${period}`);
-  return{tool,featureId,period};
+async function runDecision({stage,runDir,schema,validate,baseMessages,candidates}){
+  let lastError='UNKNOWN_OUTPUT_ERROR';let globalAttempt=0;const diagnostics=[];
+  for(let candidateIndex=0;candidateIndex<candidates.length;candidateIndex+=1){
+    const choice=candidates[candidateIndex];
+    if(candidateIndex>0)console.warn(`[autonomous-smoke] MODEL_ESCALATE stage=${stage} from=${candidates[candidateIndex-1].role}/${candidates[candidateIndex-1].model} to=${choice.role}/${choice.model}`);
+    for(let attempt=1;attempt<=2;attempt+=1){
+      globalAttempt+=1;
+      const correction=globalAttempt===1?null:[`Continue the SAME goal without changing any hypothesis or evidence.`,`Previous response was invalid: ${lastError}`,'Return only the exact small JSON decision requested by the current stage. Do not return a ResearchAgentTurn envelope; runtime builds that envelope.'].join('\n');
+      const messages=correction?[...baseMessages,{role:'user',content:correction}]:baseMessages;
+      let call=null,parsed={value:null,error:null,strict:null,recovered:null,trailing:null},decision=null,error=null;
+      try{call=await callModel(messages,schema,choice);parsed=parseFirstJsonObject(call.text);if(!parsed.value)error=`JSON_PARSE_FAILED:${parsed.error||'unknown'}`;else{try{decision=validate(parsed.value);}catch(e){error=String(e?.message||e);}}}catch(e){error=String(e?.message||e);}
+      const diag={stage,globalAttempt,role:choice.role,attempt,model:choice.model,modelSource:choice.source,doneReason:call?.body?.done_reason??null,rawText:call?.text??null,parsedSchema:parsed.value?.schema??null,parsedStatus:parsed.value?.status??null,parseStrict:parsed.strict??null,parseRecovered:parsed.recovered??null,parseTrailing:parsed.trailing??null,error};
+      diagnostics.push(diag);writeJson(path.join(runDir,`${stage.toLowerCase()}-${choice.role.toLowerCase()}-attempt-${attempt}.json`),diag);
+      if(decision){if(globalAttempt>1)console.log(`[autonomous-smoke] OUTPUT_RECOVERED stage=${stage} role=${choice.role} attempt=${attempt} globalAttempt=${globalAttempt}`);return{decision,attempts:globalAttempt,diagnostics,role:choice.role,model:choice.model,modelSource:choice.source,escalated:candidateIndex>0};}
+      lastError=error||'OUTPUT_INVALID';console.warn(`[autonomous-smoke] OUTPUT_INVALID stage=${stage} role=${choice.role} attempt=${attempt}/2 error=${lastError}`);
+    }
+  }
+  fail(`${stage} OUTPUT_INVALID_AFTER_ESCALATION lastError=${lastError}`);
 }
 
+function validateAction(action){
+  const tool=registeredTool();if(action.tool!==tool.tool)fail(`tool not whitelisted ${action.tool}`);
+  const featureId=String(action.arguments?.featureId||'');const period=Number(action.arguments?.parameters?.period);
+  if(!tool.allowedFeatureIds.includes(featureId))fail(`feature not allowed ${featureId}`);
+  if(!Number.isInteger(period)||period<tool.parameterContract.period.min||period>tool.parameterContract.period.max)fail(`period out of contract ${period}`);
+  return{tool,featureId,period};
+}
 function executeAction(action,runDir){
-  const checked=validateAction(action);
-  const researchRoot=env.RESEARCH_LOCAL_ROOT;if(!researchRoot)fail('RESEARCH_LOCAL_ROOT is required');
+  const checked=validateAction(action);const researchRoot=env.RESEARCH_LOCAL_ROOT;if(!researchRoot)fail('RESEARCH_LOCAL_ROOT is required');
   const executor=path.join(researchRoot,'scripts','run_feature_experiment_tool.mjs');if(!fs.existsSync(executor))fail(`research tool executor missing ${executor}`);
   const datasetHash=goal.toolContext?.datasetHash;const snapshotExperiment=goal.toolContext?.snapshotExperiment;
   const args=[executor,'--feature',checked.featureId,'--period',String(checked.period),'--dataset',datasetHash,'--snapshot-experiment',snapshotExperiment];
@@ -115,57 +190,22 @@ function executeAction(action,runDir){
   const evidenceId=`EVIDENCE-${sha(evidence).slice(0,16)}`;const wrapped={evidenceId,actionId:action.actionId,createdAt:nowIso(),evidence};writeJson(path.join(runDir,`${evidenceId}.json`),wrapped);return wrapped;
 }
 
-async function runTurn({stage,expectedStatus,runDir,baseMessages,roleCandidates,requiredEvidenceId=null}){
-  const diagnostics=[];
-  let lastError='UNKNOWN_OUTPUT_ERROR';
-  let globalAttempt=0;
-  for(let candidateIndex=0;candidateIndex<roleCandidates.length;candidateIndex+=1){
-    const choice=roleCandidates[candidateIndex];
-    if(candidateIndex>0)console.warn(`[autonomous-smoke] MODEL_ESCALATE stage=${stage} from=${roleCandidates[candidateIndex-1].role}/${roleCandidates[candidateIndex-1].model} to=${choice.role}/${choice.model}`);
-    for(let attempt=1;attempt<=2;attempt+=1){
-      globalAttempt+=1;
-      const correction=attempt===1&&candidateIndex===0?null:[
-        `Continue the SAME goal without changing the hypothesis or evidence.`,
-        lastError!=='UNKNOWN_OUTPUT_ERROR'?`The previous model response was invalid: ${lastError}`:'A previous model could not satisfy the structured turn contract.',
-        `Return exactly one JSON object with schema="${TURN_SCHEMA}", goalId="${goal.goalId}", status="${expectedStatus}", profitabilityClaim=false.`,
-        expectedStatus==='ACTION_REQUIRED'?'Request exactly one whitelisted action and no evidence refs are required yet.':`Request zero actions and cite evidenceRefs including "${requiredEvidenceId}".`,
-        'Do not add markdown or prose outside the JSON object.'
-      ].join('\n');
-      const messages=correction?[...baseMessages,{role:'user',content:correction}]:baseMessages;
-      let call=null,parsed={value:null,error:null,strict:null,recovered:null,trailing:null},turn=null,error=null;
-      try{
-        call=await callModel(messages,expectedStatus,choice);
-        parsed=parseFirstJsonObject(call.text);
-        if(!parsed.value)error=`JSON_PARSE_FAILED:${parsed.error||'unknown'}`;
-        else{try{turn=validateTurnValue(parsed.value,stage,expectedStatus,requiredEvidenceId);}catch(e){error=String(e?.message||e);}}
-      }catch(e){error=String(e?.message||e);}
-      const diag={stage,globalAttempt,role:choice.role,attempt,model:choice.model,modelSource:choice.source,doneReason:call?.body?.done_reason??null,rawText:call?.text??null,parsedSchema:parsed.value?.schema??null,parsedGoalId:parsed.value?.goalId??null,parsedStatus:parsed.value?.status??null,parseStrict:parsed.strict??null,parseRecovered:parsed.recovered??null,parseTrailing:parsed.trailing??null,error};
-      diagnostics.push(diag);writeJson(path.join(runDir,`${stage.toLowerCase()}-${choice.role.toLowerCase()}-attempt-${attempt}.json`),diag);
-      if(turn){if(globalAttempt>1)console.log(`[autonomous-smoke] OUTPUT_RECOVERED stage=${stage} role=${choice.role} attempt=${attempt} globalAttempt=${globalAttempt}`);return{turn,attempts:globalAttempt,diagnostics,role:choice.role,model:choice.model,modelSource:choice.source,escalated:candidateIndex>0};}
-      lastError=error||'OUTPUT_INVALID';console.warn(`[autonomous-smoke] OUTPUT_INVALID stage=${stage} role=${choice.role} attempt=${attempt}/2 error=${lastError}`);
-    }
-  }
-  fail(`${stage} OUTPUT_INVALID_AFTER_ESCALATION lastError=${lastError}`);
-}
-
 const runId=`AUTO-${new Date().toISOString().replace(/[-:TZ.]/g,'').slice(0,14)}-${crypto.randomBytes(3).toString('hex')}`;
 const runDir=path.join(root,'runtime','autonomous-smoke',runId);fs.mkdirSync(runDir,{recursive:true});
-const startedAt=nowIso();
-const primary=firstTurnCandidates[0];
-console.log(`[autonomous-smoke] START run=${runId} agent=${agent.agentId} primaryRole=${primary.role} model=${primary.model} modelSource=${primary.source}`);
+const startedAt=nowIso();const primary=roleCandidates[0];
+console.log(`[autonomous-smoke] START run=${runId} agent=${agent.agentId} primaryRole=${primary.role} model=${primary.model} modelSource=${primary.source} context=${contextTokens}`);
 
-const firstRun=await runTurn({stage:'FIRST_TURN',expectedStatus:'ACTION_REQUIRED',runDir,roleCandidates:firstTurnCandidates,baseMessages:[{role:'system',content:`You are an evidence-bound autonomous local research agent. Return only ${TURN_SCHEMA} JSON. Use only whitelisted research tools.`},{role:'user',content:[basePrompt(),'# FIRST TURN REQUIREMENT','Read the goal and capabilities. If analysis requires the deterministic tool, return ACTION_REQUIRED with exactly one action. Do not invent evidence.'].join('\n\n')}]});
-const firstTurn=firstRun.turn;writeJson(path.join(runDir,'turn-1.json'),firstTurn);
+const firstRun=await runDecision({stage:'ACTION_DECISION',runDir,schema:actionDecisionSchema(),validate:validateActionDecision,candidates:roleCandidates,baseMessages:[{role:'system',content:`Return only ${ACTION_DECISION_SCHEMA} JSON. Choose semantic tool intent and arguments; runtime owns the canonical action envelope.`},{role:'user',content:[basePrompt(),'# ACTION DECISION REQUIREMENT','The assigned goal requires one deterministic research action. Return ACTION_REQUIRED with tool, featureId, and period derived from the goal and capability semantics. Do not return actionId, actions[], evidence, or a ResearchAgentTurn object.'].join('\n\n')} ]});
+const firstTurn=normalizeActionDecision(firstRun.decision);writeJson(path.join(runDir,'turn-1.json'),firstTurn);
 const action=firstTurn.actions[0];const checked=validateAction(action);
 if(checked.featureId!=='PRICE_MA_RECLAIM_UP'||checked.period!==5)fail(`SMOKE_GOAL_MAPPING_FAILED feature=${checked.featureId} period=${checked.period}`);
 console.log(`[autonomous-smoke] ACTION role=${firstRun.role} tool=${action.tool} feature=${checked.featureId} period=${checked.period}`);
 
 const evidence=executeAction(action,runDir);console.log(`[autonomous-smoke] TOOL_PASS evidence=${evidence.evidenceId} events=${evidence.evidence.eventCount}`);
-const secondPrompt=[basePrompt(),'# PRIOR AGENT TURN',JSON.stringify(firstTurn,null,2),'# TOOL EVIDENCE',JSON.stringify(evidence,null,2),'# SECOND TURN REQUIREMENT',`The requested deterministic action has completed. Return COMPLETE with zero actions and evidenceRefs including "${evidence.evidenceId}". Summarize what the evidence says and its limitations. Do not request another action.`].join('\n\n');
 const secondCandidates=uniqueRoleCandidates([firstRun.role,'LOCAL_REASONER']);
-const secondRun=await runTurn({stage:'SECOND_TURN',expectedStatus:'COMPLETE',runDir,roleCandidates:secondCandidates,requiredEvidenceId:evidence.evidenceId,baseMessages:[{role:'system',content:`You are the same evidence-bound autonomous local research agent continuing the prior task. Return only ${TURN_SCHEMA} JSON.`},{role:'user',content:secondPrompt}]});
-const finalTurn=secondRun.turn;writeJson(path.join(runDir,'turn-2.json'),finalTurn);
+const secondRun=await runDecision({stage:'COMPLETION_DECISION',runDir,schema:completionDecisionSchema(evidence.evidenceId),validate:value=>validateCompletionDecision(value,evidence.evidenceId),candidates:secondCandidates,baseMessages:[{role:'system',content:`Return only ${COMPLETION_DECISION_SCHEMA} JSON. Read the supplied tool evidence and conclude the same goal.`},{role:'user',content:[basePrompt(),'# CANONICAL PRIOR TURN',JSON.stringify(firstTurn,null,2),'# TOOL EVIDENCE',JSON.stringify(evidence,null,2),'# COMPLETION DECISION REQUIREMENT',`Return COMPLETE with evidenceId exactly "${evidence.evidenceId}". Summarize what the evidence says and limitations. Do not request another action and do not return a ResearchAgentTurn envelope.`].join('\n\n')} ]});
+const finalTurn=normalizeCompletionDecision(secondRun.decision,evidence.evidenceId);writeJson(path.join(runDir,'turn-2.json'),finalTurn);
 
-const completedAt=nowIso();const result={schema:RESULT_SCHEMA,status:'PASS',runId,goalId:goal.goalId,agentId:agent.agentId,primaryModelRole:primaryRole,primaryModel:primary.model,startedAt,completedAt,inputHashes,modelExecution:{firstTurn:{role:firstRun.role,model:firstRun.model,modelSource:firstRun.modelSource,escalated:firstRun.escalated},secondTurn:{role:secondRun.role,model:secondRun.model,modelSource:secondRun.modelSource,escalated:secondRun.escalated}},outputRecovery:{firstTurnAttempts:firstRun.attempts,secondTurnAttempts:secondRun.attempts},firstTurn,toolEvidence:evidence,finalTurn,checks:{goalRead:true,workspaceContextRead:true,skillRead:true,modelResolvedFromContract:true,structuredOutputRecovery:true,automaticModelEscalation:true,correctCapabilitySelected:true,whitelistedToolExecuted:true,evidenceReturnedToSameAgent:true,completeReturned:true,profitabilityClaim:false},profitabilityClaim:false};
+const completedAt=nowIso();const result={schema:RESULT_SCHEMA,status:'PASS',runId,goalId:goal.goalId,agentId:agent.agentId,primaryModelRole:primaryRole,primaryModel:primary.model,startedAt,completedAt,inputHashes,modelExecution:{firstTurn:{role:firstRun.role,model:firstRun.model,modelSource:firstRun.modelSource,escalated:firstRun.escalated},secondTurn:{role:secondRun.role,model:secondRun.model,modelSource:secondRun.modelSource,escalated:secondRun.escalated}},outputRecovery:{firstTurnAttempts:firstRun.attempts,secondTurnAttempts:secondRun.attempts},decisionSchemas:{action:ACTION_DECISION_SCHEMA,completion:COMPLETION_DECISION_SCHEMA,canonicalTurn:TURN_SCHEMA},firstDecision:firstRun.decision,firstTurn,toolEvidence:evidence,completionDecision:secondRun.decision,finalTurn,checks:{goalRead:true,workspaceContextRead:true,skillRead:true,modelResolvedFromContract:true,minimalModelDecision:true,runtimeTurnNormalization:true,structuredOutputRecovery:true,automaticModelEscalation:true,correctCapabilitySelected:true,whitelistedToolExecuted:true,evidenceReturnedToSameAgent:true,completeReturned:true,profitabilityClaim:false},profitabilityClaim:false};
 const resultPath=path.join(runDir,'result.json');writeJson(resultPath,result);
 console.log(`[autonomous-smoke] COMPLETE run=${runId} status=PASS firstRole=${firstRun.role} firstAttempts=${firstRun.attempts} secondRole=${secondRun.role} secondAttempts=${secondRun.attempts}`);console.log(`[autonomous-smoke] RESULT_PATH=${resultPath}`);
