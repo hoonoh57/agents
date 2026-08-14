@@ -42,12 +42,15 @@ const inputHashes={goalSha256:sha(readText(goalPath)),agentSha256:sha(agentMd),g
 function modelForRole(role){
   const envKey=role==='LOCAL_FAST'?'LOCAL_LLM_FAST_MODEL':role==='LOCAL_CODER'?'LOCAL_LLM_CODER_MODEL':'LOCAL_LLM_REASONER_MODEL';
   const configured=String(env[envKey]||'').trim();
-  if(configured)return{model:configured,source:'ENV'};
+  if(configured)return{role,model:configured,source:'ENV'};
   const selected=String(modelRegistry.roles?.find(x=>x.role===role)?.selectedModel||'').trim();
-  if(selected)return{model:selected,source:'REGISTRY'};
-  return{model:'',source:'NONE'};
+  if(selected)return{role,model:selected,source:'REGISTRY'};
+  return{role,model:'',source:'NONE'};
 }
-const role=agent.modelRoleHint||'LOCAL_REASONER';const modelResolution=modelForRole(role);const model=modelResolution.model;if(!model)fail(`MODEL_NOT_CONFIGURED:${role}`);
+function uniqueRoleCandidates(roles){const seen=new Set();return roles.filter(role=>{if(!role||seen.has(role))return false;seen.add(role);return true;}).map(modelForRole).filter(x=>x.model);}
+const primaryRole=agent.modelRoleHint||'LOCAL_REASONER';
+const firstTurnCandidates=uniqueRoleCandidates([primaryRole,'LOCAL_REASONER']);
+if(!firstTurnCandidates.length)fail(`MODEL_NOT_CONFIGURED:${primaryRole}`);
 const base=(env.LOCAL_LLM_BASE_URL||'http://127.0.0.1:11434').replace(/\/$/,'');
 const timeoutSeconds=Math.max(30,Number(env.LOCAL_LLM_TIMEOUT_SECONDS||120));
 const contextTokens=Math.max(4096,Number(env.LOCAL_LLM_CONTEXT_TOKENS||16384));
@@ -80,9 +83,9 @@ function validateTurnValue(turn,stage,expectedStatus,requiredEvidenceId=null){
   return turn;
 }
 
-async function callModel(messages,expectedStatus){
-  const response=await fetch(`${base}/api/chat`,{method:'POST',headers:{'content-type':'application/json'},signal:AbortSignal.timeout(timeoutSeconds*1000),body:JSON.stringify({model,messages,format:turnJsonSchema(expectedStatus),think:false,stream:false,keep_alive:'10m',options:{temperature:0,num_ctx:contextTokens,num_predict:outputTokens}})});
-  const raw=await response.text();if(!response.ok)fail(`OLLAMA_HTTP_${response.status}: ${raw.slice(0,600)}`);let body;try{body=JSON.parse(raw);}catch{fail('Ollama returned non-JSON envelope');}return{body,text:String(body?.message?.content||'').trim()};
+async function callModel(messages,expectedStatus,choice){
+  const response=await fetch(`${base}/api/chat`,{method:'POST',headers:{'content-type':'application/json'},signal:AbortSignal.timeout(timeoutSeconds*1000),body:JSON.stringify({model:choice.model,messages,format:turnJsonSchema(expectedStatus),think:false,stream:false,keep_alive:'10m',options:{temperature:0,num_ctx:contextTokens,num_predict:outputTokens}})});
+  const raw=await response.text();if(!response.ok)throw new Error(`OLLAMA_HTTP_${response.status}:${choice.model}: ${raw.slice(0,600)}`);let body;try{body=JSON.parse(raw);}catch{throw new Error(`OLLAMA_ENVELOPE_INVALID:${choice.model}`);}return{body,text:String(body?.message?.content||'').trim()};
 }
 
 function basePrompt(){return[
@@ -112,46 +115,57 @@ function executeAction(action,runDir){
   const evidenceId=`EVIDENCE-${sha(evidence).slice(0,16)}`;const wrapped={evidenceId,actionId:action.actionId,createdAt:nowIso(),evidence};writeJson(path.join(runDir,`${evidenceId}.json`),wrapped);return wrapped;
 }
 
-async function runTurn({stage,expectedStatus,runDir,baseMessages,requiredEvidenceId=null}){
+async function runTurn({stage,expectedStatus,runDir,baseMessages,roleCandidates,requiredEvidenceId=null}){
   const diagnostics=[];
   let lastError='UNKNOWN_OUTPUT_ERROR';
-  for(let attempt=1;attempt<=2;attempt+=1){
-    const messages=attempt===1?baseMessages:[...baseMessages,{role:'user',content:[
-      `Your previous response was invalid: ${lastError}`,
-      `Retry the SAME goal without changing the hypothesis or evidence.`,
-      `Return exactly one JSON object with schema="${TURN_SCHEMA}", goalId="${goal.goalId}", status="${expectedStatus}", profitabilityClaim=false.`,
-      expectedStatus==='ACTION_REQUIRED'?'Request exactly one whitelisted action and no evidence refs are required yet.':`Request zero actions and cite evidenceRefs including "${requiredEvidenceId}".`,
-      'Do not add markdown or prose outside the JSON object.'
-    ].join('\n')}];
-    const call=await callModel(messages,expectedStatus);
-    const parsed=parseFirstJsonObject(call.text);
-    let turn=null,error=null;
-    if(!parsed.value)error=`JSON_PARSE_FAILED:${parsed.error||'unknown'}`;
-    else{try{turn=validateTurnValue(parsed.value,stage,expectedStatus,requiredEvidenceId);}catch(e){error=String(e?.message||e);}}
-    const diag={stage,attempt,model,modelSource:modelResolution.source,doneReason:call.body?.done_reason??null,rawText:call.text,parsedSchema:parsed.value?.schema??null,parsedGoalId:parsed.value?.goalId??null,parsedStatus:parsed.value?.status??null,parseStrict:parsed.strict??null,parseRecovered:parsed.recovered??null,parseTrailing:parsed.trailing??null,error};
-    diagnostics.push(diag);writeJson(path.join(runDir,`${stage.toLowerCase()}-attempt-${attempt}.json`),diag);
-    if(turn){if(attempt>1)console.log(`[autonomous-smoke] OUTPUT_RECOVERED stage=${stage} attempt=${attempt}`);return{turn,attempts:attempt,diagnostics};}
-    lastError=error||'OUTPUT_INVALID';console.warn(`[autonomous-smoke] OUTPUT_INVALID stage=${stage} attempt=${attempt}/2 error=${lastError}`);
+  let globalAttempt=0;
+  for(let candidateIndex=0;candidateIndex<roleCandidates.length;candidateIndex+=1){
+    const choice=roleCandidates[candidateIndex];
+    if(candidateIndex>0)console.warn(`[autonomous-smoke] MODEL_ESCALATE stage=${stage} from=${roleCandidates[candidateIndex-1].role}/${roleCandidates[candidateIndex-1].model} to=${choice.role}/${choice.model}`);
+    for(let attempt=1;attempt<=2;attempt+=1){
+      globalAttempt+=1;
+      const correction=attempt===1&&candidateIndex===0?null:[
+        `Continue the SAME goal without changing the hypothesis or evidence.`,
+        lastError!=='UNKNOWN_OUTPUT_ERROR'?`The previous model response was invalid: ${lastError}`:'A previous model could not satisfy the structured turn contract.',
+        `Return exactly one JSON object with schema="${TURN_SCHEMA}", goalId="${goal.goalId}", status="${expectedStatus}", profitabilityClaim=false.`,
+        expectedStatus==='ACTION_REQUIRED'?'Request exactly one whitelisted action and no evidence refs are required yet.':`Request zero actions and cite evidenceRefs including "${requiredEvidenceId}".`,
+        'Do not add markdown or prose outside the JSON object.'
+      ].join('\n');
+      const messages=correction?[...baseMessages,{role:'user',content:correction}]:baseMessages;
+      let call=null,parsed={value:null,error:null,strict:null,recovered:null,trailing:null},turn=null,error=null;
+      try{
+        call=await callModel(messages,expectedStatus,choice);
+        parsed=parseFirstJsonObject(call.text);
+        if(!parsed.value)error=`JSON_PARSE_FAILED:${parsed.error||'unknown'}`;
+        else{try{turn=validateTurnValue(parsed.value,stage,expectedStatus,requiredEvidenceId);}catch(e){error=String(e?.message||e);}}
+      }catch(e){error=String(e?.message||e);}
+      const diag={stage,globalAttempt,role:choice.role,attempt,model:choice.model,modelSource:choice.source,doneReason:call?.body?.done_reason??null,rawText:call?.text??null,parsedSchema:parsed.value?.schema??null,parsedGoalId:parsed.value?.goalId??null,parsedStatus:parsed.value?.status??null,parseStrict:parsed.strict??null,parseRecovered:parsed.recovered??null,parseTrailing:parsed.trailing??null,error};
+      diagnostics.push(diag);writeJson(path.join(runDir,`${stage.toLowerCase()}-${choice.role.toLowerCase()}-attempt-${attempt}.json`),diag);
+      if(turn){if(globalAttempt>1)console.log(`[autonomous-smoke] OUTPUT_RECOVERED stage=${stage} role=${choice.role} attempt=${attempt} globalAttempt=${globalAttempt}`);return{turn,attempts:globalAttempt,diagnostics,role:choice.role,model:choice.model,modelSource:choice.source,escalated:candidateIndex>0};}
+      lastError=error||'OUTPUT_INVALID';console.warn(`[autonomous-smoke] OUTPUT_INVALID stage=${stage} role=${choice.role} attempt=${attempt}/2 error=${lastError}`);
+    }
   }
-  fail(`${stage} OUTPUT_INVALID_AFTER_RETRY lastError=${lastError}`);
+  fail(`${stage} OUTPUT_INVALID_AFTER_ESCALATION lastError=${lastError}`);
 }
 
 const runId=`AUTO-${new Date().toISOString().replace(/[-:TZ.]/g,'').slice(0,14)}-${crypto.randomBytes(3).toString('hex')}`;
 const runDir=path.join(root,'runtime','autonomous-smoke',runId);fs.mkdirSync(runDir,{recursive:true});
 const startedAt=nowIso();
-console.log(`[autonomous-smoke] START run=${runId} agent=${agent.agentId} role=${role} model=${model} modelSource=${modelResolution.source}`);
+const primary=firstTurnCandidates[0];
+console.log(`[autonomous-smoke] START run=${runId} agent=${agent.agentId} primaryRole=${primary.role} model=${primary.model} modelSource=${primary.source}`);
 
-const firstRun=await runTurn({stage:'FIRST_TURN',expectedStatus:'ACTION_REQUIRED',runDir,baseMessages:[{role:'system',content:`You are an evidence-bound autonomous local research agent. Return only ${TURN_SCHEMA} JSON. Use only whitelisted research tools.`},{role:'user',content:[basePrompt(),'# FIRST TURN REQUIREMENT','Read the goal and capabilities. If analysis requires the deterministic tool, return ACTION_REQUIRED with exactly one action. Do not invent evidence.'].join('\n\n')}]});
+const firstRun=await runTurn({stage:'FIRST_TURN',expectedStatus:'ACTION_REQUIRED',runDir,roleCandidates:firstTurnCandidates,baseMessages:[{role:'system',content:`You are an evidence-bound autonomous local research agent. Return only ${TURN_SCHEMA} JSON. Use only whitelisted research tools.`},{role:'user',content:[basePrompt(),'# FIRST TURN REQUIREMENT','Read the goal and capabilities. If analysis requires the deterministic tool, return ACTION_REQUIRED with exactly one action. Do not invent evidence.'].join('\n\n')}]});
 const firstTurn=firstRun.turn;writeJson(path.join(runDir,'turn-1.json'),firstTurn);
 const action=firstTurn.actions[0];const checked=validateAction(action);
 if(checked.featureId!=='PRICE_MA_RECLAIM_UP'||checked.period!==5)fail(`SMOKE_GOAL_MAPPING_FAILED feature=${checked.featureId} period=${checked.period}`);
-console.log(`[autonomous-smoke] ACTION tool=${action.tool} feature=${checked.featureId} period=${checked.period}`);
+console.log(`[autonomous-smoke] ACTION role=${firstRun.role} tool=${action.tool} feature=${checked.featureId} period=${checked.period}`);
 
 const evidence=executeAction(action,runDir);console.log(`[autonomous-smoke] TOOL_PASS evidence=${evidence.evidenceId} events=${evidence.evidence.eventCount}`);
 const secondPrompt=[basePrompt(),'# PRIOR AGENT TURN',JSON.stringify(firstTurn,null,2),'# TOOL EVIDENCE',JSON.stringify(evidence,null,2),'# SECOND TURN REQUIREMENT',`The requested deterministic action has completed. Return COMPLETE with zero actions and evidenceRefs including "${evidence.evidenceId}". Summarize what the evidence says and its limitations. Do not request another action.`].join('\n\n');
-const secondRun=await runTurn({stage:'SECOND_TURN',expectedStatus:'COMPLETE',runDir,requiredEvidenceId:evidence.evidenceId,baseMessages:[{role:'system',content:`You are the same evidence-bound autonomous local research agent continuing the prior task. Return only ${TURN_SCHEMA} JSON.`},{role:'user',content:secondPrompt}]});
+const secondCandidates=uniqueRoleCandidates([firstRun.role,'LOCAL_REASONER']);
+const secondRun=await runTurn({stage:'SECOND_TURN',expectedStatus:'COMPLETE',runDir,roleCandidates:secondCandidates,requiredEvidenceId:evidence.evidenceId,baseMessages:[{role:'system',content:`You are the same evidence-bound autonomous local research agent continuing the prior task. Return only ${TURN_SCHEMA} JSON.`},{role:'user',content:secondPrompt}]});
 const finalTurn=secondRun.turn;writeJson(path.join(runDir,'turn-2.json'),finalTurn);
 
-const completedAt=nowIso();const result={schema:RESULT_SCHEMA,status:'PASS',runId,goalId:goal.goalId,agentId:agent.agentId,modelRole:role,modelVersion:model,modelSource:modelResolution.source,startedAt,completedAt,inputHashes,outputRecovery:{firstTurnAttempts:firstRun.attempts,secondTurnAttempts:secondRun.attempts},firstTurn,toolEvidence:evidence,finalTurn,checks:{goalRead:true,workspaceContextRead:true,skillRead:true,modelResolvedFromContract:true,structuredOutputRecovery:true,correctCapabilitySelected:true,whitelistedToolExecuted:true,evidenceReturnedToSameAgent:true,completeReturned:true,profitabilityClaim:false},profitabilityClaim:false};
+const completedAt=nowIso();const result={schema:RESULT_SCHEMA,status:'PASS',runId,goalId:goal.goalId,agentId:agent.agentId,primaryModelRole:primaryRole,primaryModel:primary.model,startedAt,completedAt,inputHashes,modelExecution:{firstTurn:{role:firstRun.role,model:firstRun.model,modelSource:firstRun.modelSource,escalated:firstRun.escalated},secondTurn:{role:secondRun.role,model:secondRun.model,modelSource:secondRun.modelSource,escalated:secondRun.escalated}},outputRecovery:{firstTurnAttempts:firstRun.attempts,secondTurnAttempts:secondRun.attempts},firstTurn,toolEvidence:evidence,finalTurn,checks:{goalRead:true,workspaceContextRead:true,skillRead:true,modelResolvedFromContract:true,structuredOutputRecovery:true,automaticModelEscalation:true,correctCapabilitySelected:true,whitelistedToolExecuted:true,evidenceReturnedToSameAgent:true,completeReturned:true,profitabilityClaim:false},profitabilityClaim:false};
 const resultPath=path.join(runDir,'result.json');writeJson(resultPath,result);
-console.log(`[autonomous-smoke] COMPLETE run=${runId} status=PASS firstAttempts=${firstRun.attempts} secondAttempts=${secondRun.attempts}`);console.log(`[autonomous-smoke] RESULT_PATH=${resultPath}`);
+console.log(`[autonomous-smoke] COMPLETE run=${runId} status=PASS firstRole=${firstRun.role} firstAttempts=${firstRun.attempts} secondRole=${secondRun.role} secondAttempts=${secondRun.attempts}`);console.log(`[autonomous-smoke] RESULT_PATH=${resultPath}`);
