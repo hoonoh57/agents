@@ -1,6 +1,7 @@
 [CmdletBinding()]
 param(
-    [switch]$Mock
+    [switch]$Mock,
+    [switch]$TestNow
 )
 
 $ErrorActionPreference = 'Stop'
@@ -68,21 +69,27 @@ $endText = Get-EnvValue 'AGENT_RESEARCH_WINDOW_END' '06:00'
 $start = Parse-Clock $startText 'AGENT_RESEARCH_WINDOW_START'
 $end = Parse-Clock $endText 'AGENT_RESEARCH_WINDOW_END'
 $now = Get-KoreaNow
+$insideWindow = Test-InWindow $now.TimeOfDay $start $end
 
-if (-not $Mock -and -not (Test-InWindow $now.TimeOfDay $start $end)) {
+if (-not $Mock -and -not $TestNow -and -not $insideWindow) {
     Write-Host "[research-window] SKIP outside_window now=$($now.ToString('yyyy-MM-dd HH:mm:ss')) KST window=$startText-$endText"
+    Write-Host '[research-window] daytime development test requires explicit -TestNow'
     exit 0
 }
 
-Write-Host "[research-window] START now=$($now.ToString('yyyy-MM-dd HH:mm:ss')) KST window=$startText-$endText mode=$(if($Mock){'MOCK'}else{'LOCAL_LLM'})"
+$mode = if ($Mock) { 'MOCK' } elseif ($TestNow -and -not $insideWindow) { 'DAYTIME_TEST' } else { 'LOCAL_LLM' }
+Write-Host "[research-window] START now=$($now.ToString('yyyy-MM-dd HH:mm:ss')) KST window=$startText-$endText mode=$mode"
 Write-Host '[research-window] policy=one-shot no-poll max-concurrency-1 unload-after-run'
+if ($TestNow) { Write-Host '[research-window] TEST_OVERRIDE=explicit one-run only; never use this switch in Scheduled Task' }
 
 # Defense in depth. Individual Ollama API requests may override OLLAMA_KEEP_ALIVE,
 # so the finally block explicitly unloads every configured model with keep_alive=0.
 $previousKeepAlive = $env:OLLAMA_KEEP_ALIVE
 $previousWindowToken = $env:AGENT_RESEARCH_WINDOW_ACTIVE
+$previousTestToken = $env:AGENT_RESEARCH_TEST_ACTIVE
 $env:OLLAMA_KEEP_ALIVE = '0'
 $env:AGENT_RESEARCH_WINDOW_ACTIVE = '1'
+$env:AGENT_RESEARCH_TEST_ACTIVE = if ($TestNow) { '1' } else { '0' }
 $worker = Join-Path $PSScriptRoot 'RUN_AGENT_ONCE.ps1'
 
 try {
@@ -97,6 +104,7 @@ try {
     if (-not $Mock) { Unload-OllamaModels }
     $env:OLLAMA_KEEP_ALIVE = $previousKeepAlive
     $env:AGENT_RESEARCH_WINDOW_ACTIVE = $previousWindowToken
+    $env:AGENT_RESEARCH_TEST_ACTIVE = $previousTestToken
 }
 
 Write-Host '[research-window] PASS process exits now'
