@@ -2,12 +2,14 @@ import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { execFileSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 
 export const PROJECT_CONTEXT_INPUT_SCHEMA = 'ProjectContextInput@1.0.0';
 const ALLOWED_EXT = new Set(['.ts', '.tsx', '.js', '.mjs', '.json', '.md', '.txt', '.csv']);
 const MAX_SOURCE = 1024 * 1024;
 const MAX_EXCERPT = 16 * 1024;
 const DEFAULT_TOTAL = 18 * 1024;
+const AGENT_REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
 function fail(code, detail) { throw new Error(`CONTEXT_${code}:${detail}`); }
 function hash(data) { return crypto.createHash('sha256').update(data).digest('hex'); }
@@ -45,14 +47,24 @@ function excerpt(text, input) {
   return { mode, anchor, text: out };
 }
 
+function configuredRoot(inputRoot, env) {
+  if (inputRoot === 'RESEARCH_LOCAL_ROOT') {
+    const configured = String(env.RESEARCH_LOCAL_ROOT || '').trim();
+    if (!configured) fail('ROOT_NOT_CONFIGURED', 'RESEARCH_LOCAL_ROOT');
+    return { rootName: 'RESEARCH_LOCAL_ROOT', root: fs.realpathSync.native(path.resolve(configured)) };
+  }
+  if (inputRoot === 'AGENT_REPO_ROOT') {
+    return { rootName: 'AGENT_REPO_ROOT', root: fs.realpathSync.native(AGENT_REPO_ROOT) };
+  }
+  fail('ROOT_INVALID', String(inputRoot || 'missing'));
+}
+
 function resolveOne(input, env) {
   if (!input || input.schema !== PROJECT_CONTEXT_INPUT_SCHEMA) fail('SCHEMA_INVALID', String(input?.schema || 'missing'));
   const inputId = String(input.inputId || '').trim();
   if (!/^[A-Za-z0-9._-]{1,80}$/.test(inputId)) fail('INPUT_ID_INVALID', inputId || 'missing');
-  if (input.root !== 'RESEARCH_LOCAL_ROOT') fail('ROOT_INVALID', String(input.root || 'missing'));
-  const configuredRoot = String(env.RESEARCH_LOCAL_ROOT || '').trim();
-  if (!configuredRoot) fail('ROOT_NOT_CONFIGURED', 'RESEARCH_LOCAL_ROOT');
-  const root = fs.realpathSync.native(path.resolve(configuredRoot));
+  const resolvedRoot = configuredRoot(input.root, env);
+  const root = resolvedRoot.root;
   const rel = relativePath(input.path);
   if (!ALLOWED_EXT.has(path.extname(rel).toLowerCase())) fail('EXTENSION_INVALID', rel);
   const candidate = path.resolve(root, ...rel.split('/'));
@@ -64,7 +76,7 @@ function resolveOne(input, env) {
   if (raw.length > MAX_SOURCE) fail('SOURCE_TOO_LARGE', `${rel}:${raw.length}`);
   const picked = excerpt(raw.toString('utf8'), input);
   return {
-    inputId, root: 'RESEARCH_LOCAL_ROOT', relativePath: rel,
+    inputId, root: resolvedRoot.rootName, relativePath: rel,
     repositoryHead: repositoryHead(root), fileSha256: hash(raw), excerptSha256: hash(Buffer.from(picked.text, 'utf8')),
     sourceBytes: raw.length, excerptBytes: bytes(picked.text), mode: picked.mode, anchor: picked.anchor, text: picked.text,
   };
