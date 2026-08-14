@@ -58,9 +58,9 @@
       "priority": 95,
       "status": "ERROR",
       "createdAt": "2026-08-14T01:38:36.700Z",
-      "startedAt": "2026-08-14T01:38:40.925Z",
-      "error": "AUTONOMOUS_OUTPUT_INVALID_AFTER_ESCALATION:COMPLETION_DECISION:AUTONOMOUS_COMPLETION_INVALID:evidenceId mismatch",
-      "failedAt": "2026-08-14T01:41:27.261Z"
+      "startedAt": "2026-08-14T01:48:06.926Z",
+      "error": "AUTONOMOUS_OUTPUT_INVALID_AFTER_ESCALATION:COMPLETION_DECISION:AUTONOMOUS_COMPLETION_INVALID:feature mismatch actual=missing",
+      "failedAt": "2026-08-14T01:50:34.017Z"
     }
   ]
 }
