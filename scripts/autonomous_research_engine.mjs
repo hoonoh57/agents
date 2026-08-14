@@ -81,13 +81,14 @@ function normalizeAction(goalId, semantic, toolRegistry) {
   };
 }
 
-function completionSemanticSchema(evidenceId, evidence) {
+function completionSemanticSchema(evidence) {
   const d = evidence.evidence;
   return {
     type: 'object', additionalProperties: false,
-    required: ['evidenceId', 'observedEventCount', 'observedDiscoverySampleCount', 'observedValidationSampleCount', 'reasoningSummary', 'conclusion', 'nextResearch'],
+    required: ['observedFeatureId', 'observedPeriod', 'observedEventCount', 'observedDiscoverySampleCount', 'observedValidationSampleCount', 'reasoningSummary', 'conclusion', 'nextResearch'],
     properties: {
-      evidenceId: { type: 'string', enum: [evidenceId] },
+      observedFeatureId: { type: 'string', enum: [String(d.featureId)] },
+      observedPeriod: { type: 'integer', enum: [Number(d.parameters?.period)] },
       observedEventCount: { type: 'integer', enum: [Number(d.eventCount)] },
       observedDiscoverySampleCount: { type: 'integer', enum: [Number(d.discovery?.sampleCount ?? 0)] },
       observedValidationSampleCount: { type: 'integer', enum: [Number(d.validation?.sampleCount ?? 0)] },
@@ -97,20 +98,21 @@ function completionSemanticSchema(evidenceId, evidence) {
     },
   };
 }
-function validateCompletionSemantic(value, evidenceId, evidence) {
+function validateCompletionSemantic(value, evidence) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) throw engineError('AUTONOMOUS_COMPLETION_INVALID', 'object required');
   const d = evidence.evidence;
-  if (value.evidenceId !== evidenceId) throw engineError('AUTONOMOUS_COMPLETION_INVALID', 'evidenceId mismatch');
-  if (Number(value.observedEventCount) !== Number(d.eventCount)) throw engineError('AUTONOMOUS_COMPLETION_INVALID', 'eventCount mismatch');
-  if (Number(value.observedDiscoverySampleCount) !== Number(d.discovery?.sampleCount ?? 0)) throw engineError('AUTONOMOUS_COMPLETION_INVALID', 'discovery sample mismatch');
-  if (Number(value.observedValidationSampleCount) !== Number(d.validation?.sampleCount ?? 0)) throw engineError('AUTONOMOUS_COMPLETION_INVALID', 'validation sample mismatch');
+  if (String(value.observedFeatureId || '') !== String(d.featureId)) throw engineError('AUTONOMOUS_COMPLETION_INVALID', `feature mismatch actual=${String(value.observedFeatureId ?? 'missing')}`);
+  if (Number(value.observedPeriod) !== Number(d.parameters?.period)) throw engineError('AUTONOMOUS_COMPLETION_INVALID', `period mismatch actual=${String(value.observedPeriod ?? 'missing')}`);
+  if (Number(value.observedEventCount) !== Number(d.eventCount)) throw engineError('AUTONOMOUS_COMPLETION_INVALID', `eventCount mismatch actual=${String(value.observedEventCount ?? 'missing')}`);
+  if (Number(value.observedDiscoverySampleCount) !== Number(d.discovery?.sampleCount ?? 0)) throw engineError('AUTONOMOUS_COMPLETION_INVALID', `discovery sample mismatch actual=${String(value.observedDiscoverySampleCount ?? 'missing')}`);
+  if (Number(value.observedValidationSampleCount) !== Number(d.validation?.sampleCount ?? 0)) throw engineError('AUTONOMOUS_COMPLETION_INVALID', `validation sample mismatch actual=${String(value.observedValidationSampleCount ?? 'missing')}`);
   if (typeof value.reasoningSummary !== 'string' || !value.reasoningSummary.trim()) throw engineError('AUTONOMOUS_COMPLETION_INVALID', 'reasoningSummary required');
   if (typeof value.conclusion !== 'string' || !value.conclusion.trim()) throw engineError('AUTONOMOUS_COMPLETION_INVALID', 'conclusion required');
   if (!Array.isArray(value.nextResearch)) throw engineError('AUTONOMOUS_COMPLETION_INVALID', 'nextResearch required');
   return value;
 }
 function normalizeCompletion(goalId, semantic, evidenceId, evidence) {
-  const checked = validateCompletionSemantic(semantic, evidenceId, evidence);
+  const checked = validateCompletionSemantic(semantic, evidence);
   return {
     schema: TURN_SCHEMA,
     goalId,
@@ -118,6 +120,19 @@ function normalizeCompletion(goalId, semantic, evidenceId, evidence) {
     reasoningSummary: checked.reasoningSummary,
     actions: [], evidenceRefs: [evidenceId], conclusion: checked.conclusion,
     nextResearch: checked.nextResearch, profitabilityClaim: false,
+  };
+}
+
+function semanticDiagnostic(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
+  return {
+    keys: Object.keys(value).slice(0, 16),
+    evidenceId: typeof value.evidenceId === 'string' ? value.evidenceId : null,
+    observedFeatureId: value.observedFeatureId ?? null,
+    observedPeriod: value.observedPeriod ?? null,
+    observedEventCount: value.observedEventCount ?? null,
+    observedDiscoverySampleCount: value.observedDiscoverySampleCount ?? null,
+    observedValidationSampleCount: value.observedValidationSampleCount ?? null,
   };
 }
 
@@ -158,7 +173,11 @@ async function runSemanticDecision({ stage, schema, validate, messages, candidat
           try { decision = validate(parsed.value); } catch (e) { error = String(e?.message || e); }
         }
       } catch (e) { error = String(e?.message || e); }
-      diagnostics.push({ stage, globalAttempt, role: choice.role, model: choice.model, modelSource: choice.source, attempt, error, doneReason: call?.body?.done_reason ?? null, parseStrict: parsed.strict ?? null, parseRecovered: parsed.recovered ?? null, parseTrailing: parsed.trailing ?? null });
+      diagnostics.push({
+        stage, globalAttempt, role: choice.role, model: choice.model, modelSource: choice.source, attempt, error,
+        doneReason: call?.body?.done_reason ?? null, parseStrict: parsed.strict ?? null, parseRecovered: parsed.recovered ?? null,
+        parseTrailing: parsed.trailing ?? null, returned: semanticDiagnostic(parsed.value),
+      });
       if (decision) return { decision, attempts: globalAttempt, role: choice.role, model: choice.model, modelSource: choice.source, escalated: candidateIndex > 0, diagnostics };
       lastError = error || 'OUTPUT_INVALID';
     }
@@ -213,6 +232,42 @@ function buildResearchPrompt({ root, task, agent, goal, toolRegistry }) {
   ].join('\n\n');
 }
 
+function compactEvidenceForCompletion(goal, firstTurn, evidence) {
+  const d = evidence.evidence;
+  return {
+    goal: {
+      goalId: goal.goalId,
+      purpose: goal.purpose,
+      objective: goal.objective,
+      constraints: goal.constraints,
+    },
+    priorAction: {
+      tool: firstTurn.actions[0]?.tool,
+      featureId: firstTurn.actions[0]?.arguments?.featureId,
+      period: firstTurn.actions[0]?.arguments?.parameters?.period,
+    },
+    toolEvidence: {
+      tool: d.tool,
+      featureId: d.featureId,
+      parameters: d.parameters,
+      datasetHash: d.datasetHash,
+      snapshotExperiment: d.snapshotExperiment,
+      dateFrom: d.dateFrom,
+      dateTo: d.dateTo,
+      validationStart: d.validationStart,
+      requestedSymbolCount: d.requestedSymbolCount,
+      effectiveSymbolCount: d.effectiveSymbolCount,
+      excludedSymbols: d.excludedSymbols,
+      eventCount: d.eventCount,
+      all: d.all,
+      discovery: d.discovery,
+      validation: d.validation,
+      profitabilityClaim: false,
+    },
+    runtimeNote: 'The evidence reference/id is runtime-owned. Do not invent, copy, or return an evidenceId. Prove evidence reading by returning the exact featureId, period, eventCount, discovery sampleCount and validation sampleCount requested by the response schema.',
+  };
+}
+
 export async function runAutonomousResearchTask({ root, task, agent, env }) {
   const started = Date.now();
   const goalFile = path.join(root, 'goals', `${task.goalId}.json`);
@@ -242,13 +297,14 @@ export async function runAutonomousResearchTask({ root, task, agent, env }) {
   if (firstTurn.actions.length !== 1) throw engineError('AUTONOMOUS_CANONICAL_ACTION_INVALID');
   const evidence = executeResearchAction({ action: firstTurn.actions[0], goal, env, toolRegistry });
 
+  const completionContext = compactEvidenceForCompletion(goal, firstTurn, evidence);
   const completionCandidates = modelCandidates(actionRun.role, env, modelRegistry);
   const completionRun = await runSemanticDecision({
-    stage: 'COMPLETION_DECISION', schema: completionSemanticSchema(evidence.evidenceId, evidence), validate: value => validateCompletionSemantic(value, evidence.evidenceId, evidence), candidates: completionCandidates,
+    stage: 'COMPLETION_DECISION', schema: completionSemanticSchema(evidence), validate: value => validateCompletionSemantic(value, evidence), candidates: completionCandidates,
     base, timeoutSeconds, contextTokens, outputTokens,
     messages: [
-      { role: 'system', content: 'You are the same evidence-bound local research agent continuing the queued task. Return only the requested small JSON evidence interpretation.' },
-      { role: 'user', content: `${common}\n\n# PRIOR TURN\n${JSON.stringify(firstTurn, null, 2)}\n\n# TOOL EVIDENCE\n${JSON.stringify(evidence, null, 2)}\n\n# COMPLETION DECISION\nRead the evidence. Repeat the exact evidenceId, total eventCount, discovery sampleCount and validation sampleCount, then give a concise evidence-bound conclusion and optional nextResearch. Do not request another action in this one-shot lane.` },
+      { role: 'system', content: 'You are the same evidence-bound local research agent continuing the queued task. Return only the requested small JSON evidence interpretation. Runtime owns all ids.' },
+      { role: 'user', content: `# COMPACT COMPLETION CONTEXT\n${JSON.stringify(completionContext, null, 2)}\n\n# COMPLETION DECISION\nRead only the supplied evidence. Repeat the exact featureId, period, total eventCount, discovery sampleCount and validation sampleCount, then give a concise evidence-bound conclusion and optional nextResearch. Do not return any evidenceId and do not request another action in this one-shot lane.` },
     ],
   });
   const finalTurn = normalizeCompletion(goal.goalId, completionRun.decision, evidence.evidenceId, evidence);
@@ -261,8 +317,8 @@ export async function runAutonomousResearchTask({ root, task, agent, env }) {
     semanticCompletionDecision: completionRun.decision,
     finalTurn,
     modelExecution: {
-      actionDecision: { role: actionRun.role, model: actionRun.model, source: actionRun.modelSource, attempts: actionRun.attempts, escalated: actionRun.escalated },
-      completionDecision: { role: completionRun.role, model: completionRun.model, source: completionRun.modelSource, attempts: completionRun.attempts, escalated: completionRun.escalated },
+      actionDecision: { role: actionRun.role, model: actionRun.model, source: actionRun.modelSource, attempts: actionRun.attempts, escalated: actionRun.escalated, diagnostics: actionRun.diagnostics },
+      completionDecision: { role: completionRun.role, model: completionRun.model, source: completionRun.modelSource, attempts: completionRun.attempts, escalated: completionRun.escalated, diagnostics: completionRun.diagnostics },
     },
     profitabilityClaim: false,
   };
@@ -276,6 +332,8 @@ export async function runAutonomousResearchTask({ root, task, agent, env }) {
     runtimeMetrics: {
       wallSeconds: (Date.now() - started) / 1000,
       contextBytes: Buffer.byteLength(common, 'utf8'),
+      completionContextBytes: Buffer.byteLength(JSON.stringify(completionContext), 'utf8'),
+      contextTokens,
       outputAttempts: actionRun.attempts + completionRun.attempts,
       actionAttempts: actionRun.attempts,
       completionAttempts: completionRun.attempts,
@@ -291,9 +349,13 @@ export function selfTestAutonomousResearchEngine({ root }) {
   const semantic = validateActionSemantic({ tool: 'RUN_FEATURE_EXPERIMENT', featureId: 'PRICE_MA_RECLAIM_UP', period: 5, reasoningSummary: 'synthetic' }, toolRegistry);
   const turn = normalizeAction('SELFTEST-GOAL', semantic, toolRegistry);
   if (turn.actions[0].arguments.parameters.period !== 5) throw engineError('AUTONOMOUS_ENGINE_SELF_TEST_FAILED', 'action');
-  const evidence = { evidenceId: 'EVIDENCE-SELFTEST', evidence: { eventCount: 12, discovery: { sampleCount: 8 }, validation: { sampleCount: 4 } } };
-  const completion = normalizeCompletion('SELFTEST-GOAL', { evidenceId: 'EVIDENCE-SELFTEST', observedEventCount: 12, observedDiscoverySampleCount: 8, observedValidationSampleCount: 4, reasoningSummary: 'synthetic', conclusion: 'synthetic', nextResearch: [] }, 'EVIDENCE-SELFTEST', evidence);
-  if (completion.evidenceRefs[0] !== 'EVIDENCE-SELFTEST') throw engineError('AUTONOMOUS_ENGINE_SELF_TEST_FAILED', 'completion');
+  const evidence = { evidenceId: 'EVIDENCE-SELFTEST', evidence: { featureId: 'PRICE_MA_RECLAIM_UP', parameters: { period: 5 }, eventCount: 12, discovery: { sampleCount: 8 }, validation: { sampleCount: 4 } } };
+  const completion = normalizeCompletion('SELFTEST-GOAL', {
+    observedFeatureId: 'PRICE_MA_RECLAIM_UP', observedPeriod: 5, observedEventCount: 12,
+    observedDiscoverySampleCount: 8, observedValidationSampleCount: 4,
+    reasoningSummary: 'synthetic', conclusion: 'synthetic', nextResearch: [],
+  }, 'EVIDENCE-SELFTEST', evidence);
+  if (completion.evidenceRefs[0] !== 'EVIDENCE-SELFTEST') throw engineError('AUTONOMOUS_ENGINE_SELF_TEST_FAILED', 'completion runtime evidence ref');
   return true;
 }
 
