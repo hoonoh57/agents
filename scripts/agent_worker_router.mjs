@@ -182,8 +182,10 @@ async function workerOnce() {
 
 function selfTest() {
   selfTestAutonomousResearchEngine({ root });
-  const template = loadTemplate('autonomous-ma5-queue-smoke.json');
-  if (template.agentId !== 'experiment-validation' || template.goalId !== 'GOAL-AUTONOMOUS-MA5-SMOKE-001') throw new Error('AUTONOMOUS_ROUTER_SELF_TEST_FAILED');
+  const smokeTemplate = loadTemplate('autonomous-ma5-queue-smoke.json');
+  if (smokeTemplate.agentId !== 'experiment-validation' || smokeTemplate.goalId !== 'GOAL-AUTONOMOUS-MA5-SMOKE-001') throw new Error('AUTONOMOUS_ROUTER_SELF_TEST_FAILED:smoke');
+  const searchTemplate = loadTemplate('autonomous-ma-period-search.json');
+  if (searchTemplate.agentId !== 'experiment-validation' || searchTemplate.goalId !== 'GOAL-AUTONOMOUS-MA-PERIOD-SEARCH-001') throw new Error('AUTONOMOUS_ROUTER_SELF_TEST_FAILED:period-search');
   console.log('AGENT_WORKER_ROUTER_SELF_TEST_PASS');
 }
 
