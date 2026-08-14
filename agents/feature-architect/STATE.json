@@ -1,10 +1,10 @@
 {
   "schema": "AgentState@1.0.0",
   "agentId": "feature-architect",
-  "status": "QUEUED",
+  "status": "ERROR",
   "activeTaskId": null,
   "lastCompletedTaskId": "TASK-20260814025825-e9f916",
   "modelRole": "LOCAL_REASONER",
-  "blockedReason": null,
-  "updatedAt": "2026-08-14T03:23:17.536Z"
+  "blockedReason": "OUTPUT_INVALID_AFTER_RETRY:OUTPUT_SOURCE_REF_UNKNOWN:coordinator/decisions/P3_FEATURE_ARCHITECT_NEXT_TRIGGER_001_REJECTED.json",
+  "updatedAt": "2026-08-14T03:25:15.703Z"
 }

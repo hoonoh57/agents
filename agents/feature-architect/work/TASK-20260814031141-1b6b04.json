@@ -91,10 +91,10 @@
   "externalEscalationAllowed": true,
   "attempt": 1,
   "taskTemplate": "task-templates/feature-architect-next-trigger-v3.json",
-  "startedAt": "2026-08-14T03:11:45.890Z",
-  "failedAt": "2026-08-14T03:13:46.462Z",
+  "startedAt": "2026-08-14T03:23:21.414Z",
+  "failedAt": "2026-08-14T03:25:04.614Z",
   "workerId": "local-01",
-  "runtimeRun": 1,
+  "runtimeRun": 2,
   "resolvedSourceRefs": [
     {
       "inputId": "explorer-ma-cross",

@@ -121,9 +121,9 @@
       "priority": 80,
       "status": "ERROR",
       "createdAt": "2026-08-14T03:11:41.950Z",
-      "startedAt": "2026-08-14T03:11:45.890Z",
+      "startedAt": "2026-08-14T03:23:21.414Z",
       "error": "OUTPUT_INVALID_AFTER_RETRY:OUTPUT_SOURCE_REF_UNKNOWN:coordinator/decisions/P3_FEATURE_ARCHITECT_NEXT_TRIGGER_001_REJECTED.json",
-      "failedAt": "2026-08-14T03:13:46.462Z"
+      "failedAt": "2026-08-14T03:25:04.614Z"
     },
     {
       "taskId": "TASK-20260814032317-41e12f",
