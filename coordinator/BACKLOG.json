@@ -161,6 +161,14 @@
       "failedAt": "2026-08-14T04:41:20.631Z",
       "completedAt": "2026-08-14T04:42:32.489Z",
       "resultId": "RESULT-20260814043941-e8060c"
+    },
+    {
+      "taskId": "TASK-20260814050941-9aaff4",
+      "agentId": "feature-architect",
+      "goalId": "GOAL-FEATURE-ARCHITECT-VOLUME-CONTEXT-001",
+      "priority": 82,
+      "status": "QUEUED",
+      "createdAt": "2026-08-14T05:09:41.919Z"
     }
   ]
 }
