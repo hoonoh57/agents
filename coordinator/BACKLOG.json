@@ -154,8 +154,13 @@
       "agentId": "feature-architect",
       "goalId": "GOAL-FEATURE-ARCHITECT-NEXT-TRIGGER-006",
       "priority": 80,
-      "status": "QUEUED",
-      "createdAt": "2026-08-14T04:39:41.006Z"
+      "status": "COMPLETED",
+      "createdAt": "2026-08-14T04:39:41.006Z",
+      "error": null,
+      "startedAt": "2026-08-14T04:41:20.780Z",
+      "failedAt": "2026-08-14T04:41:20.631Z",
+      "completedAt": "2026-08-14T04:42:32.489Z",
+      "resultId": "RESULT-20260814043941-e8060c"
     }
   ]
 }
