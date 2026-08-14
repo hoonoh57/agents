@@ -1,0 +1,31 @@
+{
+  "schema": "ResearchGoal@1.0.0",
+  "goalId": "GOAL-FEATURE-ARCHITECT-NEXT-TRIGGER-003",
+  "agentId": "feature-architect",
+  "createdBy": "HUMAN_RESEARCH_DIRECTOR",
+  "purpose": "Produce a machine-checkable next-trigger design after v2 proved that merely mentioning D-1 and D does not guarantee a discrete transition.",
+  "objective": "Using only supplied repository evidence and finalized adjusted daily OHLCV, propose exactly three semantically distinct trigger families. Each trigger must define one shared scalar state computed for every day and a literal false-to-true or true-to-false threshold crossing from D-1 to D. Do not reuse closed MA-cross, close-to-MA reclaim, or close-above-prior/rolling-high semantics, including algebraic restatements. Select exactly one rank-1 candidate. Do not write code, run experiments, choose acceptance thresholds, infer market participants, or claim profitability.",
+  "successCriteria": [
+    "exactly three machine-parseable CANDIDATE proposal findings",
+    "unique featureIds and unique mechanism families",
+    "each candidate defines one scalar state independent of D versus D-1 labeling",
+    "each candidate uses exactly one of two transition forms: D-1 state <= threshold then D state > threshold, or D-1 state >= threshold then D state < threshold",
+    "state formula does not encode price MA crossing/reclaim or close-above-prior/rolling-high breakout",
+    "each candidate states fields, bounded parameter family, warmup, chart semantics, event-density risk, and semantic distinctness",
+    "exactly one RANK1 candidate and one matching DISCOVERY_CONTRACT next action",
+    "rank-1 reason is limited to falsifiability, implementation simplicity, chart traceability, and available data; no participant/catalyst inference",
+    "Discovery ranking and acceptance gates remain coordinator-owned",
+    "profitabilityClaim=false"
+  ],
+  "constraints": [
+    "No new data source, API, server, intraday feed, news, fundamentals, order book, broker state, or participant inference",
+    "No MA-versus-MA price trigger",
+    "No close-versus-price-MA trigger",
+    "No close-versus-prior-or-rolling-high trigger, including algebraic state forms such as close-minus-rolling-high",
+    "Do not append context filters to a closed trigger",
+    "Do not invent profitability or acceptance thresholds",
+    "Completed D and earlier information only at t0; executable entry remains D+1 open",
+    "Do not write implementation code or run Discovery/Validation"
+  ],
+  "profitabilityClaim": false
+}
