@@ -66,17 +66,17 @@ function validateActionSemantic(value, toolRegistry) {
   if (!(tool.allowedFeatureIds || []).includes(featureId)) throw engineError('AUTONOMOUS_ACTION_INVALID', `feature=${featureId}`);
   if (!Number.isInteger(period) || period < Number(tool.parameterContract?.period?.min) || period > Number(tool.parameterContract?.period?.max)) throw engineError('AUTONOMOUS_ACTION_INVALID', `period=${value.period}`);
   if (typeof value.reasoningSummary !== 'string' || !value.reasoningSummary.trim()) throw engineError('AUTONOMOUS_ACTION_INVALID', 'reasoningSummary required');
-  return { tool, featureId, period, reasoningSummary: value.reasoningSummary.trim() };
+  return { tool: tool.tool, featureId, period, reasoningSummary: value.reasoningSummary.trim() };
 }
 function normalizeAction(goalId, semantic, toolRegistry) {
   const checked = validateActionSemantic(semantic, toolRegistry);
-  const actionId = `ACTION-${sha({ goalId, tool: checked.tool.tool, featureId: checked.featureId, period: checked.period }).slice(0, 16)}`;
+  const actionId = `ACTION-${sha({ goalId, tool: checked.tool, featureId: checked.featureId, period: checked.period }).slice(0, 16)}`;
   return {
     schema: TURN_SCHEMA,
     goalId,
     status: 'ACTION_REQUIRED',
     reasoningSummary: checked.reasoningSummary,
-    actions: [{ actionId, tool: checked.tool.tool, arguments: { featureId: checked.featureId, parameters: { period: checked.period } } }],
+    actions: [{ actionId, tool: checked.tool, arguments: { featureId: checked.featureId, parameters: { period: checked.period } } }],
     evidenceRefs: [], conclusion: '', nextResearch: [], profitabilityClaim: false,
   };
 }
