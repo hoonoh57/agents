@@ -1,5 +1,6 @@
 param(
-    [switch]$Mock
+    [switch]$Mock,
+    [string]$TaskId = ''
 )
 
 $ErrorActionPreference = 'Stop'
@@ -57,7 +58,11 @@ Write-Host '[agent-worker] validate stable runtime'
 node .\scripts\agent_runtime_stable.mjs validate
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
-Write-Host '[agent-worker] validate one-shot router + autonomous engine'
+Write-Host '[agent-worker] validate queue guard + one-shot router + autonomous engine'
+node --check .\scripts\agent_queue_guard.mjs
+if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+node .\scripts\agent_queue_guard.mjs self-test
+if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 node --check .\scripts\agent_worker_router.mjs
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 node --check .\scripts\autonomous_research_engine.mjs
@@ -65,11 +70,24 @@ if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 node .\scripts\agent_worker_router.mjs self-test
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
-Write-Host '[agent-worker] run once through router'
-if ($Mock) {
-    node .\scripts\agent_worker_router.mjs worker-once --mock
+Write-Host '[agent-worker] reconcile durable queue state'
+node .\scripts\agent_queue_guard.mjs reconcile
+if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+if ($TaskId) {
+    Write-Host "[agent-worker] run targeted task=$TaskId"
+    if ($Mock) {
+        node .\scripts\agent_queue_guard.mjs target-once --task $TaskId --mock
+    } else {
+        node .\scripts\agent_queue_guard.mjs target-once --task $TaskId
+    }
 } else {
-    node .\scripts\agent_worker_router.mjs worker-once
+    Write-Host '[agent-worker] run once through router'
+    if ($Mock) {
+        node .\scripts\agent_worker_router.mjs worker-once --mock
+    } else {
+        node .\scripts\agent_worker_router.mjs worker-once
+    }
 }
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
