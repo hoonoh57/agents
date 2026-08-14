@@ -101,6 +101,14 @@
       "error": null,
       "completedAt": "2026-08-14T02:50:19.816Z",
       "resultId": "RESULT-20260814024838-ff8d60"
+    },
+    {
+      "taskId": "TASK-20260814025825-e9f916",
+      "agentId": "feature-architect",
+      "goalId": "GOAL-FEATURE-ARCHITECT-NEXT-TRIGGER-002",
+      "priority": 80,
+      "status": "QUEUED",
+      "createdAt": "2026-08-14T02:58:25.082Z"
     }
   ]
 }

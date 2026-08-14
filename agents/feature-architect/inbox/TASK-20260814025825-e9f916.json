@@ -1,0 +1,92 @@
+{
+  "schema": "AgentTask@1.0.0",
+  "taskId": "TASK-20260814025825-e9f916",
+  "agentId": "feature-architect",
+  "goalId": "GOAL-FEATURE-ARCHITECT-NEXT-TRIGGER-002",
+  "priority": 80,
+  "status": "QUEUED",
+  "createdBy": "HUMAN_RESEARCH_DIRECTOR",
+  "createdAt": "2026-08-14T02:58:25.082Z",
+  "objective": "Redesign the next chart-ready trigger after P3 design rejection. Return exactly three machine-checkable semantically distinct discrete t0 trigger candidates using only existing finalized adjusted daily OHLCV. None may reuse MA-cross, close-to-MA reclaim, or close-above-prior/rolling-high breakout as the primary predicate or as a predicate with an added filter. Select exactly one rank-1 candidate. Do not write code, run experiments, invent acceptance thresholds, or claim profitability.",
+  "inputs": [
+    {
+      "schema": "ProjectContextInput@1.0.0",
+      "inputId": "explorer-ma-cross",
+      "root": "RESEARCH_LOCAL_ROOT",
+      "path": "template/feature-packs/swing-research/ProfitFeatureExplorer.ts",
+      "mode": "AROUND",
+      "anchor": "const maCrossFeature",
+      "beforeChars": 200,
+      "afterChars": 3000,
+      "maxBytes": 3600
+    },
+    {
+      "schema": "ProjectContextInput@1.0.0",
+      "inputId": "explorer-price-reclaim-high-breakout",
+      "root": "RESEARCH_LOCAL_ROOT",
+      "path": "template/feature-packs/swing-research/ProfitFeatureExplorer.ts",
+      "mode": "AROUND",
+      "anchor": "const priceMaReclaimFeature",
+      "beforeChars": 200,
+      "afterChars": 5600,
+      "maxBytes": 6200
+    },
+    {
+      "schema": "ProjectContextInput@1.0.0",
+      "inputId": "daily-candle-contract",
+      "root": "RESEARCH_LOCAL_ROOT",
+      "path": "template/feature-packs/swing-research/SwingTrendFoundation.ts",
+      "mode": "AROUND",
+      "anchor": "export interface SwingDailyCandle",
+      "beforeChars": 150,
+      "afterChars": 2800,
+      "maxBytes": 3400
+    },
+    {
+      "schema": "ProjectContextInput@1.0.0",
+      "inputId": "trigger-context-boundary",
+      "root": "RESEARCH_LOCAL_ROOT",
+      "path": "template/feature-packs/swing-research/ProfitFeatureFoundry.ts",
+      "mode": "AROUND",
+      "anchor": "export interface ProfitObservation",
+      "beforeChars": 300,
+      "afterChars": 3400,
+      "maxBytes": 4200
+    }
+  ],
+  "requiredOutputs": [
+    "Exactly three PROPOSAL findings. Each claim must use exactly this field layout: CANDIDATE|featureId=<UPPER_SNAKE_ID>|family=<UPPER_SNAKE_FAMILY>|name=<short name>|t0=<exact D-1 to D causal condition>|fields=<OHLCV/derived inputs>|params=<minimal parameter search family>|warmup=<minimum bars>|chart=<marker/overlay semantics>|densityRisk=<brief risk>|distinct=<why not a closed trigger rescue>. Do not use the pipe character inside field values.",
+    "The three featureId values must be unique and the three family values must be unique.",
+    "Each t0 value must explicitly contain both D-1 and D and must describe a discrete transition, not a persistent state.",
+    "Summary must begin exactly RANK1|featureId=<one of the three featureIds>|reason=<brief rationale>.",
+    "nextActions must contain exactly one item beginning DISCOVERY_CONTRACT|featureId=<same rank-1 featureId>|parameterSearch=<bounded parameter family>|notes=<implementation-independent notes>.",
+    "Do not put Discovery acceptance thresholds in the candidate or next action; ranking/gates belong to Coordinator.",
+    "profitabilityClaim=false"
+  ],
+  "constraints": [
+    "Use only resolved SOURCE inputIds for executable capability/data claims",
+    "Treat P3_FEATURE_ARCHITECT_NEXT_TRIGGER_001_REJECTED as binding negative evidence",
+    "No new data source, API, server, intraday feed, news, fundamentals, order book or broker state",
+    "Do not reuse MA versus MA crossing in any candidate t0",
+    "Do not reuse close crossing or reclaiming an MA in any candidate t0",
+    "Do not reuse close breaking above a prior or rolling high in any candidate t0",
+    "Do not take a closed trigger and add volume, volatility, MA ordering or any other context filter",
+    "Do not invent numeric profitability or acceptance thresholds",
+    "Completed D and earlier information only at decision t0; D+1 open remains executable entry reference",
+    "Do not write implementation code",
+    "Do not run Discovery or Validation",
+    "Do not claim profitability"
+  ],
+  "artifactRefs": [
+    "coordinator/decisions/P3_FEATURE_ARCHITECT_NEXT_TRIGGER_001_REJECTED.json",
+    "coordinator/decisions/P1_AUTONOMOUS_MA_PERIOD_SEARCH_001.json",
+    "coordinator/decisions/P2_HIGH_BREAKOUT_DISCOVERY_001_RESULT.json"
+  ],
+  "dependsOn": [
+    "P3_FEATURE_ARCHITECT_NEXT_TRIGGER_001_REJECTED"
+  ],
+  "modelRoleHint": "LOCAL_REASONER",
+  "externalEscalationAllowed": true,
+  "attempt": 1,
+  "taskTemplate": "task-templates/feature-architect-next-trigger-v2.json"
+}
