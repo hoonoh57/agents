@@ -58,6 +58,28 @@ function previousCompletedTaskId(backlog, row) {
   return null;
 }
 
+function normalizeCompletedMetadata(taskId) {
+  const { backlog, index, row } = taskRow(taskId);
+  if (String(row.status || '') !== 'COMPLETED') return;
+  const clean = { ...row, error: null };
+  delete clean.failedAt;
+  backlog.items[index] = clean;
+  writeJson(backlogPath(), backlog);
+
+  const stateFile = statePath(row.agentId);
+  const state = readJson(stateFile);
+  if (state.lastCompletedTaskId === taskId || state.status === 'COMPLETED') {
+    writeJson(stateFile, {
+      ...state,
+      status: 'COMPLETED',
+      activeTaskId: null,
+      lastCompletedTaskId: taskId,
+      blockedReason: null,
+      updatedAt: new Date().toISOString(),
+    });
+  }
+}
+
 function rollbackForRepair(taskId, errorMessage, repairNumber) {
   const { backlog, index, row } = taskRow(taskId);
   const workFile = workPath(row.agentId, taskId);
@@ -138,6 +160,7 @@ function main() {
     current = taskRow(taskId).row;
     try {
       const result = validateCurrent(current);
+      normalizeCompletedMetadata(taskId);
       console.log(`[feature-contract-retry] PASS task=${taskId} result=${result.resultId} repairs=${repair}`);
       return;
     } catch (error) {
