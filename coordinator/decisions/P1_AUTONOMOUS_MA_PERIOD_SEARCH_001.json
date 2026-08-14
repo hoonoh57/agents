@@ -1,0 +1,77 @@
+{
+  "schema": "CoordinatorDecision@1.0.0",
+  "decisionId": "P1_AUTONOMOUS_MA_PERIOD_SEARCH_001",
+  "status": "NO_GO_VALIDATION",
+  "goalId": "GOAL-AUTONOMOUS-MA-PERIOD-SEARCH-001",
+  "taskId": "TASK-20260814022213-3169a0",
+  "resultId": "RESULT-20260814022213-3169a0",
+  "evidenceCommit": "95467ca",
+  "resultPath": "agents/experiment-validation/results/RESULT-20260814022213-3169a0.json",
+  "datasetHash": "c4f56e2dae66fa09739797c9bac43b82b48d972591fe618dff16e5d4bacb5b3f",
+  "experiment": {
+    "featureId": "PRICE_MA_RECLAIM_UP",
+    "periodMin": 5,
+    "periodMax": 120,
+    "periodStep": 5,
+    "candidateCount": 24,
+    "validationStart": "2026-07-10",
+    "requestedSymbolCount": 38,
+    "effectiveSymbolCount": 37,
+    "technicalExclusions": [
+      {
+        "symbol": "057050",
+        "reason": "historical daily page contained no dated rows"
+      }
+    ]
+  },
+  "methodVerification": {
+    "discoveryOnlyRanking": true,
+    "selectedCandidateFrozenBeforeValidation": true,
+    "validationEvaluatedPeriods": [90],
+    "nonSelectedValidationEvaluated": false,
+    "profitabilityClaim": false
+  },
+  "selectedCandidate": {
+    "period": 90,
+    "discoveryRank": 1,
+    "discoveryScore": 7.878385829430107,
+    "discoverySampleCount": 28,
+    "discoveryUniqueSymbols": 16,
+    "discoveryUniqueDecisionDates": 17,
+    "discoveryMeanReturnPct": -6.479428911844599,
+    "discoveryMedianReturnPct": -8.802298443265965,
+    "discoveryWinRatePct": 32.142857142857146,
+    "discoveryPositiveBeforeNegativePct": 17.857142857142858,
+    "discoveryNegativeBeforePositivePct": 46.42857142857143
+  },
+  "validation": {
+    "sampleCount": 12,
+    "uniqueSymbols": 6,
+    "uniqueDecisionDates": 7,
+    "meanReturnPct": -11.297842387648721,
+    "medianReturnPct": -9.705456564095304,
+    "winRatePct": 25,
+    "meanMfePct": 8.477265241494194,
+    "meanMaePct": -17.40409119784611,
+    "positiveBeforeNegativePct": 8.333333333333332,
+    "negativeBeforePositivePct": 50,
+    "ambiguousSameSessionPct": 41.66666666666667
+  },
+  "interpretation": [
+    "The Discovery winner was selected only by the pre-registered Discovery ranking and was frozen before Validation.",
+    "The selected period 90 was already loss-dominant in Discovery despite ranking first on the registered Wilson-lower-bound-first ordering.",
+    "The frozen candidate deteriorated further in Validation: mean return remained materially negative and negative-before-positive events greatly exceeded positive-before-negative events.",
+    "Because only the frozen Discovery winner was allowed into Validation, the chronological holdout was not used to shop among the remaining 23 periods.",
+    "This is a valid negative research result, not a runtime or orchestration failure."
+  ],
+  "doNotDo": [
+    "do not validate period 5, 10, 95 or any other non-selected period in this lineage",
+    "do not rerun the 5-120 search to obtain a different winner",
+    "do not change ranking order after observing Validation",
+    "do not add rescue filters or alter outcome thresholds inside this frozen experiment",
+    "do not extend the date range merely to rescue this hypothesis",
+    "do not call period 90 or PRICE_MA_RECLAIM_UP validated or profitable"
+  ],
+  "nextGate": "Start a separate ResearchGoal with a semantically distinct existing chart-ready trigger; preserve the same frozen population/outcome contract and Discovery-only selection discipline before any Validation exposure.",
+  "profitabilityClaim": false
+}
