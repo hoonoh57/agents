@@ -1,0 +1,103 @@
+{
+  "schema": "CoordinatorDecision@1.0.0",
+  "decisionId": "P4_VOLUME_DENSITY_DISCOVERY_001_RESULT",
+  "status": "NO_GO_DISCOVERY",
+  "goalId": "GOAL-VOLUME-DENSITY-DISCOVERY-001",
+  "evidenceKind": "DETERMINISTIC_TOOL_RUN",
+  "researchRepository": "hoonoh57/kiwoom-autotrade-template",
+  "researchToolCommit": "16784610e55a9179eb66e08a599c565bbbdc4a1b",
+  "researchToolPath": "scripts/run_volume_density_discovery_tool.mjs",
+  "datasetHash": "c4f56e2dae66fa09739797c9bac43b82b48d972591fe618dff16e5d4bacb5b3f",
+  "experiment": {
+    "featureId": "VOLUME_DENSITY_SHIFT",
+    "stateFormula": "volume_D / mean(volume_{D-lookback}..volume_{D-1})",
+    "transition": "D-1 state <= threshold AND D state > threshold",
+    "entryReference": "D+1 open",
+    "lookbackMin": 5,
+    "lookbackMax": 60,
+    "lookbackStep": 5,
+    "thresholdMin": 0.5,
+    "thresholdMax": 3.0,
+    "thresholdStep": 0.1,
+    "candidateCount": 312,
+    "historicalDataFrom": "2026-04-22",
+    "historicalDataCutoff": "2026-08-13",
+    "requestedSymbolCount": 38,
+    "effectiveSymbolCount": 37
+  },
+  "methodVerification": {
+    "baselineExcludesCurrentDecisionBar": true,
+    "discoveryOnlyRanking": true,
+    "coordinatorGateEvaluatedByTool": false,
+    "validationEvaluated": false,
+    "historicalValidationReuseAllowed": false,
+    "profitabilityClaim": false
+  },
+  "topDiscoveryCandidate": {
+    "candidateId": "CANDIDATE-9470e99a7a19fc04",
+    "lookback": 25,
+    "threshold": 0.9,
+    "rank": 1,
+    "discoveryScore": 17.063063897708417,
+    "sampleCount": 295,
+    "uniqueSymbols": 37,
+    "uniqueDecisionDates": 68,
+    "meanReturnPct": -0.5920664697795686,
+    "medianReturnPct": -1.6513761467889854,
+    "winRatePct": 43.728813559322035,
+    "meanMfePct": 11.071626193064013,
+    "meanMaePct": -9.895692054673047,
+    "positiveBeforeNegativePct": 21.35593220338983,
+    "negativeBeforePositivePct": 46.101694915254235,
+    "ambiguousSameSessionPct": 32.20338983050847,
+    "noHitPct": 0.3389830508474576,
+    "frozenAtDataCutoff": "2026-08-13"
+  },
+  "comparativeContext": {
+    "priceNHighBreakoutRank1": {
+      "meanReturnPct": -6.730385121450832,
+      "winRatePct": 31.15942028985507,
+      "positiveBeforeNegativePct": 5.797101449275362,
+      "negativeBeforePositivePct": 58.69565217391305
+    },
+    "priceMaReclaimRank1Discovery": {
+      "meanReturnPct": -6.479428911844599,
+      "winRatePct": 32.142857142857146,
+      "positiveBeforeNegativePct": 17.857142857142858,
+      "negativeBeforePositivePct": 46.42857142857143
+    },
+    "interpretation": "Volume density shift carries materially more useful conditional information than the two closed price-trigger baselines on the same frozen dataset, but its standalone event distribution remains adverse."
+  },
+  "coordinatorDisposition": {
+    "standaloneTriggerAccepted": false,
+    "freshValidationAuthorized": false,
+    "reason": "Rank-1 has negative mean and median return and negative-before-positive events remain more than twice positive-before-negative events. Fresh validation is not justified for the standalone trigger lineage.",
+    "postHocGateClaimed": false
+  },
+  "interpretation": [
+    "This is a valid negative standalone-trigger result, not an orchestration or runtime failure.",
+    "The broad top-ranked region around moderate lookbacks and sub-to-near-one density thresholds suggests volume-density state change may contain contextual information even though it is not a sufficient entry trigger by itself.",
+    "The standalone VOLUME_DENSITY_SHIFT lineage is closed at the 2026-08-13 data cutoff.",
+    "Using volume density as a context/filter with an independent primary trigger is a new composite hypothesis and must receive a new goal, Discovery lineage, parameter contract and evidence record."
+  ],
+  "doNotDo": [
+    "do not send standalone VOLUME_DENSITY_SHIFT to fresh Validation",
+    "do not rerun the same 312-candidate search to obtain a different standalone winner",
+    "do not change this lineage's ranking after observing the result",
+    "do not call the relative improvement over failed price triggers profitability",
+    "do not consume fresh Validation data for this failed standalone lineage"
+  ],
+  "nextProtocol": {
+    "goalId": "GOAL-FEATURE-ARCHITECT-VOLUME-CONTEXT-001",
+    "objective": "Design a new Discovery-only composite hypothesis in which VOLUME_DENSITY_SHIFT is context/filter information and an independent chart-traceable primary trigger controls entry timing.",
+    "constraints": [
+      "same finalized adjusted daily OHLCV source boundary",
+      "D and earlier information only",
+      "D+1 open executable entry reference",
+      "do not treat the failed standalone winner as validated",
+      "do not reuse historical holdout observations as fresh Validation",
+      "no profitability claim"
+    ]
+  },
+  "profitabilityClaim": false
+}
