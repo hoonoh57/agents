@@ -39,6 +39,12 @@ function Set-ModelDefault([string]$EnvName, [string]$Role) {
     Write-Host "[agent-worker] model $Role=$selected source=registry"
 }
 
+# Production local-LLM work must be launched by RUN_RESEARCH_WINDOW_ONCE.ps1.
+# Mock lifecycle verification is allowed without the production window token because it does not invoke Ollama.
+if (-not $Mock -and $env:AGENT_RESEARCH_WINDOW_ACTIVE -ne '1') {
+    throw 'Production local LLM worker is blocked. Use scripts\RUN_RESEARCH_WINDOW_ONCE.ps1 after the configured research-window start.'
+}
+
 Write-Host '[agent-worker] pull'
 git pull --ff-only origin main
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
