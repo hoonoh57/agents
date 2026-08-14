@@ -1,0 +1,155 @@
+{
+  "schema": "AgentResult@1.0.0",
+  "resultId": "RESULT-20260814025825-e9f916",
+  "taskId": "TASK-20260814025825-e9f916",
+  "agentId": "feature-architect",
+  "status": "COMPLETED",
+  "modelProfile": "LOCAL_REASONER",
+  "modelVersion": "qwen3.6:35b-a3b",
+  "startedAt": "2026-08-14T02:58:29.337Z",
+  "completedAt": "2026-08-14T02:59:55.859Z",
+  "summary": "RANK1|featureId=VOLUME_DENSITY_SURGE|reason=Uses volume/price ratio to detect institutional participation at support, distinct from price-only breakouts or MA crossings. Provides a discrete transition signal based on relative intensity rather than absolute level.",
+  "claims": [
+    {
+      "kind": "PROPOSAL",
+      "claim": "CANDIDATE|featureId=VOLUME_DENSITY_SURGE|family=VOLUME_FAMILY|name=Volume Density Surge|t0=D-1 close>open AND D open<close AND (D volume / D avg_volume) > threshold|fields=open,high,low,close,volume|params=avg_period=[5,20],surge_mult=[1.5,3.0]|warmup=20 bars|chart=Volume histogram with threshold line|densityRisk=False positive in low-liquidity periods|distinct=Uses volume intensity relative to recent average, not price level or MA crossover.",
+      "sourceInputIds": [
+        "daily-candle-contract",
+        "trigger-context-boundary"
+      ]
+    },
+    {
+      "kind": "PROPOSAL",
+      "claim": "CANDIDATE|featureId=INTRA_DAY_RANGE_EXPANSION|family=RANGE_FAMILY|name=Intra-Day Range Expansion|t0=D-1 range < D-1 avg_range AND D range > D-1 range * expansion_factor|fields=open,high,low,close|params=avg_period=[5,20],expansion_mult=[1.2,2.0]|warmup=20 bars|chart=Range overlay on price chart|densityRisk=Whipsaw in low volatility regimes|distinct=Measures absolute price movement magnitude relative to recent average range, independent of direction or MA.",
+      "sourceInputIds": [
+        "daily-candle-contract",
+        "trigger-context-boundary"
+      ]
+    },
+    {
+      "kind": "PROPOSAL",
+      "claim": "CANDIDATE|featureId=CLOSE_TO_HIGH_REVERSAL|family=REVERSAL_FAMILY|name=Close-to-High Reversal|t0=D-1 close < D-1 high * (1 - tolerance) AND D close > D-1 high|fields=open,high,low,close|params=tolerance=[0.01,0.05]|warmup=5 bars|chart=High line with reversal marker|densityRisk=Continuation in strong trends|distinct=Identifies failure to hold highs followed by immediate reclaim, signaling potential exhaustion or reversal, not a breakout.",
+      "sourceInputIds": [
+        "daily-candle-contract",
+        "trigger-context-boundary"
+      ]
+    }
+  ],
+  "sourceRefs": [
+    {
+      "inputId": "explorer-ma-cross",
+      "root": "RESEARCH_LOCAL_ROOT",
+      "relativePath": "template/feature-packs/swing-research/ProfitFeatureExplorer.ts",
+      "repositoryHead": "6318d9235872ac72e7eaf5c36b06a720f88ac465",
+      "fileSha256": "e4504f29f2d9f8d26a7616d3f95d5cf118c2f60b420d1619e84291f4385c62bb",
+      "excerptSha256": "8096cb78d9406ace99e777d3a4138fbe11af63e7075606f7349544beb68bed80",
+      "sourceBytes": 27781,
+      "excerptBytes": 3278,
+      "mode": "AROUND",
+      "anchor": "const maCrossFeature"
+    },
+    {
+      "inputId": "explorer-price-reclaim-high-breakout",
+      "root": "RESEARCH_LOCAL_ROOT",
+      "relativePath": "template/feature-packs/swing-research/ProfitFeatureExplorer.ts",
+      "repositoryHead": "6318d9235872ac72e7eaf5c36b06a720f88ac465",
+      "fileSha256": "e4504f29f2d9f8d26a7616d3f95d5cf118c2f60b420d1619e84291f4385c62bb",
+      "excerptSha256": "556f0da2d44582e344a44d788fab2b1ec8e46170f47f5c37d39e26c8c2607656",
+      "sourceBytes": 27781,
+      "excerptBytes": 5915,
+      "mode": "AROUND",
+      "anchor": "const priceMaReclaimFeature"
+    },
+    {
+      "inputId": "daily-candle-contract",
+      "root": "RESEARCH_LOCAL_ROOT",
+      "relativePath": "template/feature-packs/swing-research/SwingTrendFoundation.ts",
+      "repositoryHead": "6318d9235872ac72e7eaf5c36b06a720f88ac465",
+      "fileSha256": "c419fe2e178635805ffb8d40c795e6575aeac14ee19789ece10204961d5b8e96",
+      "excerptSha256": "6690f27b0b14b3bafb622272cb0b9997e1b86c8d0beb358855d8dd601a74ebf7",
+      "sourceBytes": 8734,
+      "excerptBytes": 2977,
+      "mode": "AROUND",
+      "anchor": "export interface SwingDailyCandle"
+    },
+    {
+      "inputId": "trigger-context-boundary",
+      "root": "RESEARCH_LOCAL_ROOT",
+      "relativePath": "template/feature-packs/swing-research/ProfitFeatureFoundry.ts",
+      "repositoryHead": "6318d9235872ac72e7eaf5c36b06a720f88ac465",
+      "fileSha256": "9561116027a4eb4ef1b3ef9cf3fcfd617f049c13783656aa890166c5e8ca96ea",
+      "excerptSha256": "7849a45d00ac7eef58a72e73383977fa6449566adf8a57e040f86154818acd32",
+      "sourceBytes": 34186,
+      "excerptBytes": 3734,
+      "mode": "AROUND",
+      "anchor": "export interface ProfitObservation"
+    }
+  ],
+  "proposalRefs": [],
+  "artifactRefs": [],
+  "requiresValidation": true,
+  "externalEscalation": null,
+  "workProduct": {
+    "schema": "AgentWorkProduct@1.0.0",
+    "summary": "RANK1|featureId=VOLUME_DENSITY_SURGE|reason=Uses volume/price ratio to detect institutional participation at support, distinct from price-only breakouts or MA crossings. Provides a discrete transition signal based on relative intensity rather than absolute level.",
+    "findings": [
+      {
+        "kind": "PROPOSAL",
+        "claim": "CANDIDATE|featureId=VOLUME_DENSITY_SURGE|family=VOLUME_FAMILY|name=Volume Density Surge|t0=D-1 close>open AND D open<close AND (D volume / D avg_volume) > threshold|fields=open,high,low,close,volume|params=avg_period=[5,20],surge_mult=[1.5,3.0]|warmup=20 bars|chart=Volume histogram with threshold line|densityRisk=False positive in low-liquidity periods|distinct=Uses volume intensity relative to recent average, not price level or MA crossover.",
+        "sourceInputIds": [
+          "daily-candle-contract",
+          "trigger-context-boundary"
+        ]
+      },
+      {
+        "kind": "PROPOSAL",
+        "claim": "CANDIDATE|featureId=INTRA_DAY_RANGE_EXPANSION|family=RANGE_FAMILY|name=Intra-Day Range Expansion|t0=D-1 range < D-1 avg_range AND D range > D-1 range * expansion_factor|fields=open,high,low,close|params=avg_period=[5,20],expansion_mult=[1.2,2.0]|warmup=20 bars|chart=Range overlay on price chart|densityRisk=Whipsaw in low volatility regimes|distinct=Measures absolute price movement magnitude relative to recent average range, independent of direction or MA.",
+        "sourceInputIds": [
+          "daily-candle-contract",
+          "trigger-context-boundary"
+        ]
+      },
+      {
+        "kind": "PROPOSAL",
+        "claim": "CANDIDATE|featureId=CLOSE_TO_HIGH_REVERSAL|family=REVERSAL_FAMILY|name=Close-to-High Reversal|t0=D-1 close < D-1 high * (1 - tolerance) AND D close > D-1 high|fields=open,high,low,close|params=tolerance=[0.01,0.05]|warmup=5 bars|chart=High line with reversal marker|densityRisk=Continuation in strong trends|distinct=Identifies failure to hold highs followed by immediate reclaim, signaling potential exhaustion or reversal, not a breakout.",
+        "sourceInputIds": [
+          "daily-candle-contract",
+          "trigger-context-boundary"
+        ]
+      }
+    ],
+    "nextActions": [
+      "DISCOVERY_CONTRACT|featureId=VOLUME_DENSITY_SURGE|parameterSearch=avg_period=[5,20],surge_mult=[1.5,3.0]|notes=Focus on volume/price ratio dynamics. Avoid MA or price level filters."
+    ],
+    "profitabilityClaim": false
+  },
+  "runtimeMetrics": {
+    "wallSeconds": 86.31,
+    "outputTokens": 702,
+    "tokensPerSecond": 32.09738144349789,
+    "contextBytes": 15904,
+    "doneReason": "stop",
+    "outputAttempts": 1,
+    "outputStrict": true,
+    "outputRecovered": false,
+    "outputTrailingChars": 0,
+    "outputDiagnostics": [
+      {
+        "attempt": 1,
+        "doneReason": "stop",
+        "outputTokens": 702,
+        "contentChars": 2408,
+        "contentSha256": "1679ccca384431d1677329d31be115dbf0bab0d9bdfd3fba5c975ac3b9af2156",
+        "preview": "{\n  \"schema\": \"AgentWorkProduct@1.0.0\",\n  \"summary\": \"RANK1|featureId=VOLUME_DENSITY_SURGE|reason=Uses volume/price ratio to detect institutional participation at support, distinct from price-only breakouts or MA crossings. Provides a discrete transition signal based on relative intensity rather than absolute level.\",\n  \"findings\": [\n    {\n      \"kind\": \"PROPOSAL\",\n      \"claim\": \"CANDIDATE|featureId=VOLUME_DENSITY_SURGE|family=VOLUME_FAMILY|name=Volume Density Surge|t0=D-1 close>open AND D open<close AND (D volume / D avg_volume) > threshold|fields=open,high,low,close,volume|params=avg_period=[5,20],surge_mult=[1.5,3.0]|warmup=20 bars|chart=Volume histogram with threshold line|densityRisk=F",
+        "validationError": null,
+        "maxOutputTokens": 1800,
+        "parse": {
+          "strict": true,
+          "recovered": false,
+          "trailing": 0,
+          "error": null
+        }
+      }
+    ]
+  }
+}
