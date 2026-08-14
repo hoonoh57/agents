@@ -39,8 +39,19 @@ function Test-CompletedResult([string]$TaskId) {
     if ($r.autonomousResearch.profitabilityClaim -ne $false) { return $false }
     if ([int]$r.runtimeMetrics.keepAlive -ne 0) { return $false }
     $events = [int]$r.autonomousResearch.toolEvidence.evidence.eventCount
+    $discovery = [int]$r.autonomousResearch.toolEvidence.evidence.discovery.sampleCount
+    $validation = [int]$r.autonomousResearch.toolEvidence.evidence.validation.sampleCount
     $period = [int]$r.autonomousResearch.firstTurn.actions[0].arguments.parameters.period
-    Write-Host "[queue-smoke] PASS existing task=$TaskId result=$($r.resultId) events=$events period=$period keepAlive=$($r.runtimeMetrics.keepAlive)"
+    $feature = [string]$r.autonomousResearch.firstTurn.actions[0].arguments.featureId
+    $completion = $r.autonomousResearch.semanticCompletionDecision
+    if ([string]$completion.observedFeatureId -ne $feature) { return $false }
+    if ([int]$completion.observedPeriod -ne $period) { return $false }
+    if ([int]$completion.observedEventCount -ne $events) { return $false }
+    if ([int]$completion.observedDiscoverySampleCount -ne $discovery) { return $false }
+    if ([int]$completion.observedValidationSampleCount -ne $validation) { return $false }
+    $runtimeEvidenceId = [string]$r.autonomousResearch.toolEvidence.evidenceId
+    if ([string]$r.autonomousResearch.finalTurn.evidenceRefs[0] -ne $runtimeEvidenceId) { return $false }
+    Write-Host "[queue-smoke] PASS existing task=$TaskId result=$($r.resultId) feature=$feature period=$period events=$events discovery=$discovery validation=$validation keepAlive=$($r.runtimeMetrics.keepAlive)"
     return $true
 }
 
@@ -60,11 +71,17 @@ $backlog = Get-Content $backlogPath -Raw -Encoding UTF8 | ConvertFrom-Json
 $existing = @($backlog.items | Where-Object { $_.goalId -eq $GoalId -and $_.executionMode -eq 'AUTONOMOUS_RESEARCH' } | Select-Object -Last 1)
 if ($existing.Count -eq 1 -and -not $ForceNew) {
     $taskId = [string]$existing[0].taskId
-    if ($existing[0].status -eq 'COMPLETED' -and (Test-CompletedResult $taskId)) { exit 0 }
-    if ($existing[0].status -in @('QUEUED','RUNNING')) {
-        Write-Host "[queue-smoke] resume task=$taskId status=$($existing[0].status)"
+    $status = [string]$existing[0].status
+    $inboxPath = Join-Path $Root "agents\$AgentId\inbox\$taskId.json"
+    if ($status -eq 'COMPLETED' -and (Test-CompletedResult $taskId)) { exit 0 }
+    if ($status -eq 'RUNNING') { throw "task is already RUNNING: $taskId" }
+    if ($status -eq 'QUEUED') {
+        Write-Host "[queue-smoke] resume queued task=$taskId"
+    } elseif ($status -in @('ERROR','BLOCKED')) {
+        if (-not (Test-Path $inboxPath)) { throw "failed task has no inbox snapshot: $taskId; use -ForceNew only for a deliberate new lineage" }
+        Write-Host "[queue-smoke] RETRY_SAME_LINEAGE task=$taskId previousStatus=$status"
     } else {
-        throw "existing autonomous queue smoke is status=$($existing[0].status); use -ForceNew for an intentional new run"
+        throw "existing autonomous queue smoke has unsupported status=$status task=$taskId"
     }
 } else {
     Write-Host '[queue-smoke] enqueue autonomous research task'
