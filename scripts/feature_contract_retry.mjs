@@ -3,9 +3,11 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { validateFeatureDesignResult } from './verify_feature_design_contract.mjs';
+import { validateVolumeContextDesignResult } from './verify_volume_context_design_contract.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const GOAL_PREFIX = 'GOAL-FEATURE-ARCHITECT-NEXT-TRIGGER-';
+const NEXT_TRIGGER_GOAL_PREFIX = 'GOAL-FEATURE-ARCHITECT-NEXT-TRIGGER-';
+const VOLUME_CONTEXT_GOAL = 'GOAL-FEATURE-ARCHITECT-VOLUME-CONTEXT-001';
 const MAX_REPAIRS = 2;
 
 function arg(name, fallback = null) {
@@ -30,8 +32,15 @@ function taskRow(taskId) {
   return { backlog, index, row: backlog.items[index] };
 }
 
+function validatorForGoal(goalId) {
+  const goal = String(goalId || '');
+  if (goal.startsWith(NEXT_TRIGGER_GOAL_PREFIX)) return validateFeatureDesignResult;
+  if (goal === VOLUME_CONTEXT_GOAL) return validateVolumeContextDesignResult;
+  return null;
+}
+
 function isFeatureContractTask(row) {
-  return row?.agentId === 'feature-architect' && String(row?.goalId || '').startsWith(GOAL_PREFIX);
+  return row?.agentId === 'feature-architect' && Boolean(validatorForGoal(row?.goalId));
 }
 
 function validateCurrent(row) {
@@ -39,7 +48,9 @@ function validateCurrent(row) {
   const file = resultPath(row.agentId, row.taskId);
   if (!fs.existsSync(file)) throw new Error(`FEATURE_CONTRACT_RESULT_MISSING:${row.taskId}`);
   const result = readJson(file);
-  validateFeatureDesignResult(result);
+  const validate = validatorForGoal(row.goalId);
+  if (!validate) throw new Error(`FEATURE_CONTRACT_VALIDATOR_MISSING:${row.goalId}`);
+  validate(result);
   return result;
 }
 
@@ -47,11 +58,12 @@ function previousCompletedTaskId(backlog, row) {
   const prior = backlog.items.filter(x => x.agentId === row.agentId && x.taskId !== row.taskId && x.status === 'COMPLETED');
   for (let i = prior.length - 1; i >= 0; i -= 1) {
     const candidate = prior[i];
-    if (!String(candidate.goalId || '').startsWith(GOAL_PREFIX)) return candidate.taskId;
+    const validate = validatorForGoal(candidate.goalId);
+    if (!validate) return candidate.taskId;
     const file = resultPath(candidate.agentId, candidate.taskId);
     if (!fs.existsSync(file)) continue;
     try {
-      validateFeatureDesignResult(readJson(file));
+      validate(readJson(file));
       return candidate.taskId;
     } catch {}
   }
