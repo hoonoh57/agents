@@ -1,0 +1,78 @@
+{
+  "schema": "AgentTaskTemplate@1.0.0",
+  "agentId": "feature-architect",
+  "goalId": "GOAL-FEATURE-ARCHITECT-VOLUME-CONTEXT-001",
+  "priority": 82,
+  "createdBy": "HUMAN_RESEARCH_DIRECTOR",
+  "modelRoleHint": "LOCAL_REASONER",
+  "objective": "Design exactly three new Discovery-only composite hypotheses that use one existing chart-ready primary price trigger for entry timing and VOLUME_DENSITY_SHIFT only as same-day context/filter information. Cover MA_FRESH_CROSS_UP, PRICE_MA_RECLAIM_UP, and PRICE_N_HIGH_BREAKOUT exactly once across the three candidates. Do not redesign their primary trigger semantics. Use finalized adjusted daily OHLCV only, D and earlier information only, and D+1 open as the executable entry reference. The standalone VOLUME_DENSITY_SHIFT lineage is NO_GO and must not be presented as validated or profitable. Do not write code, run experiments, consume fresh Validation data, or invent acceptance gates.",
+  "inputs": [
+    {
+      "schema": "ProjectContextInput@1.0.0",
+      "inputId": "explorer-primary-triggers",
+      "root": "RESEARCH_LOCAL_ROOT",
+      "path": "template/feature-packs/swing-research/ProfitFeatureExplorer.ts",
+      "mode": "AROUND",
+      "anchor": "const maCrossFeature",
+      "beforeChars": 100,
+      "afterChars": 10500,
+      "maxBytes": 11200
+    },
+    {
+      "schema": "ProjectContextInput@1.0.0",
+      "inputId": "volume-density-no-go",
+      "root": "AGENT_REPO_ROOT",
+      "path": "coordinator/decisions/P4_VOLUME_DENSITY_DISCOVERY_001_RESULT.json",
+      "mode": "FULL",
+      "maxBytes": 10000
+    },
+    {
+      "schema": "ProjectContextInput@1.0.0",
+      "inputId": "ma-period-negative",
+      "root": "AGENT_REPO_ROOT",
+      "path": "coordinator/decisions/P1_AUTONOMOUS_MA_PERIOD_SEARCH_001.json",
+      "mode": "FULL",
+      "maxBytes": 9000
+    },
+    {
+      "schema": "ProjectContextInput@1.0.0",
+      "inputId": "high-breakout-negative",
+      "root": "AGENT_REPO_ROOT",
+      "path": "coordinator/decisions/P2_HIGH_BREAKOUT_DISCOVERY_001_RESULT.json",
+      "mode": "FULL",
+      "maxBytes": 9000
+    }
+  ],
+  "requiredOutputs": [
+    "Exactly three PROPOSAL findings. Each claim must use exactly: CONTEXT_CANDIDATE|hypothesisId=<UPPER_SNAKE_ID>|primaryFeatureId=<one existing chart-ready primary>|contextFeatureId=VOLUME_DENSITY_SHIFT|contextMode=<STATE_ABOVE or FRESH_UP_CROSS>|primaryParams=<bounded family>|contextParams=<bounded family>|timing=SAME_D|entry=D+1 open|chart=<marker/overlay semantics>|densityRisk=<brief risk>|distinct=<why primary controls timing and volume is context only>. Do not use pipe inside values.",
+    "The three primaryFeatureId values must be exactly MA_FRESH_CROSS_UP, PRICE_MA_RECLAIM_UP, and PRICE_N_HIGH_BREAKOUT, each used once.",
+    "Do not redefine the primary trigger formulas; reference the existing feature IDs and search only their legal parameters.",
+    "contextFeatureId must be VOLUME_DENSITY_SHIFT. contextMode may be STATE_ABOVE or FRESH_UP_CROSS only.",
+    "contextParams must use the observed broad contextual region as a bounded new-hypothesis family rather than the full standalone search: lookback within [15,55] and threshold within [0.7,1.1]. This is Discovery reuse, not Validation evidence.",
+    "timing must be exactly SAME_D and entry exactly D+1 open for all three candidates.",
+    "Summary must begin exactly RANK1_CONTEXT|hypothesisId=<one candidate>|reason=<only simplicity, event-density risk, chart traceability, or data availability rationale>.",
+    "nextActions must contain exactly one item: COMPOSITE_DISCOVERY_CONTRACT|hypothesisId=<same rank-1>|parameterSearch=<bounded combined search family>|notes=<implementation-neutral deterministic execution notes>.",
+    "COMPOSITE_DISCOVERY_CONTRACT notes must not contain acceptance, reject if, pass if, win-rate, win rate, positivePct, negativePct, profit, ranking, gate, gating, >=, <=, or %.",
+    "sourceInputIds may use only explorer-primary-triggers, volume-density-no-go, ma-period-negative, high-breakout-negative.",
+    "Treat the prior negative decisions as lineage boundaries. Combining a closed primary trigger with volume context creates a new Discovery hypothesis, not a rescue inside the old lineage.",
+    "No market participant, institutional, catalyst, support/resistance narrative unless directly supplied by source evidence.",
+    "profitabilityClaim=false"
+  ],
+  "constraints": [
+    "Same finalized adjusted daily OHLCV source boundary only",
+    "D and earlier information only",
+    "D+1 open executable entry reference",
+    "VOLUME_DENSITY_SHIFT is context/filter only and may not become the primary timing trigger in this task",
+    "Do not treat candidate 25/0.9 or any standalone volume candidate as validated",
+    "Do not rerun or alter the closed standalone volume-density lineage",
+    "Do not reuse historical holdout observations as fresh Validation",
+    "Do not write implementation code",
+    "Do not run Discovery or Validation",
+    "Do not invent profitability or acceptance gates",
+    "Do not claim profitability"
+  ],
+  "artifactRefs": [],
+  "dependsOn": [
+    "P4_VOLUME_DENSITY_DISCOVERY_001_RESULT"
+  ]
+}
