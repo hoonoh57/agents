@@ -36,6 +36,10 @@ jobs:
         shell: pwsh
         run: node -e "const fs=require('fs'); const x=JSON.parse(fs.readFileSync('task-templates/current-logic-baseline-review.json','utf8')); if(x.schema!=='AgentTaskTemplate@1.0.0'||x.agentId!=='current-logic-analyst'||!Array.isArray(x.inputs)||x.inputs.length!==4) process.exit(1); console.log('TASK_TEMPLATE_PASS inputs='+x.inputs.length)"
 
+      - name: Validate next trigger architecture template
+        shell: pwsh
+        run: node -e "const fs=require('fs');const x=JSON.parse(fs.readFileSync('task-templates/feature-architect-next-trigger.json','utf8'));if(x.schema!=='AgentTaskTemplate@1.0.0'||x.agentId!=='feature-architect'||x.goalId!=='GOAL-FEATURE-ARCHITECT-NEXT-TRIGGER-001'||!Array.isArray(x.inputs)||x.inputs.length!==4)process.exit(1);console.log('FEATURE_ARCHITECT_NEXT_TRIGGER_TEMPLATE_PASS inputs='+x.inputs.length)"
+
       - name: Verify production autonomous queue lane
         shell: pwsh
         run: |
@@ -78,7 +82,7 @@ jobs:
       - name: Verify one-shot research launchers
         shell: pwsh
         run: |
-          foreach ($file in @('.\scripts\RUN_AGENT_ONCE.ps1','.\scripts\RUN_RESEARCH_WINDOW_ONCE.ps1','.\scripts\RUN_AUTONOMOUS_QUEUE_SMOKE.ps1','.\scripts\RUN_AUTONOMOUS_MA_PERIOD_SEARCH.ps1','.\scripts\RUN_AUTONOMOUS_HIGH_BREAKOUT_DISCOVERY.ps1','.\scripts\INSTALL_RESEARCH_NIGHT_TASK.ps1')) {
+          foreach ($file in @('.\scripts\RUN_AGENT_ONCE.ps1','.\scripts\RUN_RESEARCH_WINDOW_ONCE.ps1','.\scripts\RUN_AUTONOMOUS_QUEUE_SMOKE.ps1','.\scripts\RUN_AUTONOMOUS_MA_PERIOD_SEARCH.ps1','.\scripts\RUN_AUTONOMOUS_HIGH_BREAKOUT_DISCOVERY.ps1','.\scripts\RUN_FEATURE_ARCHITECT_NEXT_TRIGGER.ps1','.\scripts\INSTALL_RESEARCH_NIGHT_TASK.ps1')) {
             $errors = $null
             [System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path $file), [ref]$null, [ref]$errors) | Out-Null
             if ($errors.Count -gt 0) { $errors | Format-List | Out-String | Write-Host; exit 1 }
