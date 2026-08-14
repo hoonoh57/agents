@@ -42,7 +42,7 @@ function Set-ModelDefault([string]$EnvName, [string]$Role) {
 # Production local-LLM work must be launched by RUN_RESEARCH_WINDOW_ONCE.ps1.
 # Mock lifecycle verification is allowed without the production window token because it does not invoke Ollama.
 if (-not $Mock -and $env:AGENT_RESEARCH_WINDOW_ACTIVE -ne '1') {
-    throw 'Production local LLM worker is blocked. Use scripts\RUN_RESEARCH_WINDOW_ONCE.ps1 after the configured research-window start.'
+    throw 'Production local LLM worker is blocked. Use scripts\RUN_RESEARCH_WINDOW_ONCE.ps1 after hours or with explicit -TestNow during development.'
 }
 
 Write-Host '[agent-worker] pull'
@@ -53,15 +53,23 @@ Set-ModelDefault 'LOCAL_LLM_FAST_MODEL' 'LOCAL_FAST'
 Set-ModelDefault 'LOCAL_LLM_REASONER_MODEL' 'LOCAL_REASONER'
 Set-ModelDefault 'LOCAL_LLM_CODER_MODEL' 'LOCAL_CODER'
 
-Write-Host '[agent-worker] validate'
+Write-Host '[agent-worker] validate stable runtime'
 node .\scripts\agent_runtime_stable.mjs validate
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
-Write-Host '[agent-worker] run once'
+Write-Host '[agent-worker] validate one-shot router + autonomous engine'
+node --check .\scripts\agent_worker_router.mjs
+if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+node --check .\scripts\autonomous_research_engine.mjs
+if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+node .\scripts\agent_worker_router.mjs self-test
+if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+Write-Host '[agent-worker] run once through router'
 if ($Mock) {
-    node .\scripts\agent_runtime_stable.mjs worker-once --mock
+    node .\scripts\agent_worker_router.mjs worker-once --mock
 } else {
-    node .\scripts\agent_runtime_stable.mjs worker-once
+    node .\scripts\agent_worker_router.mjs worker-once
 }
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
