@@ -1,4 +1,6 @@
 import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 function arg(name, fallback = null) {
   const i = process.argv.indexOf(`--${name}`);
@@ -58,10 +60,13 @@ function unsupportedNarrativeReason(text) {
   return terms.find(term => value.includes(term)) || null;
 }
 
-export function validateFeatureDesignResult(result) {
-  if (!result || result.schema !== 'AgentResult@1.0.0' || result.status !== 'COMPLETED') fail('AgentResult COMPLETED required');
-  if (result.agentId !== 'feature-architect') fail('feature-architect result required');
-  const wp = result.workProduct;
+function hasBoundedParameterFamily(text) {
+  const value = String(text || '').trim();
+  if (!value || /^(none|n\/a|na|null)$/i.test(value)) return false;
+  return /\[[^\]]+\]/.test(value) || /\.\./.test(value) || /\bfrom\b.+\bto\b/i.test(value) || /\bbetween\b.+\band\b/i.test(value);
+}
+
+export function validateFeatureDesignWorkProduct(wp) {
   if (!wp || wp.schema !== 'AgentWorkProduct@1.0.0') fail('AgentWorkProduct required');
   if (wp.profitabilityClaim !== false) fail('profitabilityClaim must be false');
 
@@ -85,9 +90,11 @@ export function validateFeatureDesignResult(result) {
     if (closed) fail(`${c.featureId}: ${closed}`);
     validateTransition(c.featureId, c.prevTest, c.currTest);
 
-    for (const key of ['state', 'fields', 'params', 'warmup', 'chart', 'densityRisk', 'distinct']) {
+    for (const key of ['name', 'state', 'fields', 'chart', 'densityRisk', 'distinct']) {
       if (String(c[key]).trim().length < 3) fail(`${c.featureId} ${key} is too short`);
     }
+    if (!String(c.warmup).trim()) fail(`${c.featureId} warmup is empty`);
+    if (!hasBoundedParameterFamily(c.params)) fail(`${c.featureId} params must define a bounded parameter family`);
   }
 
   const summary = parsePipeRecord(wp.summary, 'RANK1', ['featureId', 'reason']);
@@ -98,9 +105,16 @@ export function validateFeatureDesignResult(result) {
   if (!Array.isArray(wp.nextActions) || wp.nextActions.length !== 1) fail(`exactly one nextAction required actual=${Array.isArray(wp.nextActions) ? wp.nextActions.length : 'invalid'}`);
   const next = parsePipeRecord(wp.nextActions[0], 'DISCOVERY_CONTRACT', ['featureId', 'parameterSearch', 'notes']);
   if (next.featureId !== summary.featureId) fail(`DISCOVERY_CONTRACT featureId must equal RANK1 ${summary.featureId}`);
-  if (/(threshold|acceptance|reject if|pass if|win.?rate|positivepct|negativepct|>=|<=|%)/i.test(next.notes)) fail('Coordinator-owned acceptance threshold leaked into nextAction notes');
+  if (!hasBoundedParameterFamily(next.parameterSearch)) fail('DISCOVERY_CONTRACT parameterSearch must define a bounded parameter family');
+  if (/(threshold|acceptance|reject\s+if|pass\s+if|win.?rate|positivepct|negativepct|ranking|gate|gating|>=|<=|%)/i.test(next.notes)) fail('Coordinator-owned acceptance or parameter-bound language leaked into nextAction notes');
 
   return { rank1: summary.featureId, candidates };
+}
+
+export function validateFeatureDesignResult(result) {
+  if (!result || result.schema !== 'AgentResult@1.0.0' || result.status !== 'COMPLETED') fail('AgentResult COMPLETED required');
+  if (result.agentId !== 'feature-architect') fail('feature-architect result required');
+  return validateFeatureDesignWorkProduct(result.workProduct);
 }
 
 function selfTest() {
@@ -108,17 +122,19 @@ function selfTest() {
     schema: 'AgentResult@1.0.0', status: 'COMPLETED', agentId: 'feature-architect',
     workProduct: {
       schema: 'AgentWorkProduct@1.0.0', profitabilityClaim: false,
-      summary: 'RANK1|featureId=VOLUME_RATIO_SURGE|reason=minimal scalar transition from available volume data',
+      summary: 'RANK1|featureId=VOLUME_RATIO_SURGE|reason=chart traceability from available volume data',
       findings: [
-        { kind: 'PROPOSAL', sourceInputIds: ['x'], claim: 'CANDIDATE|featureId=VOLUME_RATIO_SURGE|family=VOLUME_TRANSITION|name=Volume ratio surge|state=volume divided by rollingMean(volume,N)|prevTest=D-1 state <= threshold|currTest=D state > threshold|fields=volume|params=N=[5,20],threshold=[1.2,3.0]|warmup=max N bars|chart=volume ratio overlay and D marker|densityRisk=may cluster in active regimes|distinct=volume scalar crossing is primary' },
-        { kind: 'PROPOSAL', sourceInputIds: ['x'], claim: 'CANDIDATE|featureId=RANGE_RATIO_SURGE|family=RANGE_TRANSITION|name=Range ratio surge|state=(high-low) divided by rollingMean(high-low,N)|prevTest=D-1 state <= threshold|currTest=D state > threshold|fields=high,low|params=N=[5,20],threshold=[1.2,3.0]|warmup=max N bars|chart=range ratio overlay and D marker|densityRisk=may cluster after volatility shocks|distinct=range magnitude scalar crossing is primary' },
-        { kind: 'PROPOSAL', sourceInputIds: ['x'], claim: 'CANDIDATE|featureId=CLOSE_LOCATION_REVERSAL|family=CLOSE_LOCATION_TRANSITION|name=Close location reversal|state=(close-low)/(high-low)|prevTest=D-1 state <= threshold|currTest=D state > threshold|fields=high,low,close|params=threshold=[0.2,0.8]|warmup=2 bars|chart=close-location oscillator and D marker|densityRisk=may be frequent in wide candles|distinct=intrabar close-location crossing is primary' },
+        { kind: 'PROPOSAL', sourceInputIds: ['x'], claim: 'CANDIDATE|featureId=VOLUME_RATIO_SURGE|family=VOLUME_TRANSITION|name=Volume ratio surge|state=volume divided by rollingMean(volume,N)|prevTest=D-1 state <= threshold|currTest=D state > threshold|fields=volume|params=N=[5,20],threshold=[1.2,3.0]|warmup=N|chart=volume ratio overlay and D marker|densityRisk=may cluster in active regimes|distinct=volume scalar crossing is primary' },
+        { kind: 'PROPOSAL', sourceInputIds: ['x'], claim: 'CANDIDATE|featureId=RANGE_RATIO_SURGE|family=RANGE_TRANSITION|name=Range ratio surge|state=(high-low) divided by rollingMean(high-low,N)|prevTest=D-1 state <= threshold|currTest=D state > threshold|fields=high,low|params=N=[5,20],threshold=[1.2,3.0]|warmup=1|chart=range ratio overlay and D marker|densityRisk=may cluster after volatility shocks|distinct=range magnitude scalar crossing is primary' },
+        { kind: 'PROPOSAL', sourceInputIds: ['x'], claim: 'CANDIDATE|featureId=CLOSE_LOCATION_REVERSAL|family=CLOSE_LOCATION_TRANSITION|name=Close location reversal|state=(close-low)/(high-low)|prevTest=D-1 state <= threshold|currTest=D state > threshold|fields=high,low,close|params=threshold=[0.2,0.8]|warmup=2|chart=close-location oscillator and D marker|densityRisk=may be frequent in wide candles|distinct=intrabar close-location crossing is primary' },
       ],
-      nextActions: ['DISCOVERY_CONTRACT|featureId=VOLUME_RATIO_SURGE|parameterSearch=N and threshold bounded families|notes=Coordinator supplies ranking and gate'],
+      nextActions: ['DISCOVERY_CONTRACT|featureId=VOLUME_RATIO_SURGE|parameterSearch=N=[5,20],threshold=[1.2,3.0]|notes=Use deterministic state computation and chart crossing markers'],
     },
   };
   const ok = validateFeatureDesignResult(good);
   if (ok.rank1 !== 'VOLUME_RATIO_SURGE' || ok.candidates.length !== 3) fail('self-test good result failed');
+  const wpOk = validateFeatureDesignWorkProduct(good.workProduct);
+  if (wpOk.rank1 !== 'VOLUME_RATIO_SURGE') fail('self-test work product validation failed');
 
   const badHigh = JSON.parse(JSON.stringify(good));
   badHigh.workProduct.findings[0].claim = badHigh.workProduct.findings[0].claim.replace('volume divided by rollingMean(volume,N)', 'close minus rolling high N');
@@ -127,20 +143,35 @@ function selfTest() {
   if (!rejectedHigh) fail('self-test closed high predicate was not rejected');
 
   const badTransition = JSON.parse(JSON.stringify(good));
-  badTransition.workProduct.findings[0].claim = badTransition.workProduct.findings[0].claim.replace('prevTest=D-1 state <= threshold', 'prevTest=D-1 candle is green');
+  badTransition.workProduct.findings[0].claim = badTransition.workProduct.findings[0].claim.replace('prevTest=D-1 state <= threshold', 'prevTest=D-1 state <= threshold (extra narrative)');
   let rejectedTransition = false;
   try { validateFeatureDesignResult(badTransition); } catch { rejectedTransition = true; }
-  if (!rejectedTransition) fail('self-test non-transition was not rejected');
+  if (!rejectedTransition) fail('self-test transition suffix was not rejected');
+
+  const badParams = JSON.parse(JSON.stringify(good));
+  badParams.workProduct.findings[0].claim = badParams.workProduct.findings[0].claim.replace('params=N=[5,20],threshold=[1.2,3.0]', 'params=None');
+  let rejectedParams = false;
+  try { validateFeatureDesignResult(badParams); } catch { rejectedParams = true; }
+  if (!rejectedParams) fail('self-test unbounded params were not rejected');
+
+  const badNotes = JSON.parse(JSON.stringify(good));
+  badNotes.workProduct.nextActions[0] = badNotes.workProduct.nextActions[0].replace('chart crossing markers', 'chart threshold line');
+  let rejectedNotes = false;
+  try { validateFeatureDesignResult(badNotes); } catch { rejectedNotes = true; }
+  if (!rejectedNotes) fail('self-test nextAction notes leakage was not rejected');
 
   console.log('FEATURE_DESIGN_CONTRACT_SELF_TEST_PASS');
 }
 
-const command = process.argv[2];
-if (command === '--self-test') selfTest();
-else {
-  const file = arg('result');
-  if (!file) throw new Error('usage: node scripts/verify_feature_design_contract.mjs --result <AgentResult.json> | --self-test');
-  const result = JSON.parse(fs.readFileSync(file, 'utf8'));
-  const validated = validateFeatureDesignResult(result);
-  console.log(`FEATURE_DESIGN_CONTRACT_PASS rank1=${validated.rank1} candidates=${validated.candidates.length}`);
+const isMain = Boolean(process.argv[1]) && path.resolve(process.argv[1]) === path.resolve(fileURLToPath(import.meta.url));
+if (isMain) {
+  const command = process.argv[2];
+  if (command === '--self-test') selfTest();
+  else {
+    const file = arg('result');
+    if (!file) throw new Error('usage: node scripts/verify_feature_design_contract.mjs --result <AgentResult.json> | --self-test');
+    const result = JSON.parse(fs.readFileSync(file, 'utf8'));
+    const validated = validateFeatureDesignResult(result);
+    console.log(`FEATURE_DESIGN_CONTRACT_PASS rank1=${validated.rank1} candidates=${validated.candidates.length}`);
+  }
 }
