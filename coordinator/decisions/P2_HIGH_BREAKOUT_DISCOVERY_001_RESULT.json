@@ -1,0 +1,73 @@
+{
+  "schema": "CoordinatorDecision@1.0.0",
+  "decisionId": "P2_HIGH_BREAKOUT_DISCOVERY_001_RESULT",
+  "status": "NO_GO_DISCOVERY",
+  "goalId": "GOAL-AUTONOMOUS-HIGH-BREAKOUT-DISCOVERY-001",
+  "taskId": "TASK-20260814023854-3e110f",
+  "resultId": "RESULT-20260814023854-3e110f",
+  "evidenceCommit": "a5232b1",
+  "resultPath": "agents/experiment-validation/results/RESULT-20260814023854-3e110f.json",
+  "datasetHash": "c4f56e2dae66fa09739797c9bac43b82b48d972591fe618dff16e5d4bacb5b3f",
+  "experiment": {
+    "featureId": "PRICE_N_HIGH_BREAKOUT",
+    "lookbackMin": 5,
+    "lookbackMax": 120,
+    "lookbackStep": 5,
+    "candidateCount": 24,
+    "historicalDataCutoff": "2026-08-13",
+    "requestedSymbolCount": 38,
+    "effectiveSymbolCount": 37,
+    "technicalExclusions": [
+      {
+        "symbol": "057050",
+        "reason": "historical daily page contained no dated rows"
+      }
+    ]
+  },
+  "methodVerification": {
+    "discoveryOnlyRanking": true,
+    "validationEvaluated": false,
+    "historicalValidationReuseAllowed": false,
+    "freshValidationRequiresDecisionDateAfter": "2026-08-13",
+    "selectedCandidateFrozen": false,
+    "profitabilityClaim": false
+  },
+  "topDiscoveryCandidate": {
+    "lookback": 5,
+    "rank": 1,
+    "discoveryScore": 2.966407178415653,
+    "sampleCount": 138,
+    "uniqueSymbols": 37,
+    "uniqueDecisionDates": 36,
+    "meanReturnPct": -6.730385121450832,
+    "medianReturnPct": -8.287185799567549,
+    "winRatePct": 31.15942028985507,
+    "meanMfePct": 7.578860089473175,
+    "meanMaePct": -13.189951118332157,
+    "positiveBeforeNegativePct": 5.797101449275362,
+    "negativeBeforePositivePct": 58.69565217391305,
+    "ambiguousSameSessionPct": 35.507246376811594
+  },
+  "freshValidation": {
+    "status": "NOT_ELIGIBLE",
+    "evaluated": false,
+    "requiredDecisionDateAfter": "2026-08-13",
+    "sampleCount": 0
+  },
+  "interpretation": [
+    "The top-ranked high-breakout lookback failed the pre-registered Discovery gate because mean return was negative and negative-before-positive events overwhelmingly exceeded positive-before-negative events.",
+    "No candidate was frozen, so no historical or fresh Validation data was consumed.",
+    "This is a valid negative feature-discovery result, not an orchestration or runtime failure.",
+    "The current PRICE_N_HIGH_BREAKOUT lineage is closed; changing lookback ranking, gate, thresholds or adding rescue filters would create a new hypothesis and must not modify this decision."
+  ],
+  "doNotDo": [
+    "do not rerun the 5-120 lookback search to obtain another winner",
+    "do not validate a lower-ranked lookback from this lineage",
+    "do not change the Discovery gate after observing these results",
+    "do not add rescue filters inside this lineage",
+    "do not consume fresh Validation data for this failed lineage",
+    "do not claim profitability"
+  ],
+  "nextGate": "If the existing chart-ready trigger catalog is exhausted, route a separate design task to Feature Architect to propose semantically distinct chart-traceable trigger/context candidates before any new implementation or validation task is created.",
+  "profitabilityClaim": false
+}
