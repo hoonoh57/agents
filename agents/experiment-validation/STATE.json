@@ -1,10 +1,10 @@
 {
   "schema": "AgentState@1.0.0",
   "agentId": "experiment-validation",
-  "status": "COMPLETED",
+  "status": "QUEUED",
   "activeTaskId": null,
   "lastCompletedTaskId": "TASK-20260813213200-vld001",
   "modelRole": "LOCAL_FAST",
   "blockedReason": null,
-  "updatedAt": "2026-08-13T21:40:13.177Z"
+  "updatedAt": "2026-08-14T01:38:36.702Z"
 }
