@@ -13,19 +13,24 @@ function arg(name, fallback = null) {
 function readJson(file) { return JSON.parse(fs.readFileSync(file, 'utf8')); }
 
 function selfTest() {
-  const env = { ...process.env, RESEARCH_LOCAL_ROOT: root, AGENT_CONTEXT_MAX_BYTES: '12000' };
+  const env = { ...process.env, RESEARCH_LOCAL_ROOT: root, AGENT_CONTEXT_MAX_BYTES: '16000' };
   const task = {
     inputs: [
       { schema: PROJECT_CONTEXT_INPUT_SCHEMA, inputId: 'readme', root: 'RESEARCH_LOCAL_ROOT', path: 'README.md', mode: 'FULL', maxBytes: 4096 },
-      { schema: PROJECT_CONTEXT_INPUT_SCHEMA, inputId: 'task-schema', root: 'RESEARCH_LOCAL_ROOT', path: 'AGENT_WORKSPACE_SCHEMA.md', mode: 'AROUND', anchor: '## AgentTask@1.0.0', beforeChars: 80, afterChars: 900, maxBytes: 1600 }
+      { schema: PROJECT_CONTEXT_INPUT_SCHEMA, inputId: 'task-schema', root: 'RESEARCH_LOCAL_ROOT', path: 'AGENT_WORKSPACE_SCHEMA.md', mode: 'AROUND', anchor: '## AgentTask@1.0.0', beforeChars: 80, afterChars: 900, maxBytes: 1600 },
+      { schema: PROJECT_CONTEXT_INPUT_SCHEMA, inputId: 'agent-decision', root: 'AGENT_REPO_ROOT', path: 'coordinator/decisions/P3_FEATURE_ARCHITECT_NEXT_TRIGGER_002_REJECTED.json', mode: 'FULL', maxBytes: 7000 }
     ]
   };
   const resolved = resolveTaskInputs(task, env);
-  if (resolved.sourceRefs.length !== 2 || resolved.totalBytes <= 0) throw new Error('resolution self-test failed');
+  if (resolved.sourceRefs.length !== 3 || resolved.totalBytes <= 0) throw new Error('resolution self-test failed');
   if (!resolved.promptSection.includes('AgentTask@1.0.0')) throw new Error('anchor self-test failed');
+  const decision = resolved.sourceRefs.find(x => x.inputId === 'agent-decision');
+  if (!decision || decision.root !== 'AGENT_REPO_ROOT' || decision.relativePath !== 'coordinator/decisions/P3_FEATURE_ARCHITECT_NEXT_TRIGGER_002_REJECTED.json') {
+    throw new Error('agent repository root self-test failed');
+  }
   let rejected = false;
   try {
-    resolveTaskInputs({ inputs: [{ schema: PROJECT_CONTEXT_INPUT_SCHEMA, inputId: 'escape', root: 'RESEARCH_LOCAL_ROOT', path: '../README.md', mode: 'FULL' }] }, env);
+    resolveTaskInputs({ inputs: [{ schema: PROJECT_CONTEXT_INPUT_SCHEMA, inputId: 'escape', root: 'AGENT_REPO_ROOT', path: '../README.md', mode: 'FULL' }] }, env);
   } catch (error) {
     rejected = String(error?.message || error).startsWith('CONTEXT_PATH_FORBIDDEN');
   }
@@ -42,7 +47,7 @@ function validateTemplate() {
   const resolved = resolveTaskInputs(template, process.env);
   console.log(`[project-context-verify] TEMPLATE_PASS template=${templateName} sources=${resolved.sourceRefs.length} bytes=${resolved.totalBytes}`);
   for (const ref of resolved.sourceRefs) {
-    console.log(`[project-context-verify] SOURCE ${ref.inputId} path=${ref.relativePath} head=${ref.repositoryHead || 'n/a'} excerpt_bytes=${ref.excerptBytes} sha256=${ref.excerptSha256.slice(0, 12)}`);
+    console.log(`[project-context-verify] SOURCE ${ref.inputId} root=${ref.root} path=${ref.relativePath} head=${ref.repositoryHead || 'n/a'} excerpt_bytes=${ref.excerptBytes} sha256=${ref.excerptSha256.slice(0, 12)}`);
   }
 }
 
