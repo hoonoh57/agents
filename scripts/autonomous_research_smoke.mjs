@@ -22,6 +22,8 @@ const goalPath=path.join(root,'goals','GOAL-AUTONOMOUS-MA5-SMOKE-001.json');
 const goal=readJson(goalPath);
 const registry=readJson(path.join(root,'registry','agents.json'));
 const agent=registry.agents.find(x=>x.agentId===goal.agentId&&x.enabled);if(!agent)fail(`agent unavailable ${goal.agentId}`);
+const modelRegistryPath=path.join(root,'registry','models.json');
+const modelRegistry=readJson(modelRegistryPath);
 const toolRegistryPath=path.join(root,'registry','research_tools.json');
 const turnContractPath=path.join(root,'registry','research_agent_turn_schema.json');
 const toolRegistry=readJson(toolRegistryPath);
@@ -35,10 +37,17 @@ const agentPlan=readText(path.join(agentRoot,'PLAN.md'));
 const memoryIndex=readText(path.join(agentRoot,'MEMORY_INDEX.md'));
 const objectives=readText(path.join(root,'shared','OBJECTIVES.md'));
 const rules=readText(path.join(root,'shared','RESEARCH_RULES.md'));
-const inputHashes={goalSha256:sha(readText(goalPath)),agentSha256:sha(agentMd),goalsSha256:sha(agentGoals),planSha256:sha(agentPlan),memoryIndexSha256:sha(memoryIndex),toolRegistrySha256:sha(readText(toolRegistryPath)),turnContractSha256:sha(readText(turnContractPath)),skills:Object.fromEntries(skills.map(x=>[x.file,sha(x.text)]))};
+const inputHashes={goalSha256:sha(readText(goalPath)),agentSha256:sha(agentMd),goalsSha256:sha(agentGoals),planSha256:sha(agentPlan),memoryIndexSha256:sha(memoryIndex),modelRegistrySha256:sha(readText(modelRegistryPath)),toolRegistrySha256:sha(readText(toolRegistryPath)),turnContractSha256:sha(readText(turnContractPath)),skills:Object.fromEntries(skills.map(x=>[x.file,sha(x.text)]))};
 
-function modelForRole(role){if(role==='LOCAL_FAST')return env.LOCAL_LLM_FAST_MODEL||'';if(role==='LOCAL_CODER')return env.LOCAL_LLM_CODER_MODEL||'';return env.LOCAL_LLM_REASONER_MODEL||'';}
-const role=agent.modelRoleHint||'LOCAL_REASONER';const model=modelForRole(role);if(!model)fail(`MODEL_NOT_CONFIGURED:${role}`);
+function modelForRole(role){
+  const envKey=role==='LOCAL_FAST'?'LOCAL_LLM_FAST_MODEL':role==='LOCAL_CODER'?'LOCAL_LLM_CODER_MODEL':'LOCAL_LLM_REASONER_MODEL';
+  const configured=String(env[envKey]||'').trim();
+  if(configured)return{model:configured,source:'ENV'};
+  const selected=String(modelRegistry.roles?.find(x=>x.role===role)?.selectedModel||'').trim();
+  if(selected)return{model:selected,source:'REGISTRY'};
+  return{model:'',source:'NONE'};
+}
+const role=agent.modelRoleHint||'LOCAL_REASONER';const modelResolution=modelForRole(role);const model=modelResolution.model;if(!model)fail(`MODEL_NOT_CONFIGURED:${role}`);
 const base=(env.LOCAL_LLM_BASE_URL||'http://127.0.0.1:11434').replace(/\/$/,'');
 const timeoutSeconds=Math.max(30,Number(env.LOCAL_LLM_TIMEOUT_SECONDS||120));
 const contextTokens=Math.max(4096,Number(env.LOCAL_LLM_CONTEXT_TOKENS||16384));
@@ -95,7 +104,7 @@ function executeAction(action,runDir){
 const runId=`AUTO-${new Date().toISOString().replace(/[-:TZ.]/g,'').slice(0,14)}-${crypto.randomBytes(3).toString('hex')}`;
 const runDir=path.join(root,'runtime','autonomous-smoke',runId);fs.mkdirSync(runDir,{recursive:true});
 const startedAt=nowIso();
-console.log(`[autonomous-smoke] START run=${runId} agent=${agent.agentId} role=${role} model=${model}`);
+console.log(`[autonomous-smoke] START run=${runId} agent=${agent.agentId} role=${role} model=${model} modelSource=${modelResolution.source}`);
 
 const firstCall=await callModel([{role:'system',content:'You are an evidence-bound autonomous local research agent. Use only whitelisted research tools. Return only the requested JSON.'},{role:'user',content:basePrompt()}]);
 const firstTurn=parseTurn(firstCall.text,'FIRST_TURN');writeJson(path.join(runDir,'turn-1.json'),firstTurn);
@@ -110,6 +119,6 @@ const secondCall=await callModel([{role:'system',content:'You are the same evide
 const finalTurn=parseTurn(secondCall.text,'SECOND_TURN');writeJson(path.join(runDir,'turn-2.json'),finalTurn);
 if(finalTurn.status!=='COMPLETE')fail(`SMOKE_EXPECTED_COMPLETE got=${finalTurn.status}`);if(finalTurn.actions.length!==0)fail('COMPLETE must not request another action in P0');if(!finalTurn.evidenceRefs.includes(evidence.evidenceId))fail('COMPLETE did not cite tool evidence');
 
-const completedAt=nowIso();const result={schema:RESULT_SCHEMA,status:'PASS',runId,goalId:goal.goalId,agentId:agent.agentId,modelRole:role,modelVersion:model,startedAt,completedAt,inputHashes,firstTurn,toolEvidence:evidence,finalTurn,checks:{goalRead:true,workspaceContextRead:true,skillRead:true,correctCapabilitySelected:true,whitelistedToolExecuted:true,evidenceReturnedToSameAgent:true,completeReturned:true,profitabilityClaim:false},profitabilityClaim:false};
+const completedAt=nowIso();const result={schema:RESULT_SCHEMA,status:'PASS',runId,goalId:goal.goalId,agentId:agent.agentId,modelRole:role,modelVersion:model,modelSource:modelResolution.source,startedAt,completedAt,inputHashes,firstTurn,toolEvidence:evidence,finalTurn,checks:{goalRead:true,workspaceContextRead:true,skillRead:true,modelResolvedFromContract:true,correctCapabilitySelected:true,whitelistedToolExecuted:true,evidenceReturnedToSameAgent:true,completeReturned:true,profitabilityClaim:false},profitabilityClaim:false};
 const resultPath=path.join(runDir,'result.json');writeJson(resultPath,result);
 console.log(`[autonomous-smoke] COMPLETE run=${runId} status=PASS`);console.log(`[autonomous-smoke] RESULT_PATH=${resultPath}`);
