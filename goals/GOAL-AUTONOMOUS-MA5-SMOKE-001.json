@@ -1,0 +1,27 @@
+{
+  "schema": "ResearchGoal@1.0.0",
+  "goalId": "GOAL-AUTONOMOUS-MA5-SMOKE-001",
+  "agentId": "experiment-validation",
+  "createdBy": "HUMAN_RESEARCH_DIRECTOR",
+  "purpose": "Verify the autonomous local-agent research loop, not strategy profitability.",
+  "objective": "Using the available skills and deterministic research tools, analyze the case where the closing price freshly crosses above the 5-day moving average. Choose the correct existing capability yourself, request the minimum required tool action, read the returned evidence, and return a structured COMPLETE result. Do not write code and do not optimize parameters.",
+  "successCriteria": [
+    "first model turn returns ACTION_REQUIRED",
+    "agent maps the goal to PRICE_MA_RECLAIM_UP with period 5 without being given a precomputed result",
+    "runtime executes exactly one whitelisted deterministic research action",
+    "tool evidence is returned to the same agent",
+    "second model turn returns COMPLETE and cites the tool evidence id",
+    "profitabilityClaim remains false"
+  ],
+  "toolContext": {
+    "datasetHash": "c4f56e2dae66fa09739797c9bac43b82b48d972591fe618dff16e5d4bacb5b3f",
+    "snapshotExperiment": "EXP-MA-STATE-INCREMENTAL-001"
+  },
+  "constraints": [
+    "Use existing capabilities before proposing implementation",
+    "Do not change dataset, horizon, thresholds, or population",
+    "Do not execute broker/order actions",
+    "Do not perform a parameter sweep in this smoke test",
+    "The strategy outcome is secondary to proving the autonomous loop"
+  ]
+}
