@@ -1,0 +1,49 @@
+{
+  "schema": "ResearchGoal@1.0.0",
+  "goalId": "GOAL-FEATURE-ARCHITECT-NEXT-TRIGGER-001",
+  "agentId": "feature-architect",
+  "createdBy": "HUMAN_RESEARCH_DIRECTOR",
+  "purpose": "Design the next smallest falsifiable chart-ready trigger family after the existing executable trigger catalog has produced negative evidence, without expanding market-data infrastructure or rescuing failed lineages.",
+  "objective": "Using only currently available finalized adjusted daily OHLCV data and deterministic derived values supported by the supplied source context, propose exactly three semantically distinct discrete trigger candidates. Rank them and select exactly one implementation candidate. Each trigger must create a unique decision-time t0 that can be drawn on the chart and measured with the existing D decision -> D+1 open entry -> fixed outcome contract. Do not write implementation code, do not run validation, and do not claim profitability.",
+  "frozenPriorEvidence": [
+    {
+      "decisionId": "EXP_MA_STATE_INCREMENTAL_001_RESULT",
+      "status": "NO_GO_SPARSE_OOS",
+      "closedLineage": "MA_FRESH_CROSS_UP / MA cross-state family"
+    },
+    {
+      "decisionId": "P1_AUTONOMOUS_MA_PERIOD_SEARCH_001",
+      "status": "NO_GO_VALIDATION",
+      "closedLineage": "PRICE_MA_RECLAIM_UP period search"
+    },
+    {
+      "decisionId": "P2_HIGH_BREAKOUT_DISCOVERY_001_RESULT",
+      "status": "NO_GO_DISCOVERY",
+      "closedLineage": "PRICE_N_HIGH_BREAKOUT lookback search"
+    }
+  ],
+  "successCriteria": [
+    "exactly three proposed trigger candidates",
+    "each candidate is semantically distinct from the three closed trigger lineages",
+    "each candidate has an exact causal t0 rule using completed D and earlier data only",
+    "each candidate is computable from existing daily OHLCV and deterministic derived values without new APIs or servers",
+    "each candidate defines chart marker or overlay semantics that make WYSIWYG verification possible",
+    "each candidate defines minimal parameters, warmup requirements, expected event-density risk, and a falsification test",
+    "exactly one candidate is ranked first for implementation",
+    "the selected candidate is justified by simplicity, event-density plausibility, chart traceability and non-overlap with prior failed trigger semantics",
+    "no candidate is merely a rescue filter or context condition added to a failed trigger",
+    "profitabilityClaim remains false"
+  ],
+  "constraints": [
+    "Do not write code in this task",
+    "Do not run Discovery or Validation in this task",
+    "Do not request new market-data infrastructure",
+    "Do not use intraday, order-book, news, fundamentals or broker state not present in supplied daily candle sources",
+    "Do not convert an MA ordering state or similar persistent context into a fake t0 trigger",
+    "Do not propose PRICE_MA_RECLAIM_UP plus a filter, MA_FRESH_CROSS_UP plus a filter, or PRICE_N_HIGH_BREAKOUT plus a filter as a new trigger",
+    "Do not change the existing outcome contract to make a candidate look better",
+    "Prefer one or two interpretable parameters over magic-number-heavy rules",
+    "Separate DIRECT source-supported capability facts from INFERENCE and PROPOSAL",
+    "Never claim profitability"
+  ]
+}
