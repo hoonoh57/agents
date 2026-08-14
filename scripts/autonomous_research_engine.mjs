@@ -85,7 +85,7 @@ function completionSemanticSchema(evidence) {
   const d = evidence.evidence;
   return {
     type: 'object', additionalProperties: false,
-    required: ['featureId', 'period', 'eventCount', 'discoverySampleCount', 'validationSampleCount', 'reasoningSummary', 'conclusion', 'nextResearch'],
+    required: ['featureId', 'period', 'eventCount', 'discoverySampleCount', 'validationSampleCount', 'reasoningSummary', 'conclusion'],
     properties: {
       featureId: { type: 'string', enum: [String(d.featureId)] },
       period: { type: 'integer', enum: [Number(d.parameters?.period)] },
@@ -98,6 +98,11 @@ function completionSemanticSchema(evidence) {
     },
   };
 }
+function normalizeNextResearch(value) {
+  if (Array.isArray(value)) return value.filter(x => typeof x === 'string' && x.trim()).map(x => x.trim()).slice(0, 2);
+  if (typeof value === 'string' && value.trim()) return [value.trim()];
+  return [];
+}
 function validateCompletionSemantic(value, evidence) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) throw engineError('AUTONOMOUS_COMPLETION_INVALID', 'object required');
   const d = evidence.evidence;
@@ -108,8 +113,12 @@ function validateCompletionSemantic(value, evidence) {
   if (Number(value.validationSampleCount) !== Number(d.validation?.sampleCount ?? 0)) throw engineError('AUTONOMOUS_COMPLETION_INVALID', `validation sample mismatch actual=${String(value.validationSampleCount ?? 'missing')}`);
   if (typeof value.reasoningSummary !== 'string' || !value.reasoningSummary.trim()) throw engineError('AUTONOMOUS_COMPLETION_INVALID', 'reasoningSummary required');
   if (typeof value.conclusion !== 'string' || !value.conclusion.trim()) throw engineError('AUTONOMOUS_COMPLETION_INVALID', 'conclusion required');
-  if (!Array.isArray(value.nextResearch)) throw engineError('AUTONOMOUS_COMPLETION_INVALID', 'nextResearch required');
-  return value;
+  return {
+    ...value,
+    reasoningSummary: value.reasoningSummary.trim(),
+    conclusion: value.conclusion.trim(),
+    nextResearch: normalizeNextResearch(value.nextResearch),
+  };
 }
 function normalizeCompletion(goalId, semantic, evidenceId, evidence) {
   const checked = validateCompletionSemantic(semantic, evidence);
@@ -132,6 +141,7 @@ function semanticDiagnostic(value) {
     eventCount: value.eventCount ?? null,
     discoverySampleCount: value.discoverySampleCount ?? null,
     validationSampleCount: value.validationSampleCount ?? null,
+    nextResearchType: Array.isArray(value.nextResearch) ? 'array' : value.nextResearch === null ? 'null' : typeof value.nextResearch,
   };
 }
 
@@ -303,7 +313,7 @@ export async function runAutonomousResearchTask({ root, task, agent, env }) {
     base, timeoutSeconds, contextTokens, outputTokens,
     messages: [
       { role: 'system', content: 'You are the same evidence-bound local research agent continuing the queued task. Return only the requested small JSON evidence interpretation. Runtime owns all ids.' },
-      { role: 'user', content: `# COMPACT COMPLETION CONTEXT\n${JSON.stringify(completionContext, null, 2)}\n\n# COMPLETION DECISION\nRead only the supplied evidence. Return exactly featureId, period, eventCount, discoverySampleCount, validationSampleCount, reasoningSummary, conclusion and nextResearch. Do not return any evidenceId and do not request another action in this one-shot lane.` },
+      { role: 'user', content: `# COMPACT COMPLETION CONTEXT\n${JSON.stringify(completionContext, null, 2)}\n\n# COMPLETION DECISION\nRead only the supplied evidence. Return featureId, period, eventCount, discoverySampleCount, validationSampleCount, reasoningSummary and conclusion. nextResearch is optional; omit it when there is no useful follow-up. Do not return any evidenceId and do not request another action in this one-shot lane.` },
     ],
   });
   const finalTurn = normalizeCompletion(goal.goalId, completionRun.decision, evidence.evidenceId, evidence);
@@ -352,9 +362,10 @@ export function selfTestAutonomousResearchEngine({ root }) {
   const completion = normalizeCompletion('SELFTEST-GOAL', {
     featureId: 'PRICE_MA_RECLAIM_UP', period: 5, eventCount: 12,
     discoverySampleCount: 8, validationSampleCount: 4,
-    reasoningSummary: 'synthetic', conclusion: 'synthetic', nextResearch: [],
+    reasoningSummary: 'synthetic', conclusion: 'synthetic',
   }, 'EVIDENCE-SELFTEST', evidence);
   if (completion.evidenceRefs[0] !== 'EVIDENCE-SELFTEST') throw engineError('AUTONOMOUS_ENGINE_SELF_TEST_FAILED', 'completion runtime evidence ref');
+  if (!Array.isArray(completion.nextResearch) || completion.nextResearch.length !== 0) throw engineError('AUTONOMOUS_ENGINE_SELF_TEST_FAILED', 'completion optional nextResearch default');
   return true;
 }
 
