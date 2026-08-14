@@ -1,0 +1,29 @@
+{
+  "schema": "AgentTaskTemplate@1.0.0",
+  "executionMode": "AUTONOMOUS_RESEARCH",
+  "agentId": "experiment-validation",
+  "goalId": "GOAL-AUTONOMOUS-HIGH-BREAKOUT-DISCOVERY-001",
+  "priority": 85,
+  "createdBy": "HUMAN_RESEARCH_DIRECTOR",
+  "modelRoleHint": "LOCAL_FAST",
+  "objective": "Run one production autonomous Discovery-only search for PRICE_N_HIGH_BREAKOUT, freeze a candidate only if the pre-registered Discovery gate passes, and never reuse historical holdout data as fresh Validation.",
+  "inputs": [],
+  "requiredOutputs": [
+    "Canonical ACTION_REQUIRED turn created by runtime",
+    "Exactly one RUN_HIGH_BREAKOUT_DISCOVERY_SEARCH execution",
+    "Discovery-only ranking evidence",
+    "WAITING_FOR_FRESH_VALIDATION with one frozen candidate or NO_GO_DISCOVERY",
+    "Canonical COMPLETE turn created by runtime",
+    "profitabilityClaim remains false"
+  ],
+  "constraints": [
+    "One-shot worker only",
+    "No broker/order actions",
+    "No historical Validation reuse",
+    "No Validation in this task",
+    "Do not change the assigned ResearchGoal",
+    "Do not claim profitability"
+  ],
+  "artifactRefs": [],
+  "dependsOn": []
+}
