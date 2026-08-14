@@ -77,10 +77,12 @@ if (-not $Mock -and -not (Test-InWindow $now.TimeOfDay $start $end)) {
 Write-Host "[research-window] START now=$($now.ToString('yyyy-MM-dd HH:mm:ss')) KST window=$startText-$endText mode=$(if($Mock){'MOCK'}else{'LOCAL_LLM'})"
 Write-Host '[research-window] policy=one-shot no-poll max-concurrency-1 unload-after-run'
 
-# Defense in depth. Individual Ollama API requests may override this, so the finally block
-# explicitly unloads every configured model with keep_alive=0.
+# Defense in depth. Individual Ollama API requests may override OLLAMA_KEEP_ALIVE,
+# so the finally block explicitly unloads every configured model with keep_alive=0.
 $previousKeepAlive = $env:OLLAMA_KEEP_ALIVE
+$previousWindowToken = $env:AGENT_RESEARCH_WINDOW_ACTIVE
 $env:OLLAMA_KEEP_ALIVE = '0'
+$env:AGENT_RESEARCH_WINDOW_ACTIVE = '1'
 $worker = Join-Path $PSScriptRoot 'RUN_AGENT_ONCE.ps1'
 
 try {
@@ -94,6 +96,7 @@ try {
 } finally {
     if (-not $Mock) { Unload-OllamaModels }
     $env:OLLAMA_KEEP_ALIVE = $previousKeepAlive
+    $env:AGENT_RESEARCH_WINDOW_ACTIVE = $previousWindowToken
 }
 
 Write-Host '[research-window] PASS process exits now'
