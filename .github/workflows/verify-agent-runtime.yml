@@ -52,6 +52,16 @@ jobs:
           if ($errors.Count -gt 0) { $errors | Format-List | Out-String | Write-Host; exit 1 }
           Write-Host 'RUN_APPROVED_MA_STATE_EXPERIMENT_PARSE_PASS'
 
+      - name: Verify autonomous research smoke scripts
+        shell: pwsh
+        run: |
+          node --check .\scripts\autonomous_research_smoke.mjs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $errors = $null
+          [System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path '.\scripts\RUN_AUTONOMOUS_RESEARCH_SMOKE.ps1'), [ref]$null, [ref]$errors) | Out-Null
+          if ($errors.Count -gt 0) { $errors | Format-List | Out-String | Write-Host; exit 1 }
+          Write-Host 'AUTONOMOUS_RESEARCH_SMOKE_PARSE_PASS'
+
       - name: Verify semantic benchmark scorer
         shell: pwsh
         run: node .\scripts\model_benchmark_v2.mjs self-test
