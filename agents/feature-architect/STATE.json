@@ -1,10 +1,10 @@
 {
   "schema": "AgentState@1.0.0",
   "agentId": "feature-architect",
-  "status": "COMPLETED",
+  "status": "QUEUED",
   "activeTaskId": null,
   "lastCompletedTaskId": "TASK-20260814032317-41e12f",
   "modelRole": "LOCAL_REASONER",
   "blockedReason": null,
-  "updatedAt": "2026-08-14T03:44:09.401Z"
+  "updatedAt": "2026-08-14T03:59:48.417Z"
 }

@@ -136,6 +136,14 @@
       "startedAt": "2026-08-14T03:42:39.340Z",
       "completedAt": "2026-08-14T03:43:58.322Z",
       "resultId": "RESULT-20260814032317-41e12f"
+    },
+    {
+      "taskId": "TASK-20260814035948-07cb14",
+      "agentId": "feature-architect",
+      "goalId": "GOAL-FEATURE-ARCHITECT-NEXT-TRIGGER-005",
+      "priority": 80,
+      "status": "QUEUED",
+      "createdAt": "2026-08-14T03:59:48.415Z"
     }
   ]
 }
