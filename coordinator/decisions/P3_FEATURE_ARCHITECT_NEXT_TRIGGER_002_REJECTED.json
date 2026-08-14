@@ -1,0 +1,44 @@
+{
+  "schema": "CoordinatorDecision@1.0.0",
+  "decisionId": "P3_FEATURE_ARCHITECT_NEXT_TRIGGER_002_REJECTED",
+  "status": "REJECTED_CONTRACT",
+  "taskId": "TASK-20260814025825-e9f916",
+  "resultId": "RESULT-20260814025825-e9f916",
+  "agentId": "feature-architect",
+  "model": "qwen3.6:35b-a3b",
+  "executionSucceeded": true,
+  "designGateWorked": true,
+  "designAccepted": false,
+  "reasons": [
+    "CLOSE_TO_HIGH_REVERSAL explicitly reuses D close > D-1 high, a closed close-above-prior-high breakout predicate; the deterministic design gate correctly rejected it before implementation.",
+    "VOLUME_DENSITY_SURGE was selected rank-1 but its t0 does not define a false-to-true transition of the proposed volume-density state: it merely combines D-1 and D candle-direction predicates with a D-only volume threshold.",
+    "The rank-1 rationale introduces unsupported participant/context language ('institutional participation at support') that is not established by the supplied OHLCV source contract.",
+    "A candidate is not a discrete trigger merely because both D-1 and D appear in free text; the trigger must encode an explicit state transition for one shared causal state variable."
+  ],
+  "acceptedInfrastructureEvidence": {
+    "localReasonerCompleted": true,
+    "deterministicPostDesignGateRejectedClosedPredicate": true,
+    "implementationStarted": false,
+    "brokerMutation": false
+  },
+  "nextProtocol": {
+    "goalId": "GOAL-FEATURE-ARCHITECT-NEXT-TRIGGER-003",
+    "candidateCount": 3,
+    "rank1Count": 1,
+    "availableData": "finalized adjusted daily OHLCV only",
+    "candidateT0Form": "one shared scalar state definition plus explicit D-1 state test and opposite D state test",
+    "closedPrimaryPredicates": [
+      "MA versus MA cross",
+      "close crossing/reclaiming an MA",
+      "close breaking above prior or rolling high"
+    ],
+    "coordinatorOwns": [
+      "Discovery ranking",
+      "Discovery acceptance gate",
+      "holdout/fresh-validation boundary",
+      "runtime ids and evidence envelopes"
+    ],
+    "implementationForbiddenUntilDesignGatePasses": true
+  },
+  "profitabilityClaim": false
+}
