@@ -83,8 +83,12 @@
       "goalId": "GOAL-AUTONOMOUS-HIGH-BREAKOUT-DISCOVERY-001",
       "executionMode": "AUTONOMOUS_RESEARCH",
       "priority": 85,
-      "status": "QUEUED",
-      "createdAt": "2026-08-14T02:38:54.044Z"
+      "status": "COMPLETED",
+      "createdAt": "2026-08-14T02:38:54.044Z",
+      "startedAt": "2026-08-14T02:38:57.971Z",
+      "error": null,
+      "completedAt": "2026-08-14T02:39:48.271Z",
+      "resultId": "RESULT-20260814023854-3e110f"
     }
   ]
 }
