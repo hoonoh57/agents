@@ -1,0 +1,27 @@
+{
+  "schema": "AgentTaskTemplate@1.0.0",
+  "executionMode": "AUTONOMOUS_RESEARCH",
+  "agentId": "experiment-validation",
+  "goalId": "GOAL-AUTONOMOUS-MA5-SMOKE-001",
+  "priority": 95,
+  "createdBy": "HUMAN_RESEARCH_DIRECTOR",
+  "modelRoleHint": "LOCAL_FAST",
+  "objective": "Process the assigned ResearchGoal through the production queue/lease worker using the autonomous semantic decision -> deterministic tool -> evidence -> semantic completion loop. This is a runtime integration test, not a profitability study.",
+  "inputs": [],
+  "requiredOutputs": [
+    "Canonical ACTION_REQUIRED turn created by runtime",
+    "Exactly one whitelisted deterministic research tool execution",
+    "Tool evidence returned to the same agent",
+    "Canonical COMPLETE turn created by runtime",
+    "profitabilityClaim remains false"
+  ],
+  "constraints": [
+    "One-shot worker only",
+    "No broker/order actions",
+    "No parameter sweep",
+    "Do not change the assigned ResearchGoal",
+    "Do not claim profitability"
+  ],
+  "artifactRefs": [],
+  "dependsOn": []
+}
