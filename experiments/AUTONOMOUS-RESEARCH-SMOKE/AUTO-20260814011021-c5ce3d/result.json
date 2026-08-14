@@ -1,0 +1,185 @@
+{
+  "schema": "AutonomousResearchSmokeResult@1.0.0",
+  "status": "PASS",
+  "runId": "AUTO-20260814011021-c5ce3d",
+  "goalId": "GOAL-AUTONOMOUS-MA5-SMOKE-001",
+  "agentId": "experiment-validation",
+  "primaryModelRole": "LOCAL_FAST",
+  "primaryModel": "gemma4:12b",
+  "startedAt": "2026-08-14T01:10:21.443Z",
+  "completedAt": "2026-08-14T01:10:59.370Z",
+  "inputHashes": {
+    "goalSha256": "8ecd54ce7e05e2143d180ff3d00dda892233e41d430617617628d7114083d036",
+    "agentSha256": "119e02975de392e9310817dba2dd9fa6cf32b570b53e1f638df9ba54b40c1b55",
+    "goalsSha256": "949ae2338abb81e55dff0648f58481987eef9faa12abd4c55ae635e45b52abf9",
+    "planSha256": "8a6dbcbb35e4920e177c080f68e763bbafa51ef46163d5ffd3d582257dc80127",
+    "memoryIndexSha256": "699b15e3f424b3220e907e7b6f8b4f556d615b8d7914a6b6ebe7f81531b82b33",
+    "modelRegistrySha256": "48897735debc84da5dcc7e7a81e3753ef9024c17c16696df84a3108ae3dc415f",
+    "toolRegistrySha256": "dfd5946f90a438f36a5108cb998ba4a9da68b2a1a0877179e1dae5f30c5f4dca",
+    "turnContractSha256": "ebcdabb79d9e8a7e634dc8c2e4a9dbfa7cd818e67fbc51435ea670a66492d878",
+    "skills": {
+      "skills/research-loop/SKILL.md": "2b9925229f6585849fa6fda375fcb0bdd9a2202f0d097a8111dbc40c34700c34",
+      "skills/profit-feature-explorer/SKILL.md": "00c3483ed5fe49a33e40fe1033f2ffe772a4d8b3445a6944f06efe779f86744a",
+      "skills/research-tools/SKILL.md": "7e6f411adf84a2a43356eeca0d86ef81eb631cf037f72892443c72cb6ffc20f9"
+    }
+  },
+  "modelExecution": {
+    "actionDecision": {
+      "role": "LOCAL_FAST",
+      "model": "gemma4:12b",
+      "modelSource": "REGISTRY",
+      "escalated": false,
+      "attempts": 1
+    },
+    "completionDecision": {
+      "role": "LOCAL_FAST",
+      "model": "gemma4:12b",
+      "modelSource": "REGISTRY",
+      "escalated": false,
+      "attempts": 1
+    }
+  },
+  "semanticActionDecision": {
+    "tool": "RUN_FEATURE_EXPERIMENT",
+    "featureId": "PRICE_MA_RECLAIM_UP",
+    "period": 5,
+    "reasoningSummary": "The human goal specifies a 'closing price freshly crosses above the 5-day moving average'. This maps directly to the `PRICE_MA_RECLAIM_UP` capability with a period of 5. The tool `RUN_FEATURE_EXPERIMENT` is the appropriate deterministic action to validate this specific trigger against the provided dataset."
+  },
+  "firstTurn": {
+    "schema": "ResearchAgentTurn@1.0.0",
+    "goalId": "GOAL-AUTONOMOUS-MA5-SMOKE-001",
+    "status": "ACTION_REQUIRED",
+    "reasoningSummary": "The human goal specifies a 'closing price freshly crosses above the 5-day moving average'. This maps directly to the `PRICE_MA_RECLAIM_UP` capability with a period of 5. The tool `RUN_FEATURE_EXPERIMENT` is the appropriate deterministic action to validate this specific trigger against the provided dataset.",
+    "actions": [
+      {
+        "actionId": "ACTION-c1c01c2d580d2c05",
+        "tool": "RUN_FEATURE_EXPERIMENT",
+        "arguments": {
+          "featureId": "PRICE_MA_RECLAIM_UP",
+          "parameters": {
+            "period": 5
+          }
+        }
+      }
+    ],
+    "evidenceRefs": [],
+    "conclusion": "",
+    "nextResearch": [],
+    "profitabilityClaim": false
+  },
+  "toolEvidence": {
+    "evidenceId": "EVIDENCE-65f58785e13612e8",
+    "actionId": "ACTION-c1c01c2d580d2c05",
+    "createdAt": "2026-08-14T01:10:43.064Z",
+    "evidence": {
+      "schema": "ResearchToolEvidence@1.0.0",
+      "tool": "RUN_FEATURE_EXPERIMENT",
+      "featureId": "PRICE_MA_RECLAIM_UP",
+      "parameters": {
+        "period": 5
+      },
+      "datasetHash": "c4f56e2dae66fa09739797c9bac43b82b48d972591fe618dff16e5d4bacb5b3f",
+      "snapshotExperiment": "EXP-MA-STATE-INCREMENTAL-001",
+      "dateFrom": "2026-04-22",
+      "dateTo": "2026-08-13",
+      "objective": {
+        "horizonSessions": 5,
+        "positivePct": 3,
+        "negativePct": 1,
+        "validationFraction": 0.3
+      },
+      "validationStart": "2026-07-10",
+      "requestedSymbolCount": 38,
+      "effectiveSymbolCount": 37,
+      "excludedSymbols": [
+        {
+          "symbol": "057050",
+          "reason": "057050 page 1 contains no dated daily rows",
+          "detailHash": "7791c24a4b0c56c7b16c20aa1dbcbad7ee535ef75e84a43b45522495759aba06"
+        }
+      ],
+      "all": {
+        "sampleCount": 335,
+        "uniqueSymbols": 37,
+        "uniqueDecisionDates": 57,
+        "meanReturnPct": -3.9486008086790005,
+        "medianReturnPct": -5.555555555555558,
+        "winRatePct": 31.343283582089555,
+        "meanMfePct": 8.691921351242312,
+        "meanMaePct": -11.217902573726015,
+        "positiveBeforeNegativePct": 10.746268656716417,
+        "negativeBeforePositivePct": 58.2089552238806,
+        "ambiguousSameSessionPct": 31.044776119402982,
+        "noHitPct": 0
+      },
+      "discovery": {
+        "sampleCount": 195,
+        "uniqueSymbols": 37,
+        "uniqueDecisionDates": 38,
+        "meanReturnPct": -5.0753200444667455,
+        "medianReturnPct": -6.890353505092872,
+        "winRatePct": 26.153846153846157,
+        "meanMfePct": 8.749315706055961,
+        "meanMaePct": -11.32257590936307,
+        "positiveBeforeNegativePct": 11.282051282051283,
+        "negativeBeforePositivePct": 59.48717948717949,
+        "ambiguousSameSessionPct": 29.230769230769234,
+        "noHitPct": 0
+      },
+      "validation": {
+        "sampleCount": 129,
+        "uniqueSymbols": 37,
+        "uniqueDecisionDates": 14,
+        "meanReturnPct": -2.0470265437088666,
+        "medianReturnPct": -1.764705882352946,
+        "winRatePct": 41.86046511627907,
+        "meanMfePct": 8.915339749385582,
+        "meanMaePct": -11.062831980700953,
+        "positiveBeforeNegativePct": 10.077519379844961,
+        "negativeBeforePositivePct": 55.81395348837209,
+        "ambiguousSameSessionPct": 34.10852713178294,
+        "noHitPct": 0
+      },
+      "eventCount": 335,
+      "profitabilityClaim": false
+    }
+  },
+  "semanticCompletionDecision": {
+    "evidenceId": "EVIDENCE-65f58785e13612e8",
+    "observedEventCount": 335,
+    "observedDiscoverySampleCount": 195,
+    "observedValidationSampleCount": 129,
+    "reasoningSummary": "The tool evidence for the PRICE_MA_RECLAIM_UP feature with a period of 5 confirms that the research loop successfully executed. The data shows 335 total events across discovery and validation sets.",
+    "conclusion": "The autonomous research loop is verified as functional. The system correctly mapped the human goal to the appropriate capability, executed the deterministic tool, and returned valid evidence for the specified parameters.",
+    "nextResearch": []
+  },
+  "finalTurn": {
+    "schema": "ResearchAgentTurn@1.0.0",
+    "goalId": "GOAL-AUTONOMOUS-MA5-SMOKE-001",
+    "status": "COMPLETE",
+    "reasoningSummary": "The tool evidence for the PRICE_MA_RECLAIM_UP feature with a period of 5 confirms that the research loop successfully executed. The data shows 335 total events across discovery and validation sets.",
+    "actions": [],
+    "evidenceRefs": [
+      "EVIDENCE-65f58785e13612e8"
+    ],
+    "conclusion": "The autonomous research loop is verified as functional. The system correctly mapped the human goal to the appropriate capability, executed the deterministic tool, and returned valid evidence for the specified parameters.",
+    "nextResearch": [],
+    "profitabilityClaim": false
+  },
+  "checks": {
+    "goalRead": true,
+    "workspaceContextRead": true,
+    "skillRead": true,
+    "correctCapabilitySelected": true,
+    "whitelistedToolExecuted": true,
+    "evidenceReturnedToSameAgent": true,
+    "evidenceIdRead": true,
+    "eventCountRead": true,
+    "discoverySampleCountRead": true,
+    "validationSampleCountRead": true,
+    "canonicalTurnNormalization": true,
+    "completeReturned": true,
+    "profitabilityClaim": false
+  },
+  "profitabilityClaim": false
+}
