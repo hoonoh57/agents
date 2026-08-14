@@ -67,6 +67,8 @@ node --check .\scripts\agent_worker_router.mjs
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 node --check .\scripts\autonomous_research_engine.mjs
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+node --check .\scripts\feature_contract_retry.mjs
+if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 node .\scripts\agent_worker_router.mjs self-test
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
@@ -91,9 +93,26 @@ if ($TaskId) {
 }
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
+$contractExit = 0
+if ($TaskId -and -not $Mock) {
+    Write-Host "[agent-worker] validate/repair task-specific contract task=$TaskId"
+    $saved = $ErrorActionPreference
+    $ErrorActionPreference = 'Continue'
+    try {
+        node .\scripts\feature_contract_retry.mjs --task $TaskId
+        $contractExit = $LASTEXITCODE
+    } finally {
+        $ErrorActionPreference = $saved
+    }
+    if ($contractExit -ne 0) {
+        Write-Host "[agent-worker] task-specific contract remains invalid exit=$contractExit; persisting ERROR state"
+    }
+}
+
 $changes = git status --porcelain -- agents coordinator
 if (-not $changes) {
     Write-Host '[agent-worker] no durable changes'
+    if ($contractExit -ne 0) { exit $contractExit }
     exit 0
 }
 
@@ -101,6 +120,7 @@ $autoPush = (Get-EnvValue 'AGENT_AUTOPUSH' 'false').ToLowerInvariant() -eq 'true
 if (-not $autoPush) {
     Write-Host '[agent-worker] durable changes created; AGENT_AUTOPUSH=false'
     $changes | ForEach-Object { Write-Host $_ }
+    if ($contractExit -ne 0) { exit $contractExit }
     exit 0
 }
 
@@ -111,4 +131,5 @@ if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 git push origin main
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
+if ($contractExit -ne 0) { exit $contractExit }
 Write-Host '[agent-worker] PASS synchronized'
