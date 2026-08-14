@@ -5,6 +5,6 @@
   "activeTaskId": null,
   "lastCompletedTaskId": "TASK-20260813213200-vld001",
   "modelRole": "LOCAL_FAST",
-  "blockedReason": "AUTONOMOUS_OUTPUT_INVALID_AFTER_ESCALATION:COMPLETION_DECISION:AUTONOMOUS_COMPLETION_INVALID:feature mismatch actual=missing",
-  "updatedAt": "2026-08-14T01:50:45.104Z"
+  "blockedReason": "AUTONOMOUS_OUTPUT_INVALID_AFTER_ESCALATION:COMPLETION_DECISION:AUTONOMOUS_COMPLETION_INVALID:nextResearch required",
+  "updatedAt": "2026-08-14T01:58:27.662Z"
 }

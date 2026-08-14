@@ -30,11 +30,11 @@
   "externalEscalationAllowed": true,
   "attempt": 1,
   "taskTemplate": "task-templates/autonomous-ma5-queue-smoke.json",
-  "startedAt": "2026-08-14T01:48:06.926Z",
-  "failedAt": "2026-08-14T01:50:34.017Z",
+  "startedAt": "2026-08-14T01:55:25.487Z",
+  "failedAt": "2026-08-14T01:58:16.580Z",
   "workerId": "local-01",
-  "runtimeRun": 2,
-  "error": "AUTONOMOUS_OUTPUT_INVALID_AFTER_ESCALATION:COMPLETION_DECISION:AUTONOMOUS_COMPLETION_INVALID:feature mismatch actual=missing",
+  "runtimeRun": 3,
+  "error": "AUTONOMOUS_OUTPUT_INVALID_AFTER_ESCALATION:COMPLETION_DECISION:AUTONOMOUS_COMPLETION_INVALID:nextResearch required",
   "errorDiagnostics": [
     {
       "stage": "COMPLETION_DECISION",
@@ -43,21 +43,27 @@
       "model": "gemma4:12b",
       "modelSource": "ENV",
       "attempt": 1,
-      "error": "AUTONOMOUS_COMPLETION_INVALID:feature mismatch actual=missing",
+      "error": "AUTONOMOUS_COMPLETION_INVALID:nextResearch required",
       "doneReason": "stop",
       "parseStrict": false,
       "parseRecovered": true,
       "parseTrailing": 10,
       "returned": {
         "keys": [
-          "analysis"
+          "featureId",
+          "period",
+          "eventCount",
+          "discoverySampleCount",
+          "validationSampleCount",
+          "reasoningSummary",
+          "conclusion",
+          "nextResearch"
         ],
-        "evidenceId": null,
-        "observedFeatureId": null,
-        "observedPeriod": null,
-        "observedEventCount": null,
-        "observedDiscoverySampleCount": null,
-        "observedValidationSampleCount": null
+        "featureId": "PRICE_MA_RECLAIM_UP",
+        "period": 5,
+        "eventCount": 335,
+        "discoverySampleCount": 195,
+        "validationSampleCount": 129
       }
     },
     {
@@ -67,7 +73,7 @@
       "model": "gemma4:12b",
       "modelSource": "ENV",
       "attempt": 2,
-      "error": "AUTONOMOUS_COMPLETION_INVALID:feature mismatch actual=missing",
+      "error": "AUTONOMOUS_COMPLETION_INVALID:nextResearch required",
       "doneReason": "stop",
       "parseStrict": false,
       "parseRecovered": true,
@@ -79,15 +85,15 @@
           "eventCount",
           "discoverySampleCount",
           "validationSampleCount",
+          "reasoningSummary",
           "conclusion",
           "nextResearch"
         ],
-        "evidenceId": null,
-        "observedFeatureId": null,
-        "observedPeriod": null,
-        "observedEventCount": null,
-        "observedDiscoverySampleCount": null,
-        "observedValidationSampleCount": null
+        "featureId": "PRICE_MA_RECLAIM_UP",
+        "period": 5,
+        "eventCount": 335,
+        "discoverySampleCount": 195,
+        "validationSampleCount": 129
       }
     },
     {
@@ -97,7 +103,7 @@
       "model": "qwen3.6:35b-a3b",
       "modelSource": "ENV",
       "attempt": 1,
-      "error": "AUTONOMOUS_COMPLETION_INVALID:feature mismatch actual=missing",
+      "error": "AUTONOMOUS_COMPLETION_INVALID:nextResearch required",
       "doneReason": "stop",
       "parseStrict": true,
       "parseRecovered": false,
@@ -109,15 +115,15 @@
           "eventCount",
           "discoverySampleCount",
           "validationSampleCount",
+          "reasoningSummary",
           "conclusion",
           "nextResearch"
         ],
-        "evidenceId": null,
-        "observedFeatureId": null,
-        "observedPeriod": null,
-        "observedEventCount": null,
-        "observedDiscoverySampleCount": null,
-        "observedValidationSampleCount": null
+        "featureId": "PRICE_MA_RECLAIM_UP",
+        "period": 5,
+        "eventCount": 335,
+        "discoverySampleCount": 195,
+        "validationSampleCount": 129
       }
     },
     {
@@ -127,7 +133,7 @@
       "model": "qwen3.6:35b-a3b",
       "modelSource": "ENV",
       "attempt": 2,
-      "error": "AUTONOMOUS_COMPLETION_INVALID:feature mismatch actual=missing",
+      "error": "AUTONOMOUS_COMPLETION_INVALID:nextResearch required",
       "doneReason": "stop",
       "parseStrict": true,
       "parseRecovered": false,
@@ -139,15 +145,15 @@
           "eventCount",
           "discoverySampleCount",
           "validationSampleCount",
+          "reasoningSummary",
           "conclusion",
           "nextResearch"
         ],
-        "evidenceId": null,
-        "observedFeatureId": null,
-        "observedPeriod": null,
-        "observedEventCount": null,
-        "observedDiscoverySampleCount": null,
-        "observedValidationSampleCount": null
+        "featureId": "PRICE_MA_RECLAIM_UP",
+        "period": 5,
+        "eventCount": 335,
+        "discoverySampleCount": 195,
+        "validationSampleCount": 129
       }
     }
   ]
