@@ -1,0 +1,32 @@
+{
+  "schema": "ResearchGoal@1.0.0",
+  "goalId": "GOAL-FEATURE-ARCHITECT-NEXT-TRIGGER-002",
+  "agentId": "feature-architect",
+  "createdBy": "HUMAN_RESEARCH_DIRECTOR",
+  "purpose": "Produce a machine-checkable next-trigger design after the first design result was rejected for reopening closed lineages and omitting required design fields.",
+  "objective": "Using only the supplied repository evidence and finalized adjusted daily OHLCV capability, propose exactly three semantically distinct discrete t0 trigger families that do not reuse the closed MA-cross, price-to-MA reclaim, or price-above-prior/rolling-high breakout predicates. Select exactly one rank-1 candidate. Do not write code, run experiments, choose research acceptance thresholds, or claim profitability.",
+  "successCriteria": [
+    "exactly three machine-parseable CANDIDATE proposal findings are returned",
+    "all three candidate featureIds are unique",
+    "all three candidate mechanism families are unique",
+    "each t0 is a discrete D-1 to D causal transition using finalized adjusted daily OHLCV or deterministic rolling derivatives only",
+    "no candidate t0 contains a closed MA-cross, close-to-MA-reclaim, or close-above-prior/rolling-high breakout predicate",
+    "each candidate states fields, minimal parameter family, warmup, chart semantics, event-density risk, and distinctness rationale",
+    "exactly one RANK1 candidate is selected from the three",
+    "exactly one DISCOVERY_CONTRACT next action identifies only the rank-1 feature and parameter search family",
+    "Discovery ranking and acceptance gates remain coordinator-owned",
+    "profitabilityClaim remains false"
+  ],
+  "constraints": [
+    "No new data source, API, server, intraday feed, news, fundamentals, order book, or broker state",
+    "Do not reuse MA versus MA crossing as a primary trigger",
+    "Do not reuse close crossing/reclaiming an MA as a primary trigger",
+    "Do not reuse close breaking above a prior or rolling high as a primary trigger",
+    "Do not take any closed trigger and add volume, volatility, MA ordering, or another context filter to relabel it as new",
+    "Do not invent numeric profitability or acceptance thresholds",
+    "Persistent state alone is not a trigger; t0 must be a discrete causal transition",
+    "Completed D and earlier information only at t0; executable entry reference remains D+1 open",
+    "Do not write implementation code or run Discovery/Validation"
+  ],
+  "profitabilityClaim": false
+}
