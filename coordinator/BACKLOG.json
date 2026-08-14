@@ -56,8 +56,11 @@
       "goalId": "GOAL-AUTONOMOUS-MA5-SMOKE-001",
       "executionMode": "AUTONOMOUS_RESEARCH",
       "priority": 95,
-      "status": "QUEUED",
-      "createdAt": "2026-08-14T01:38:36.700Z"
+      "status": "ERROR",
+      "createdAt": "2026-08-14T01:38:36.700Z",
+      "startedAt": "2026-08-14T01:38:40.925Z",
+      "error": "AUTONOMOUS_OUTPUT_INVALID_AFTER_ESCALATION:COMPLETION_DECISION:AUTONOMOUS_COMPLETION_INVALID:evidenceId mismatch",
+      "failedAt": "2026-08-14T01:41:27.261Z"
     }
   ]
 }

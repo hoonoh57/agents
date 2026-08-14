@@ -1,10 +1,10 @@
 {
   "schema": "AgentState@1.0.0",
   "agentId": "experiment-validation",
-  "status": "QUEUED",
+  "status": "ERROR",
   "activeTaskId": null,
   "lastCompletedTaskId": "TASK-20260813213200-vld001",
   "modelRole": "LOCAL_FAST",
-  "blockedReason": null,
-  "updatedAt": "2026-08-14T01:38:36.702Z"
+  "blockedReason": "AUTONOMOUS_OUTPUT_INVALID_AFTER_ESCALATION:COMPLETION_DECISION:AUTONOMOUS_COMPLETION_INVALID:evidenceId mismatch",
+  "updatedAt": "2026-08-14T01:41:38.349Z"
 }
