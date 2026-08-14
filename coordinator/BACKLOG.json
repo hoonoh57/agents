@@ -56,11 +56,13 @@
       "goalId": "GOAL-AUTONOMOUS-MA5-SMOKE-001",
       "executionMode": "AUTONOMOUS_RESEARCH",
       "priority": 95,
-      "status": "ERROR",
+      "status": "COMPLETED",
       "createdAt": "2026-08-14T01:38:36.700Z",
-      "startedAt": "2026-08-14T01:55:25.487Z",
-      "error": "AUTONOMOUS_OUTPUT_INVALID_AFTER_ESCALATION:COMPLETION_DECISION:AUTONOMOUS_COMPLETION_INVALID:nextResearch required",
-      "failedAt": "2026-08-14T01:58:16.580Z"
+      "startedAt": "2026-08-14T02:02:39.769Z",
+      "error": null,
+      "failedAt": "2026-08-14T01:58:16.580Z",
+      "completedAt": "2026-08-14T02:03:29.223Z",
+      "resultId": "RESULT-20260814013836-ef697e"
     }
   ]
 }

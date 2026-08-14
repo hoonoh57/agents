@@ -1,10 +1,10 @@
 {
   "schema": "AgentState@1.0.0",
   "agentId": "experiment-validation",
-  "status": "ERROR",
+  "status": "COMPLETED",
   "activeTaskId": null,
-  "lastCompletedTaskId": "TASK-20260813213200-vld001",
+  "lastCompletedTaskId": "TASK-20260814013836-ef697e",
   "modelRole": "LOCAL_FAST",
-  "blockedReason": "AUTONOMOUS_OUTPUT_INVALID_AFTER_ESCALATION:COMPLETION_DECISION:AUTONOMOUS_COMPLETION_INVALID:nextResearch required",
-  "updatedAt": "2026-08-14T01:58:27.662Z"
+  "blockedReason": null,
+  "updatedAt": "2026-08-14T02:03:29.271Z"
 }
