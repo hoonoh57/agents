@@ -47,7 +47,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           node .\scripts\agent_worker_router.mjs self-test
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          node -e "const fs=require('fs');const x=JSON.parse(fs.readFileSync('task-templates/autonomous-ma5-queue-smoke.json','utf8'));if(x.schema!=='AgentTaskTemplate@1.0.0'||x.executionMode!=='AUTONOMOUS_RESEARCH'||x.agentId!=='experiment-validation')process.exit(1);console.log('AUTONOMOUS_QUEUE_TEMPLATE_PASS')"
+          node -e "const fs=require('fs');const smoke=JSON.parse(fs.readFileSync('task-templates/autonomous-ma5-queue-smoke.json','utf8'));const search=JSON.parse(fs.readFileSync('task-templates/autonomous-ma-period-search.json','utf8'));if(smoke.schema!=='AgentTaskTemplate@1.0.0'||smoke.executionMode!=='AUTONOMOUS_RESEARCH'||smoke.agentId!=='experiment-validation')process.exit(1);if(search.schema!=='AgentTaskTemplate@1.0.0'||search.executionMode!=='AUTONOMOUS_RESEARCH'||search.goalId!=='GOAL-AUTONOMOUS-MA-PERIOD-SEARCH-001')process.exit(1);console.log('AUTONOMOUS_QUEUE_TEMPLATES_PASS')"
 
       - name: Parse first real task launcher
         shell: pwsh
@@ -78,7 +78,7 @@ jobs:
       - name: Verify one-shot research launchers
         shell: pwsh
         run: |
-          foreach ($file in @('.\scripts\RUN_AGENT_ONCE.ps1','.\scripts\RUN_RESEARCH_WINDOW_ONCE.ps1','.\scripts\RUN_AUTONOMOUS_QUEUE_SMOKE.ps1','.\scripts\INSTALL_RESEARCH_NIGHT_TASK.ps1')) {
+          foreach ($file in @('.\scripts\RUN_AGENT_ONCE.ps1','.\scripts\RUN_RESEARCH_WINDOW_ONCE.ps1','.\scripts\RUN_AUTONOMOUS_QUEUE_SMOKE.ps1','.\scripts\RUN_AUTONOMOUS_MA_PERIOD_SEARCH.ps1','.\scripts\INSTALL_RESEARCH_NIGHT_TASK.ps1')) {
             $errors = $null
             [System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path $file), [ref]$null, [ref]$errors) | Out-Null
             if ($errors.Count -gt 0) { $errors | Format-List | Out-String | Write-Host; exit 1 }
