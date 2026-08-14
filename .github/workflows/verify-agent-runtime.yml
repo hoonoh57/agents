@@ -62,6 +62,16 @@ jobs:
           if ($errors.Count -gt 0) { $errors | Format-List | Out-String | Write-Host; exit 1 }
           Write-Host 'AUTONOMOUS_RESEARCH_SMOKE_PARSE_PASS'
 
+      - name: Verify after-hours research launchers
+        shell: pwsh
+        run: |
+          foreach ($file in @('.\scripts\RUN_RESEARCH_WINDOW_ONCE.ps1','.\scripts\INSTALL_RESEARCH_NIGHT_TASK.ps1')) {
+            $errors = $null
+            [System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path $file), [ref]$null, [ref]$errors) | Out-Null
+            if ($errors.Count -gt 0) { $errors | Format-List | Out-String | Write-Host; exit 1 }
+          }
+          Write-Host 'AFTER_HOURS_RESEARCH_LAUNCHERS_PARSE_PASS'
+
       - name: Verify semantic benchmark scorer
         shell: pwsh
         run: node .\scripts\model_benchmark_v2.mjs self-test
