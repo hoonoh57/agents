@@ -38,7 +38,12 @@ jobs:
 
       - name: Validate next trigger architecture template
         shell: pwsh
-        run: node -e "const fs=require('fs');const x=JSON.parse(fs.readFileSync('task-templates/feature-architect-next-trigger.json','utf8'));if(x.schema!=='AgentTaskTemplate@1.0.0'||x.agentId!=='feature-architect'||x.goalId!=='GOAL-FEATURE-ARCHITECT-NEXT-TRIGGER-001'||!Array.isArray(x.inputs)||x.inputs.length!==4)process.exit(1);console.log('FEATURE_ARCHITECT_NEXT_TRIGGER_TEMPLATE_PASS inputs='+x.inputs.length)"
+        run: |
+          node --check .\scripts\verify_feature_design_contract.mjs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node .\scripts\verify_feature_design_contract.mjs --self-test
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node -e "const fs=require('fs');const v1=JSON.parse(fs.readFileSync('task-templates/feature-architect-next-trigger.json','utf8'));const v2=JSON.parse(fs.readFileSync('task-templates/feature-architect-next-trigger-v2.json','utf8'));if(v1.schema!=='AgentTaskTemplate@1.0.0'||v1.goalId!=='GOAL-FEATURE-ARCHITECT-NEXT-TRIGGER-001')process.exit(1);if(v2.schema!=='AgentTaskTemplate@1.0.0'||v2.agentId!=='feature-architect'||v2.goalId!=='GOAL-FEATURE-ARCHITECT-NEXT-TRIGGER-002'||!Array.isArray(v2.inputs)||v2.inputs.length!==4)process.exit(1);console.log('FEATURE_ARCHITECT_NEXT_TRIGGER_V2_TEMPLATE_PASS inputs='+v2.inputs.length)"
 
       - name: Verify production autonomous queue lane
         shell: pwsh
