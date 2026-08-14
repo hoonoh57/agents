@@ -1,0 +1,47 @@
+{
+  "schema": "CoordinatorDecision@1.0.0",
+  "decisionId": "P3_FEATURE_ARCHITECT_NEXT_TRIGGER_001_REJECTED",
+  "status": "REJECTED_CONTRACT",
+  "taskId": "TASK-20260814024838-ff8d60",
+  "resultId": "RESULT-20260814024838-ff8d60",
+  "agentId": "feature-architect",
+  "model": "qwen3.6:35b-a3b",
+  "executionSucceeded": true,
+  "designAccepted": false,
+  "reasons": [
+    "PRICE_N_LOW_RECLAIM_UP reuses a prior rolling-high breakout predicate as a prerequisite and therefore reopens a closed high-breakout lineage instead of defining an independent trigger family.",
+    "PRICE_N_LOW_RECLAIM_UP is mislabeled: the proposed t0 does not contain a discrete reclaim transition of the rolling low.",
+    "VOLUME_SURGE_BREAKOUT is a close-above-prior-high breakout plus a volume filter, which violates the explicit no failed-trigger-plus-filter constraint.",
+    "RANGE_EXPANSION_BREAKOUT is a close-above-prior-high breakout plus a range-expansion filter, which violates the same constraint.",
+    "The result omitted required per-candidate warmup, chart marker/overlay semantics, event-density risk, and explicit falsification details.",
+    "The proposed positivePct < 55% rejection rule is not a registered evidence metric contract and introduces an unsupported magic threshold."
+  ],
+  "closedPredicatesForNextDesign": [
+    "MA versus MA fresh cross as primary trigger",
+    "close crossing above an MA as primary trigger",
+    "close breaking above a prior or rolling high as primary trigger",
+    "any of the above combined with volume, volatility, MA ordering, or other context and relabeled as a new trigger"
+  ],
+  "nextProtocol": {
+    "goalId": "GOAL-FEATURE-ARCHITECT-NEXT-TRIGGER-002",
+    "candidateCount": 3,
+    "rank1Count": 1,
+    "availableData": "finalized adjusted daily OHLCV only",
+    "agentOwns": [
+      "causal t0 semantics",
+      "minimal parameter family",
+      "warmup requirement",
+      "chart marker/overlay semantics",
+      "event-density risk",
+      "semantic distinctness rationale"
+    ],
+    "coordinatorOwns": [
+      "Discovery ranking",
+      "Discovery acceptance gate",
+      "holdout/fresh-validation boundary",
+      "runtime ids and evidence envelopes"
+    ],
+    "implementationForbiddenUntilDesignGatePasses": true
+  },
+  "profitabilityClaim": false
+}
