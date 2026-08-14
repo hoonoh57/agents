@@ -63,6 +63,15 @@
       "failedAt": "2026-08-14T01:58:16.580Z",
       "completedAt": "2026-08-14T02:03:29.223Z",
       "resultId": "RESULT-20260814013836-ef697e"
+    },
+    {
+      "taskId": "TASK-20260814022213-3169a0",
+      "agentId": "experiment-validation",
+      "goalId": "GOAL-AUTONOMOUS-MA-PERIOD-SEARCH-001",
+      "executionMode": "AUTONOMOUS_RESEARCH",
+      "priority": 90,
+      "status": "QUEUED",
+      "createdAt": "2026-08-14T02:22:13.624Z"
     }
   ]
 }

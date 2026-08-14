@@ -1,0 +1,36 @@
+{
+  "schema": "AgentTask@1.0.0",
+  "taskId": "TASK-20260814022213-3169a0",
+  "agentId": "experiment-validation",
+  "goalId": "GOAL-AUTONOMOUS-MA-PERIOD-SEARCH-001",
+  "executionMode": "AUTONOMOUS_RESEARCH",
+  "priority": 90,
+  "status": "QUEUED",
+  "createdBy": "HUMAN_RESEARCH_DIRECTOR",
+  "createdAt": "2026-08-14T02:22:13.624Z",
+  "objective": "Process the assigned moving-average period search goal through the production one-shot autonomous research worker. Use one holdout-safe deterministic range-search action and return evidence-bound COMPLETE; this is research evidence, not a profitability claim.",
+  "inputs": [],
+  "requiredOutputs": [
+    "Agent selects the registered holdout-safe period-search capability",
+    "Discovery-only ranking across the requested range",
+    "Exactly one frozen candidate before Validation",
+    "Validation evidence for the frozen candidate only",
+    "Canonical COMPLETE with runtime-owned evidence reference",
+    "profitabilityClaim remains false"
+  ],
+  "constraints": [
+    "One-shot worker only",
+    "No broker/order actions",
+    "No repeated single-period probing of the same range",
+    "No Validation evaluation for non-selected periods",
+    "No ranking-rule changes after Validation",
+    "Do not change the assigned ResearchGoal",
+    "Do not claim profitability"
+  ],
+  "artifactRefs": [],
+  "dependsOn": [],
+  "modelRoleHint": "LOCAL_FAST",
+  "externalEscalationAllowed": true,
+  "attempt": 1,
+  "taskTemplate": "task-templates/autonomous-ma-period-search.json"
+}
