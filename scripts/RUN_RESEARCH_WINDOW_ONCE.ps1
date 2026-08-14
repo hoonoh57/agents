@@ -1,7 +1,8 @@
 [CmdletBinding()]
 param(
     [switch]$Mock,
-    [switch]$TestNow
+    [switch]$TestNow,
+    [string]$TaskId = ''
 )
 
 $ErrorActionPreference = 'Stop'
@@ -80,6 +81,7 @@ if (-not $Mock -and -not $TestNow -and -not $insideWindow) {
 $mode = if ($Mock) { 'MOCK' } elseif ($TestNow -and -not $insideWindow) { 'DAYTIME_TEST' } else { 'LOCAL_LLM' }
 Write-Host "[research-window] START now=$($now.ToString('yyyy-MM-dd HH:mm:ss')) KST window=$startText-$endText mode=$mode"
 Write-Host '[research-window] policy=one-shot no-poll max-concurrency-1 unload-after-run'
+if ($TaskId) { Write-Host "[research-window] targetTask=$TaskId" }
 if ($TestNow) { Write-Host '[research-window] TEST_OVERRIDE=explicit one-run only; never use this switch in Scheduled Task' }
 
 # Defense in depth. Individual Ollama API requests may override OLLAMA_KEEP_ALIVE,
@@ -93,11 +95,10 @@ $env:AGENT_RESEARCH_TEST_ACTIVE = if ($TestNow) { '1' } else { '0' }
 $worker = Join-Path $PSScriptRoot 'RUN_AGENT_ONCE.ps1'
 
 try {
-    if ($Mock) {
-        & powershell -NoProfile -ExecutionPolicy Bypass -File $worker -Mock
-    } else {
-        & powershell -NoProfile -ExecutionPolicy Bypass -File $worker
-    }
+    $args = @('-NoProfile','-ExecutionPolicy','Bypass','-File',$worker)
+    if ($Mock) { $args += '-Mock' }
+    if ($TaskId) { $args += @('-TaskId',$TaskId) }
+    & powershell @args
     $code = $LASTEXITCODE
     if ($code -ne 0) { throw "RUN_AGENT_ONCE failed exit=$code" }
 } finally {
