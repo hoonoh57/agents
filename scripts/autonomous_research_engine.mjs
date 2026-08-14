@@ -9,6 +9,7 @@ const TURN_SCHEMA = 'ResearchAgentTurn@1.0.0';
 const ENGINE_EVIDENCE_SCHEMA = 'AutonomousResearchTaskEvidence@1.0.0';
 const TOOL_EXPERIMENT = 'RUN_FEATURE_EXPERIMENT';
 const TOOL_PERIOD_SEARCH = 'RUN_FEATURE_PERIOD_SEARCH';
+const TOOL_HIGH_BREAKOUT_DISCOVERY = 'RUN_HIGH_BREAKOUT_DISCOVERY_SEARCH';
 
 function sha(value) {
   return crypto.createHash('sha256').update(typeof value === 'string' ? value : JSON.stringify(value)).digest('hex');
@@ -32,7 +33,10 @@ function modelForRole(role, env, modelRegistry) {
 function modelCandidates(primaryRole, env, modelRegistry) {
   const roles = [primaryRole, 'LOCAL_REASONER'];
   const seen = new Set();
-  return roles.filter(role => role && !seen.has(role) && seen.add(role)).map(role => modelForRole(role, env, modelRegistry)).filter(x => x.model);
+  return roles
+    .filter(role => role && !seen.has(role) && seen.add(role))
+    .map(role => modelForRole(role, env, modelRegistry))
+    .filter(x => x.model);
 }
 
 function enabledResearchTools(toolRegistry) {
@@ -51,12 +55,14 @@ function integerContractValue(value, name, contract) {
   if (parsed < min || parsed > max) throw engineError('AUTONOMOUS_ACTION_INVALID', `${name}=${parsed}`);
   return parsed;
 }
+
 function actionSemanticSchema(toolRegistry) {
   const tools = enabledResearchTools(toolRegistry);
   if (!tools.length) throw engineError('AUTONOMOUS_TOOL_UNAVAILABLE', 'no read-only research tool');
   const featureIds = [...new Set(tools.flatMap(x => x.allowedFeatureIds || []))];
   return {
-    type: 'object', additionalProperties: false,
+    type: 'object',
+    additionalProperties: false,
     required: ['tool', 'featureId', 'reasoningSummary'],
     properties: {
       tool: { type: 'string', enum: tools.map(x => x.tool) },
@@ -65,37 +71,58 @@ function actionSemanticSchema(toolRegistry) {
       periodMin: { type: 'integer', minimum: 2, maximum: 240 },
       periodMax: { type: 'integer', minimum: 2, maximum: 240 },
       periodStep: { type: 'integer', minimum: 1, maximum: 60 },
+      lookbackMin: { type: 'integer', minimum: 2, maximum: 240 },
+      lookbackMax: { type: 'integer', minimum: 2, maximum: 240 },
+      lookbackStep: { type: 'integer', minimum: 1, maximum: 60 },
       reasoningSummary: { type: 'string', maxLength: 1200 },
     },
   };
 }
+
+function validateRange(minValue, maxValue, stepValue, names, contracts) {
+  const min = integerContractValue(minValue, names.min, contracts.min);
+  const max = integerContractValue(maxValue, names.max, contracts.max);
+  const step = integerContractValue(stepValue, names.step, contracts.step);
+  if (min > max) throw engineError('AUTONOMOUS_ACTION_INVALID', `${names.min}=${min}>${names.max}=${max}`);
+  const candidateCount = Math.floor((max - min) / step) + 1;
+  if (candidateCount < 1 || candidateCount > 120) throw engineError('AUTONOMOUS_ACTION_INVALID', `candidateCount=${candidateCount}`);
+  return { min, max, step };
+}
+
 function validateActionSemantic(value, toolRegistry) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) throw engineError('AUTONOMOUS_ACTION_INVALID', 'object required');
   const tool = registeredFeatureTool(toolRegistry, String(value.tool || ''));
   const featureId = String(value.featureId || '');
   if (!(tool.allowedFeatureIds || []).includes(featureId)) throw engineError('AUTONOMOUS_ACTION_INVALID', `feature=${featureId}`);
   if (typeof value.reasoningSummary !== 'string' || !value.reasoningSummary.trim()) throw engineError('AUTONOMOUS_ACTION_INVALID', 'reasoningSummary required');
+  const reasoningSummary = value.reasoningSummary.trim();
 
   if (tool.tool === TOOL_EXPERIMENT) {
     const period = integerContractValue(value.period, 'period', tool.parameterContract?.period);
-    return { tool: tool.tool, featureId, period, reasoningSummary: value.reasoningSummary.trim() };
+    return { tool: tool.tool, featureId, period, reasoningSummary };
   }
   if (tool.tool === TOOL_PERIOD_SEARCH) {
-    const periodMin = integerContractValue(value.periodMin, 'periodMin', tool.parameterContract?.periodMin);
-    const periodMax = integerContractValue(value.periodMax, 'periodMax', tool.parameterContract?.periodMax);
-    const periodStep = integerContractValue(value.periodStep, 'periodStep', tool.parameterContract?.periodStep);
-    if (periodMin > periodMax) throw engineError('AUTONOMOUS_ACTION_INVALID', `periodMin=${periodMin}>periodMax=${periodMax}`);
-    const candidateCount = Math.floor((periodMax - periodMin) / periodStep) + 1;
-    if (candidateCount < 1 || candidateCount > 120) throw engineError('AUTONOMOUS_ACTION_INVALID', `candidateCount=${candidateCount}`);
-    return { tool: tool.tool, featureId, periodMin, periodMax, periodStep, reasoningSummary: value.reasoningSummary.trim() };
+    const r = validateRange(value.periodMin, value.periodMax, value.periodStep,
+      { min: 'periodMin', max: 'periodMax', step: 'periodStep' },
+      { min: tool.parameterContract?.periodMin, max: tool.parameterContract?.periodMax, step: tool.parameterContract?.periodStep });
+    return { tool: tool.tool, featureId, periodMin: r.min, periodMax: r.max, periodStep: r.step, reasoningSummary };
+  }
+  if (tool.tool === TOOL_HIGH_BREAKOUT_DISCOVERY) {
+    const r = validateRange(value.lookbackMin, value.lookbackMax, value.lookbackStep,
+      { min: 'lookbackMin', max: 'lookbackMax', step: 'lookbackStep' },
+      { min: tool.parameterContract?.lookbackMin, max: tool.parameterContract?.lookbackMax, step: tool.parameterContract?.lookbackStep });
+    return { tool: tool.tool, featureId, lookbackMin: r.min, lookbackMax: r.max, lookbackStep: r.step, reasoningSummary };
   }
   throw engineError('AUTONOMOUS_TOOL_UNAVAILABLE', tool.tool);
 }
+
 function semanticParameters(semantic) {
   if (semantic.tool === TOOL_EXPERIMENT) return { period: semantic.period };
   if (semantic.tool === TOOL_PERIOD_SEARCH) return { periodMin: semantic.periodMin, periodMax: semantic.periodMax, periodStep: semantic.periodStep };
+  if (semantic.tool === TOOL_HIGH_BREAKOUT_DISCOVERY) return { lookbackMin: semantic.lookbackMin, lookbackMax: semantic.lookbackMax, lookbackStep: semantic.lookbackStep };
   throw engineError('AUTONOMOUS_TOOL_UNAVAILABLE', semantic.tool);
 }
+
 function normalizeAction(goalId, semantic, toolRegistry) {
   const checked = validateActionSemantic(semantic, toolRegistry);
   const parameters = semanticParameters(checked);
@@ -106,7 +133,10 @@ function normalizeAction(goalId, semantic, toolRegistry) {
     status: 'ACTION_REQUIRED',
     reasoningSummary: checked.reasoningSummary,
     actions: [{ actionId, tool: checked.tool, arguments: { featureId: checked.featureId, parameters } }],
-    evidenceRefs: [], conclusion: '', nextResearch: [], profitabilityClaim: false,
+    evidenceRefs: [],
+    conclusion: '',
+    nextResearch: [],
+    profitabilityClaim: false,
   };
 }
 
@@ -115,6 +145,7 @@ function normalizeNextResearch(value) {
   if (typeof value === 'string' && value.trim()) return [value.trim()];
   return [];
 }
+
 function completionSemanticSchema(evidence) {
   const d = evidence.evidence;
   if (d.tool === TOOL_PERIOD_SEARCH) {
@@ -136,6 +167,27 @@ function completionSemanticSchema(evidence) {
     }
     return { type: 'object', additionalProperties: false, required, properties };
   }
+
+  if (d.tool === TOOL_HIGH_BREAKOUT_DISCOVERY) {
+    const selected = d.selectedCandidate || null;
+    const required = ['featureId', 'searchStatus', 'candidateCount', 'freshValidationStatus', 'reasoningSummary', 'conclusion'];
+    const properties = {
+      featureId: { type: 'string', enum: [String(d.featureId)] },
+      searchStatus: { type: 'string', enum: [String(d.status)] },
+      candidateCount: { type: 'integer', enum: [Array.isArray(d.discoveryRanking) ? d.discoveryRanking.length : 0] },
+      freshValidationStatus: { type: 'string', enum: [String(d.freshValidation?.status)] },
+      reasoningSummary: { type: 'string', maxLength: 1200 },
+      conclusion: { type: 'string', maxLength: 2200 },
+      nextResearch: { type: 'array', maxItems: 2, items: { type: 'string', maxLength: 1000 } },
+    };
+    if (selected) {
+      required.push('selectedLookback', 'discoverySampleCount');
+      properties.selectedLookback = { type: 'integer', enum: [Number(selected.lookback)] };
+      properties.discoverySampleCount = { type: 'integer', enum: [Number(selected.discovery?.sampleCount ?? 0)] };
+    }
+    return { type: 'object', additionalProperties: false, required, properties };
+  }
+
   return {
     type: 'object', additionalProperties: false,
     required: ['featureId', 'period', 'eventCount', 'discoverySampleCount', 'validationSampleCount', 'reasoningSummary', 'conclusion'],
@@ -151,6 +203,7 @@ function completionSemanticSchema(evidence) {
     },
   };
 }
+
 function validateCompletionSemantic(value, evidence) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) throw engineError('AUTONOMOUS_COMPLETION_INVALID', 'object required');
   const d = evidence.evidence;
@@ -165,12 +218,22 @@ function validateCompletionSemantic(value, evidence) {
       if (Number(value.selectedPeriod) !== Number(d.selectedCandidate.period)) throw engineError('AUTONOMOUS_COMPLETION_INVALID', `selectedPeriod mismatch actual=${String(value.selectedPeriod ?? 'missing')}`);
       if (Number(value.discoverySampleCount) !== Number(d.selectedCandidate.discovery?.sampleCount ?? 0)) throw engineError('AUTONOMOUS_COMPLETION_INVALID', `discovery sample mismatch actual=${String(value.discoverySampleCount ?? 'missing')}`);
     }
+  } else if (d.tool === TOOL_HIGH_BREAKOUT_DISCOVERY) {
+    const candidateCount = Array.isArray(d.discoveryRanking) ? d.discoveryRanking.length : 0;
+    if (String(value.searchStatus || '') !== String(d.status)) throw engineError('AUTONOMOUS_COMPLETION_INVALID', `searchStatus mismatch actual=${String(value.searchStatus ?? 'missing')}`);
+    if (Number(value.candidateCount) !== candidateCount) throw engineError('AUTONOMOUS_COMPLETION_INVALID', `candidateCount mismatch actual=${String(value.candidateCount ?? 'missing')}`);
+    if (String(value.freshValidationStatus || '') !== String(d.freshValidation?.status)) throw engineError('AUTONOMOUS_COMPLETION_INVALID', `freshValidationStatus mismatch actual=${String(value.freshValidationStatus ?? 'missing')}`);
+    if (d.selectedCandidate) {
+      if (Number(value.selectedLookback) !== Number(d.selectedCandidate.lookback)) throw engineError('AUTONOMOUS_COMPLETION_INVALID', `selectedLookback mismatch actual=${String(value.selectedLookback ?? 'missing')}`);
+      if (Number(value.discoverySampleCount) !== Number(d.selectedCandidate.discovery?.sampleCount ?? 0)) throw engineError('AUTONOMOUS_COMPLETION_INVALID', `discovery sample mismatch actual=${String(value.discoverySampleCount ?? 'missing')}`);
+    }
   } else {
     if (Number(value.period) !== Number(d.parameters?.period)) throw engineError('AUTONOMOUS_COMPLETION_INVALID', `period mismatch actual=${String(value.period ?? 'missing')}`);
     if (Number(value.eventCount) !== Number(d.eventCount)) throw engineError('AUTONOMOUS_COMPLETION_INVALID', `eventCount mismatch actual=${String(value.eventCount ?? 'missing')}`);
     if (Number(value.discoverySampleCount) !== Number(d.discovery?.sampleCount ?? 0)) throw engineError('AUTONOMOUS_COMPLETION_INVALID', `discovery sample mismatch actual=${String(value.discoverySampleCount ?? 'missing')}`);
     if (Number(value.validationSampleCount) !== Number(d.validation?.sampleCount ?? 0)) throw engineError('AUTONOMOUS_COMPLETION_INVALID', `validation sample mismatch actual=${String(value.validationSampleCount ?? 'missing')}`);
   }
+
   if (typeof value.reasoningSummary !== 'string' || !value.reasoningSummary.trim()) throw engineError('AUTONOMOUS_COMPLETION_INVALID', 'reasoningSummary required');
   if (typeof value.conclusion !== 'string' || !value.conclusion.trim()) throw engineError('AUTONOMOUS_COMPLETION_INVALID', 'conclusion required');
   return {
@@ -180,6 +243,7 @@ function validateCompletionSemantic(value, evidence) {
     nextResearch: normalizeNextResearch(value.nextResearch),
   };
 }
+
 function normalizeCompletion(goalId, semantic, evidenceId, evidence) {
   const checked = validateCompletionSemantic(semantic, evidence);
   return {
@@ -187,26 +251,34 @@ function normalizeCompletion(goalId, semantic, evidenceId, evidence) {
     goalId,
     status: 'COMPLETE',
     reasoningSummary: checked.reasoningSummary,
-    actions: [], evidenceRefs: [evidenceId], conclusion: checked.conclusion,
-    nextResearch: checked.nextResearch, profitabilityClaim: false,
+    actions: [],
+    evidenceRefs: [evidenceId],
+    conclusion: checked.conclusion,
+    nextResearch: checked.nextResearch,
+    profitabilityClaim: false,
   };
 }
 
 function semanticDiagnostic(value) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
   return {
-    keys: Object.keys(value).slice(0, 20),
+    keys: Object.keys(value).slice(0, 24),
     tool: value.tool ?? null,
     featureId: value.featureId ?? null,
     period: value.period ?? null,
     periodMin: value.periodMin ?? null,
     periodMax: value.periodMax ?? null,
     periodStep: value.periodStep ?? null,
+    lookbackMin: value.lookbackMin ?? null,
+    lookbackMax: value.lookbackMax ?? null,
+    lookbackStep: value.lookbackStep ?? null,
     eventCount: value.eventCount ?? null,
     discoverySampleCount: value.discoverySampleCount ?? null,
     validationSampleCount: value.validationSampleCount ?? null,
     selectedPeriod: value.selectedPeriod ?? null,
+    selectedLookback: value.selectedLookback ?? null,
     searchStatus: value.searchStatus ?? null,
+    freshValidationStatus: value.freshValidationStatus ?? null,
     candidateCount: value.candidateCount ?? null,
     nextResearchType: Array.isArray(value.nextResearch) ? 'array' : value.nextResearch === null ? 'null' : typeof value.nextResearch,
   };
@@ -214,9 +286,16 @@ function semanticDiagnostic(value) {
 
 async function callModel({ base, choice, messages, schema, timeoutSeconds, contextTokens, outputTokens }) {
   const response = await fetch(`${base}/api/chat`, {
-    method: 'POST', headers: { 'content-type': 'application/json' }, signal: AbortSignal.timeout(timeoutSeconds * 1000),
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    signal: AbortSignal.timeout(timeoutSeconds * 1000),
     body: JSON.stringify({
-      model: choice.model, messages, format: schema, think: false, stream: false, keep_alive: 0,
+      model: choice.model,
+      messages,
+      format: schema,
+      think: false,
+      stream: false,
+      keep_alive: 0,
       options: { temperature: 0, num_ctx: contextTokens, num_predict: outputTokens },
     }),
   });
@@ -250,9 +329,18 @@ async function runSemanticDecision({ stage, schema, validate, messages, candidat
         }
       } catch (e) { error = String(e?.message || e); }
       diagnostics.push({
-        stage, globalAttempt, role: choice.role, model: choice.model, modelSource: choice.source, attempt, error,
-        doneReason: call?.body?.done_reason ?? null, parseStrict: parsed.strict ?? null, parseRecovered: parsed.recovered ?? null,
-        parseTrailing: parsed.trailing ?? null, returned: semanticDiagnostic(parsed.value),
+        stage,
+        globalAttempt,
+        role: choice.role,
+        model: choice.model,
+        modelSource: choice.source,
+        attempt,
+        error,
+        doneReason: call?.body?.done_reason ?? null,
+        parseStrict: parsed.strict ?? null,
+        parseRecovered: parsed.recovered ?? null,
+        parseTrailing: parsed.trailing ?? null,
+        returned: semanticDiagnostic(parsed.value),
       });
       if (decision) return { decision, attempts: globalAttempt, role: choice.role, model: choice.model, modelSource: choice.source, escalated: candidateIndex > 0, diagnostics };
       lastError = error || 'OUTPUT_INVALID';
@@ -272,6 +360,7 @@ function semanticFromAction(action, toolRegistry) {
     reasoningSummary: 'runtime validation',
   }, toolRegistry);
 }
+
 function resolveExecutor(researchRoot, tool) {
   const configured = String(tool.executor || '').replace(/\\/g, '/');
   const prefix = 'RESEARCH_LOCAL_ROOT/';
@@ -283,6 +372,7 @@ function resolveExecutor(researchRoot, tool) {
   if (!(executor === resolvedRoot || executor.startsWith(resolvedRoot + path.sep))) throw engineError('AUTONOMOUS_TOOL_EXECUTOR_INVALID', executor);
   return executor;
 }
+
 function executeResearchAction({ action, goal, env, toolRegistry }) {
   const semantic = semanticFromAction(action, toolRegistry);
   const registeredTool = registeredFeatureTool(toolRegistry, semantic.tool);
@@ -299,6 +389,8 @@ function executeResearchAction({ action, goal, env, toolRegistry }) {
     args.push('--period', String(semantic.period));
   } else if (semantic.tool === TOOL_PERIOD_SEARCH) {
     args.push('--period-min', String(semantic.periodMin), '--period-max', String(semantic.periodMax), '--period-step', String(semantic.periodStep));
+  } else if (semantic.tool === TOOL_HIGH_BREAKOUT_DISCOVERY) {
+    args.push('--lookback-min', String(semantic.lookbackMin), '--lookback-max', String(semantic.lookbackMax), '--lookback-step', String(semantic.lookbackStep));
   } else {
     throw engineError('AUTONOMOUS_TOOL_UNAVAILABLE', semantic.tool);
   }
@@ -314,7 +406,7 @@ function executeResearchAction({ action, goal, env, toolRegistry }) {
 
   if (semantic.tool === TOOL_EXPERIMENT) {
     if (Number(evidence.parameters?.period) !== semantic.period) throw engineError('AUTONOMOUS_TOOL_EVIDENCE_INVALID', 'period mismatch');
-  } else {
+  } else if (semantic.tool === TOOL_PERIOD_SEARCH) {
     if (Number(evidence.parameters?.periodMin) !== semantic.periodMin || Number(evidence.parameters?.periodMax) !== semantic.periodMax || Number(evidence.parameters?.periodStep) !== semantic.periodStep) throw engineError('AUTONOMOUS_TOOL_EVIDENCE_INVALID', 'period search mismatch');
     if (evidence.method?.discoveryOnlyRanking !== true || evidence.method?.selectedCandidateFrozenBeforeValidation !== true || evidence.method?.nonSelectedValidationEvaluated !== false) throw engineError('AUTONOMOUS_TOOL_EVIDENCE_INVALID', 'holdout policy mismatch');
     const validationPeriods = Array.isArray(evidence.method?.validationEvaluatedPeriods) ? evidence.method.validationEvaluatedPeriods.map(Number) : [];
@@ -324,7 +416,21 @@ function executeResearchAction({ action, goal, env, toolRegistry }) {
     } else if (validationPeriods.length !== 0) {
       throw engineError('AUTONOMOUS_TOOL_EVIDENCE_INVALID', 'validation without selected candidate');
     }
+  } else if (semantic.tool === TOOL_HIGH_BREAKOUT_DISCOVERY) {
+    if (Number(evidence.parameters?.lookbackMin) !== semantic.lookbackMin || Number(evidence.parameters?.lookbackMax) !== semantic.lookbackMax || Number(evidence.parameters?.lookbackStep) !== semantic.lookbackStep) throw engineError('AUTONOMOUS_TOOL_EVIDENCE_INVALID', 'lookback search mismatch');
+    if (evidence.method?.discoveryOnlyRanking !== true || evidence.method?.validationEvaluated !== false || evidence.method?.historicalValidationReuseAllowed !== false) throw engineError('AUTONOMOUS_TOOL_EVIDENCE_INVALID', 'fresh validation policy mismatch');
+    if (evidence.freshValidation?.evaluated !== false) throw engineError('AUTONOMOUS_TOOL_EVIDENCE_INVALID', 'fresh validation already evaluated');
+    if (String(evidence.method?.freshValidationRequiresDecisionDateAfter || '') !== String(evidence.dateTo || '')) throw engineError('AUTONOMOUS_TOOL_EVIDENCE_INVALID', 'fresh validation cutoff mismatch');
+    if (evidence.selectedCandidate) {
+      if (evidence.method?.selectedCandidateFrozenBeforeFreshValidation !== true) throw engineError('AUTONOMOUS_TOOL_EVIDENCE_INVALID', 'candidate not frozen');
+      if (String(evidence.status) !== 'WAITING_FOR_FRESH_VALIDATION' || String(evidence.freshValidation?.status) !== 'WAITING_FOR_FRESH_VALIDATION') throw engineError('AUTONOMOUS_TOOL_EVIDENCE_INVALID', 'waiting status mismatch');
+      if (String(evidence.selectedCandidate.frozenAtDataCutoff || '') !== String(evidence.dateTo || '')) throw engineError('AUTONOMOUS_TOOL_EVIDENCE_INVALID', 'candidate cutoff mismatch');
+    } else {
+      if (!['NO_GO_DISCOVERY', 'NO_GO_NO_DISCOVERY_EVENTS'].includes(String(evidence.status))) throw engineError('AUTONOMOUS_TOOL_EVIDENCE_INVALID', 'unexpected discovery status');
+      if (String(evidence.freshValidation?.status) !== 'NOT_ELIGIBLE') throw engineError('AUTONOMOUS_TOOL_EVIDENCE_INVALID', 'ineligible fresh validation mismatch');
+    }
   }
+
   const evidenceId = `EVIDENCE-${sha(evidence).slice(0, 16)}`;
   return { evidenceId, actionId: action.actionId, createdAt: nowIso(), evidence };
 }
@@ -359,6 +465,7 @@ function compactEvidenceForCompletion(goal, firstTurn, evidence) {
       parameters: firstTurn.actions[0]?.arguments?.parameters,
     },
   };
+
   if (d.tool === TOOL_PERIOD_SEARCH) {
     return {
       ...base,
@@ -373,6 +480,22 @@ function compactEvidenceForCompletion(goal, firstTurn, evidence) {
       runtimeNote: 'All ids are runtime-owned. Read the holdout-safe search evidence. Do not request validation for another period and do not change the ranking after seeing Validation.',
     };
   }
+
+  if (d.tool === TOOL_HIGH_BREAKOUT_DISCOVERY) {
+    return {
+      ...base,
+      toolEvidence: {
+        tool: d.tool, featureId: d.featureId, parameters: d.parameters, datasetHash: d.datasetHash,
+        snapshotExperiment: d.snapshotExperiment, dateFrom: d.dateFrom, dateTo: d.dateTo,
+        requestedSymbolCount: d.requestedSymbolCount, effectiveSymbolCount: d.effectiveSymbolCount, excludedSymbols: d.excludedSymbols,
+        method: d.method, candidateCount: Array.isArray(d.discoveryRanking) ? d.discoveryRanking.length : 0,
+        topDiscoveryCandidates: Array.isArray(d.discoveryRanking) ? d.discoveryRanking.slice(0, 8) : [],
+        selectedCandidate: d.selectedCandidate, freshValidation: d.freshValidation, status: d.status, profitabilityClaim: false,
+      },
+      runtimeNote: 'All ids are runtime-owned. This is Discovery only. Historical Validation reuse is forbidden. If a candidate is frozen, preserve WAITING_FOR_FRESH_VALIDATION and do not request immediate Validation.',
+    };
+  }
+
   return {
     ...base,
     toolEvidence: {
@@ -384,11 +507,16 @@ function compactEvidenceForCompletion(goal, firstTurn, evidence) {
     runtimeNote: 'All ids are runtime-owned. Prove evidence reading by returning the exact featureId, period, eventCount, discovery sampleCount and validation sampleCount.',
   };
 }
+
 function completionInstruction(evidence) {
   const d = evidence.evidence;
   if (d.tool === TOOL_PERIOD_SEARCH) {
     const selectedFields = d.selectedCandidate ? ' Also return selectedPeriod and discoverySampleCount for the frozen candidate.' : ' There is no frozen candidate, so omit selectedPeriod and discoverySampleCount.';
     return `Read only the supplied holdout-safe search evidence. Return featureId, searchStatus, candidateCount, validationSampleCount, reasoningSummary and conclusion.${selectedFields} nextResearch is optional. Preserve the tool status exactly; do not reinterpret a NO_GO as success and do not request another Validation action.`;
+  }
+  if (d.tool === TOOL_HIGH_BREAKOUT_DISCOVERY) {
+    const selectedFields = d.selectedCandidate ? ' Also return selectedLookback and discoverySampleCount for the frozen candidate.' : ' There is no frozen candidate, so omit selectedLookback and discoverySampleCount.';
+    return `Read only the supplied Discovery evidence. Return featureId, searchStatus, candidateCount, freshValidationStatus, reasoningSummary and conclusion.${selectedFields} nextResearch is optional. Preserve WAITING_FOR_FRESH_VALIDATION or NO_GO exactly. Do not request immediate Validation and do not reuse historical holdout data.`;
   }
   return 'Read only the supplied evidence. Return featureId, period, eventCount, discoverySampleCount, validationSampleCount, reasoningSummary and conclusion. nextResearch is optional; omit it when there is no useful follow-up. Do not return any evidenceId and do not request another action in this one-shot lane.';
 }
@@ -411,11 +539,17 @@ export async function runAutonomousResearchTask({ root, task, agent, env }) {
   const common = buildResearchPrompt({ root, task, agent, goal, toolRegistry });
 
   const actionRun = await runSemanticDecision({
-    stage: 'ACTION_DECISION', schema: actionSemanticSchema(toolRegistry), validate: value => validateActionSemantic(value, toolRegistry), candidates,
-    base, timeoutSeconds, contextTokens, outputTokens,
+    stage: 'ACTION_DECISION',
+    schema: actionSemanticSchema(toolRegistry),
+    validate: value => validateActionSemantic(value, toolRegistry),
+    candidates,
+    base,
+    timeoutSeconds,
+    contextTokens,
+    outputTokens,
     messages: [
       { role: 'system', content: 'You are an evidence-bound local research agent. Return only the requested small JSON decision. Use only whitelisted read-only research tools.' },
-      { role: 'user', content: `${common}\n\n# ACTION DECISION\nRead the goal and capability/tool contracts. Choose the minimum deterministic action required. Return tool, featureId, reasoningSummary and exactly the flat parameters required by that tool: period for RUN_FEATURE_EXPERIMENT, or periodMin/periodMax/periodStep for RUN_FEATURE_PERIOD_SEARCH. Derive values from the human goal and existing capability contract. Do not invent evidence.` },
+      { role: 'user', content: `${common}\n\n# ACTION DECISION\nRead the goal and capability/tool contracts. Choose the minimum deterministic action required. Return tool, featureId, reasoningSummary and exactly the flat parameters required by that tool: period for RUN_FEATURE_EXPERIMENT; periodMin/periodMax/periodStep for RUN_FEATURE_PERIOD_SEARCH; or lookbackMin/lookbackMax/lookbackStep for RUN_HIGH_BREAKOUT_DISCOVERY_SEARCH. Derive values from the human goal and existing capability contract. Do not invent evidence.` },
     ],
   });
   const firstTurn = normalizeAction(goal.goalId, actionRun.decision, toolRegistry);
@@ -425,8 +559,14 @@ export async function runAutonomousResearchTask({ root, task, agent, env }) {
   const completionContext = compactEvidenceForCompletion(goal, firstTurn, evidence);
   const completionCandidates = modelCandidates(actionRun.role, env, modelRegistry);
   const completionRun = await runSemanticDecision({
-    stage: 'COMPLETION_DECISION', schema: completionSemanticSchema(evidence), validate: value => validateCompletionSemantic(value, evidence), candidates: completionCandidates,
-    base, timeoutSeconds, contextTokens, outputTokens,
+    stage: 'COMPLETION_DECISION',
+    schema: completionSemanticSchema(evidence),
+    validate: value => validateCompletionSemantic(value, evidence),
+    candidates: completionCandidates,
+    base,
+    timeoutSeconds,
+    contextTokens,
+    outputTokens,
     messages: [
       { role: 'system', content: 'You are the same evidence-bound local research agent continuing the queued task. Return only the requested small JSON evidence interpretation. Runtime owns all ids.' },
       { role: 'user', content: `# COMPACT COMPLETION CONTEXT\n${JSON.stringify(completionContext, null, 2)}\n\n# COMPLETION DECISION\n${completionInstruction(evidence)}` },
@@ -488,9 +628,13 @@ export function selfTestAutonomousResearchEngine({ root }) {
   const searchEvidence = {
     evidenceId: 'EVIDENCE-SEARCH',
     evidence: {
-      tool: TOOL_PERIOD_SEARCH, featureId: 'PRICE_MA_RECLAIM_UP', parameters: { periodMin: 5, periodMax: 120, periodStep: 5 },
+      tool: TOOL_PERIOD_SEARCH,
+      featureId: 'PRICE_MA_RECLAIM_UP',
+      parameters: { periodMin: 5, periodMax: 120, periodStep: 5 },
       discoveryRanking: [{ rank: 1, period: 20, discovery: { sampleCount: 8 } }],
-      selectedCandidate: { period: 20, discovery: { sampleCount: 8 } }, validation: { sampleCount: 4 }, status: 'NO_GO_VALIDATION',
+      selectedCandidate: { period: 20, discovery: { sampleCount: 8 } },
+      validation: { sampleCount: 4 },
+      status: 'NO_GO_VALIDATION',
     },
   };
   const searchCompletion = normalizeCompletion('SELFTEST-SEARCH', {
@@ -498,6 +642,35 @@ export function selfTestAutonomousResearchEngine({ root }) {
     discoverySampleCount: 8, validationSampleCount: 4, reasoningSummary: 'synthetic search', conclusion: 'synthetic no-go',
   }, 'EVIDENCE-SEARCH', searchEvidence);
   if (searchCompletion.evidenceRefs[0] !== 'EVIDENCE-SEARCH' || searchCompletion.nextResearch.length !== 0) throw engineError('AUTONOMOUS_ENGINE_SELF_TEST_FAILED', 'search completion');
+
+  const discovery = validateActionSemantic({
+    tool: TOOL_HIGH_BREAKOUT_DISCOVERY,
+    featureId: 'PRICE_N_HIGH_BREAKOUT',
+    lookbackMin: 5,
+    lookbackMax: 120,
+    lookbackStep: 5,
+    reasoningSummary: 'synthetic discovery',
+  }, toolRegistry);
+  const discoveryTurn = normalizeAction('SELFTEST-DISCOVERY', discovery, toolRegistry);
+  if (discoveryTurn.actions[0].arguments.parameters.lookbackMin !== 5 || discoveryTurn.actions[0].arguments.parameters.lookbackMax !== 120 || discoveryTurn.actions[0].arguments.parameters.lookbackStep !== 5) throw engineError('AUTONOMOUS_ENGINE_SELF_TEST_FAILED', 'discovery action');
+  const discoveryEvidence = {
+    evidenceId: 'EVIDENCE-DISCOVERY',
+    evidence: {
+      tool: TOOL_HIGH_BREAKOUT_DISCOVERY,
+      featureId: 'PRICE_N_HIGH_BREAKOUT',
+      parameters: { lookbackMin: 5, lookbackMax: 120, lookbackStep: 5 },
+      discoveryRanking: [{ rank: 1, lookback: 20, discovery: { sampleCount: 9 } }],
+      selectedCandidate: { lookback: 20, discovery: { sampleCount: 9 } },
+      freshValidation: { status: 'WAITING_FOR_FRESH_VALIDATION', evaluated: false },
+      status: 'WAITING_FOR_FRESH_VALIDATION',
+    },
+  };
+  const discoveryCompletion = normalizeCompletion('SELFTEST-DISCOVERY', {
+    featureId: 'PRICE_N_HIGH_BREAKOUT', searchStatus: 'WAITING_FOR_FRESH_VALIDATION', candidateCount: 1,
+    freshValidationStatus: 'WAITING_FOR_FRESH_VALIDATION', selectedLookback: 20, discoverySampleCount: 9,
+    reasoningSummary: 'synthetic discovery', conclusion: 'synthetic waiting',
+  }, 'EVIDENCE-DISCOVERY', discoveryEvidence);
+  if (discoveryCompletion.evidenceRefs[0] !== 'EVIDENCE-DISCOVERY' || discoveryCompletion.nextResearch.length !== 0) throw engineError('AUTONOMOUS_ENGINE_SELF_TEST_FAILED', 'discovery completion');
   return true;
 }
 
