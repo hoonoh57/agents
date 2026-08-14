@@ -1,0 +1,101 @@
+{
+  "schema": "AgentTaskTemplate@1.0.0",
+  "agentId": "feature-architect",
+  "goalId": "GOAL-FEATURE-ARCHITECT-NEXT-TRIGGER-004",
+  "priority": 80,
+  "createdBy": "HUMAN_RESEARCH_DIRECTOR",
+  "modelRoleHint": "LOCAL_REASONER",
+  "objective": "Redesign the next chart-ready trigger with the two prior P3 rejection decisions supplied as resolved SOURCE evidence. Return exactly three machine-checkable semantically distinct triggers using finalized adjusted daily OHLCV only. Each trigger must define one shared scalar state and an explicit threshold crossing of that same state from D-1 to D. Closed price-MA and price-above-prior/rolling-high semantics are forbidden even if algebraically renamed. Select exactly one rank-1 candidate. Do not write code, run experiments, invent acceptance thresholds, infer participant behavior, or claim profitability.",
+  "inputs": [
+    {
+      "schema": "ProjectContextInput@1.0.0",
+      "inputId": "explorer-ma-cross",
+      "root": "RESEARCH_LOCAL_ROOT",
+      "path": "template/feature-packs/swing-research/ProfitFeatureExplorer.ts",
+      "mode": "AROUND",
+      "anchor": "const maCrossFeature",
+      "beforeChars": 200,
+      "afterChars": 3000,
+      "maxBytes": 3600
+    },
+    {
+      "schema": "ProjectContextInput@1.0.0",
+      "inputId": "explorer-price-reclaim-high-breakout",
+      "root": "RESEARCH_LOCAL_ROOT",
+      "path": "template/feature-packs/swing-research/ProfitFeatureExplorer.ts",
+      "mode": "AROUND",
+      "anchor": "const priceMaReclaimFeature",
+      "beforeChars": 200,
+      "afterChars": 5600,
+      "maxBytes": 6200
+    },
+    {
+      "schema": "ProjectContextInput@1.0.0",
+      "inputId": "daily-candle-contract",
+      "root": "RESEARCH_LOCAL_ROOT",
+      "path": "template/feature-packs/swing-research/SwingTrendFoundation.ts",
+      "mode": "AROUND",
+      "anchor": "export interface SwingDailyCandle",
+      "beforeChars": 150,
+      "afterChars": 2800,
+      "maxBytes": 3400
+    },
+    {
+      "schema": "ProjectContextInput@1.0.0",
+      "inputId": "trigger-context-boundary",
+      "root": "RESEARCH_LOCAL_ROOT",
+      "path": "template/feature-packs/swing-research/ProfitFeatureFoundry.ts",
+      "mode": "AROUND",
+      "anchor": "export interface ProfitObservation",
+      "beforeChars": 300,
+      "afterChars": 3400,
+      "maxBytes": 4200
+    },
+    {
+      "schema": "ProjectContextInput@1.0.0",
+      "inputId": "p3-reject-001",
+      "root": "AGENT_REPO_ROOT",
+      "path": "coordinator/decisions/P3_FEATURE_ARCHITECT_NEXT_TRIGGER_001_REJECTED.json",
+      "mode": "FULL",
+      "maxBytes": 7000
+    },
+    {
+      "schema": "ProjectContextInput@1.0.0",
+      "inputId": "p3-reject-002",
+      "root": "AGENT_REPO_ROOT",
+      "path": "coordinator/decisions/P3_FEATURE_ARCHITECT_NEXT_TRIGGER_002_REJECTED.json",
+      "mode": "FULL",
+      "maxBytes": 7000
+    }
+  ],
+  "requiredOutputs": [
+    "Exactly three PROPOSAL findings. Each claim must use exactly: CANDIDATE|featureId=<UPPER_SNAKE_ID>|family=<UPPER_SNAKE_FAMILY>|name=<short name>|state=<one scalar formula evaluated identically for each day>|prevTest=<exactly D-1 state <= threshold OR D-1 state >= threshold>|currTest=<exact opposite crossing on D>|fields=<OHLCV/derived inputs>|params=<bounded parameter family>|warmup=<minimum bars>|chart=<marker/overlay semantics>|densityRisk=<brief risk>|distinct=<why semantically independent from closed triggers>. Do not use pipe inside values.",
+    "The three featureId values and three family values must each be unique.",
+    "state must not contain D or D-1 labels; lag belongs only in prevTest/currTest.",
+    "Allowed transition pairs are only prevTest=D-1 state <= threshold with currTest=D state > threshold, or prevTest=D-1 state >= threshold with currTest=D state < threshold.",
+    "state may use OHLCV and deterministic rolling mean/range/location/gap/volume transforms, but may not encode close crossing/reclaiming a price MA or close crossing a prior/rolling high.",
+    "Summary must begin exactly RANK1|featureId=<one candidate>|reason=<only falsifiability, simplicity, chart traceability, or data availability rationale>.",
+    "nextActions must contain exactly one item: DISCOVERY_CONTRACT|featureId=<same rank-1>|parameterSearch=<bounded family>|notes=<implementation-independent notes>. Coordinator owns ranking and gates.",
+    "sourceInputIds may use only these literal IDs: explorer-ma-cross, explorer-price-reclaim-high-breakout, daily-candle-contract, trigger-context-boundary, p3-reject-001, p3-reject-002. Never put a file path, artifactRef, decisionId, goalId, or dependsOn value in sourceInputIds.",
+    "Use p3-reject-001 and p3-reject-002 when citing the frozen negative design evidence; do not spell their repository paths in sourceInputIds.",
+    "No market participant, institutional, catalyst, support/resistance narrative unless directly supported by a resolved SOURCE; prefer mechanical language.",
+    "profitabilityClaim=false"
+  ],
+  "constraints": [
+    "Treat SOURCE p3-reject-001 and SOURCE p3-reject-002 as binding negative design evidence",
+    "No new data source, API, server, intraday feed, news, fundamentals, order book or broker state",
+    "No MA-versus-MA price trigger",
+    "No close-versus-price-MA trigger",
+    "No close-versus-prior-or-rolling-high trigger including algebraic equivalents",
+    "No closed trigger plus volume, volatility, MA ordering or context filter",
+    "Do not invent profitability or acceptance thresholds",
+    "Completed D and earlier information only; D+1 open remains executable entry reference",
+    "Do not write implementation code",
+    "Do not run Discovery or Validation",
+    "Do not claim profitability"
+  ],
+  "artifactRefs": [],
+  "dependsOn": [
+    "P3_FEATURE_ARCHITECT_NEXT_TRIGGER_003_PROTOCOL_ERROR"
+  ]
+}
