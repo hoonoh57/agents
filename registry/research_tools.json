@@ -32,6 +32,26 @@
         "nonSelectedValidationAllowed": false
       },
       "runtimeOwnedContext": ["datasetHash", "snapshotExperiment", "dateFrom", "dateTo", "objective"]
+    },
+    {
+      "tool": "RUN_HIGH_BREAKOUT_DISCOVERY_SEARCH",
+      "enabled": true,
+      "executor": "RESEARCH_LOCAL_ROOT/scripts/run_high_breakout_discovery_tool.mjs",
+      "readOnly": true,
+      "brokerAction": false,
+      "allowedFeatureIds": ["PRICE_N_HIGH_BREAKOUT"],
+      "parameterContract": {
+        "lookbackMin": {"type": "integer", "min": 2, "max": 240},
+        "lookbackMax": {"type": "integer", "min": 2, "max": 240},
+        "lookbackStep": {"type": "integer", "min": 1, "max": 60}
+      },
+      "methodContract": {
+        "rankingPhase": "DISCOVERY_ONLY",
+        "historicalValidationReuseAllowed": false,
+        "freshValidationRequired": true,
+        "validationRunsInThisTool": false
+      },
+      "runtimeOwnedContext": ["datasetHash", "snapshotExperiment", "dateFrom", "dateTo", "objective"]
     }
   ]
 }
