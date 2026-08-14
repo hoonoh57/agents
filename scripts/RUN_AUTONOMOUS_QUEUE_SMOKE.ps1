@@ -44,11 +44,11 @@ function Test-CompletedResult([string]$TaskId) {
     $period = [int]$r.autonomousResearch.firstTurn.actions[0].arguments.parameters.period
     $feature = [string]$r.autonomousResearch.firstTurn.actions[0].arguments.featureId
     $completion = $r.autonomousResearch.semanticCompletionDecision
-    if ([string]$completion.observedFeatureId -ne $feature) { return $false }
-    if ([int]$completion.observedPeriod -ne $period) { return $false }
-    if ([int]$completion.observedEventCount -ne $events) { return $false }
-    if ([int]$completion.observedDiscoverySampleCount -ne $discovery) { return $false }
-    if ([int]$completion.observedValidationSampleCount -ne $validation) { return $false }
+    if ([string]$completion.featureId -ne $feature) { return $false }
+    if ([int]$completion.period -ne $period) { return $false }
+    if ([int]$completion.eventCount -ne $events) { return $false }
+    if ([int]$completion.discoverySampleCount -ne $discovery) { return $false }
+    if ([int]$completion.validationSampleCount -ne $validation) { return $false }
     $runtimeEvidenceId = [string]$r.autonomousResearch.toolEvidence.evidenceId
     if ([string]$r.autonomousResearch.finalTurn.evidenceRefs[0] -ne $runtimeEvidenceId) { return $false }
     Write-Host "[queue-smoke] PASS existing task=$TaskId result=$($r.resultId) feature=$feature period=$period events=$events discovery=$discovery validation=$validation keepAlive=$($r.runtimeMetrics.keepAlive)"
