@@ -8,8 +8,8 @@ param(
 $ErrorActionPreference = 'Stop'
 $Root = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 Set-Location $Root
-$Template = 'feature-architect-next-trigger-v5.json'
-$GoalId = 'GOAL-FEATURE-ARCHITECT-NEXT-TRIGGER-005'
+$Template = 'feature-architect-next-trigger-v6.json'
+$GoalId = 'GOAL-FEATURE-ARCHITECT-NEXT-TRIGGER-006'
 $AgentId = 'feature-architect'
 
 function Invoke-NativeChecked {
@@ -83,7 +83,7 @@ if ($existing.Count -eq 1 -and -not $ForceNew) {
         throw "existing feature architecture task has unsupported status=$status task=$taskId"
     }
 } else {
-    Write-Host '[feature-architect-next] enqueue provenance-corrected scalar-transition design task v5'
+    Write-Host '[feature-architect-next] enqueue provenance-corrected scalar-transition design task v6'
     $out = Invoke-NativeChecked 'enqueue feature architect task' { node .\scripts\agent_runtime_stable.mjs enqueue --template $Template }
     $joined = ($out -join "`n")
     if ($joined -notmatch 'ENQUEUED\s+(TASK-[A-Za-z0-9-]+)') { throw 'could not parse feature architect task id' }
@@ -92,7 +92,7 @@ if ($existing.Count -eq 1 -and -not $ForceNew) {
     Write-Host "[feature-architect-next] persist queued task=$taskId"
     git add -- agents/feature-architect coordinator
     if ($LASTEXITCODE -ne 0) { throw 'git add queued feature architect task failed' }
-    git commit -m 'Queue provenance-corrected feature architecture task v5'
+    git commit -m 'Queue provenance-corrected feature architecture task v6'
     if ($LASTEXITCODE -ne 0) { throw 'git commit queued feature architect task failed' }
     git push origin main
     if ($LASTEXITCODE -ne 0) { throw 'git push queued feature architect task failed' }
