@@ -1,0 +1,47 @@
+{
+  "schema": "CoordinatorDecision@1.0.0",
+  "decisionId": "P2_HIGH_BREAKOUT_DISCOVERY_PROTOCOL_001",
+  "status": "PRE_REGISTERED",
+  "goalId": "GOAL-AUTONOMOUS-HIGH-BREAKOUT-DISCOVERY-001",
+  "featureId": "PRICE_N_HIGH_BREAKOUT",
+  "tool": "RUN_HIGH_BREAKOUT_DISCOVERY_SEARCH",
+  "datasetHash": "c4f56e2dae66fa09739797c9bac43b82b48d972591fe618dff16e5d4bacb5b3f",
+  "historicalDataCutoff": "2026-08-13",
+  "search": {
+    "lookbackMin": 5,
+    "lookbackMax": 120,
+    "lookbackStep": 5,
+    "ranking": [
+      "wilsonLowerBoundPct(POSITIVE_FIRST, discovery.sampleCount) desc",
+      "discovery.meanReturnPct desc",
+      "discovery.meanMfePct desc",
+      "discovery.meanMaePct desc",
+      "discovery.sampleCount desc",
+      "lookback asc"
+    ]
+  },
+  "discoveryGate": [
+    "discovery.sampleCount > 0",
+    "discovery.meanReturnPct > 0",
+    "discovery.positiveBeforeNegativePct > discovery.negativeBeforePositivePct"
+  ],
+  "outcomes": {
+    "gatePass": "Freeze exactly one rank-1 candidate and return WAITING_FOR_FRESH_VALIDATION",
+    "gateFail": "Return NO_GO_DISCOVERY and do not consume future Validation data"
+  },
+  "freshValidationBoundary": {
+    "historicalValidationReuseAllowed": false,
+    "validationRunsInDiscoveryTask": false,
+    "requiredDecisionDateAfter": "2026-08-13",
+    "candidateMayNotChangeAfterFreeze": true
+  },
+  "doNotDo": [
+    "do not reuse the previously exposed historical Validation segment as fresh Validation",
+    "do not change the Discovery ranking after seeing P2 results",
+    "do not change the Discovery gate after seeing P2 results",
+    "do not add rescue filters inside this lineage",
+    "do not change the frozen candidate before fresh Validation",
+    "do not claim profitability"
+  ],
+  "profitabilityClaim": false
+}
