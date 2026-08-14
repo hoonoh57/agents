@@ -1,0 +1,37 @@
+{
+  "schema": "ResearchGoal@1.0.0",
+  "goalId": "GOAL-AUTONOMOUS-HIGH-BREAKOUT-DISCOVERY-001",
+  "agentId": "experiment-validation",
+  "createdBy": "HUMAN_RESEARCH_DIRECTOR",
+  "purpose": "Evaluate the existing chart-ready close-above-previous-N-high trigger as a new hypothesis lineage without reusing previously exposed historical holdout data as fresh Validation.",
+  "objective": "For PRICE_N_HIGH_BREAKOUT, search lookback values from 5 through 120 in steps of 5 using the registered discovery-only deterministic search capability. Treat all frozen historical data through 2026-08-13 as development/Discovery data for this new lineage. Rank candidates only on Discovery. If the pre-registered Discovery gate passes, freeze exactly one candidate and return WAITING_FOR_FRESH_VALIDATION. Do not run Validation in this task. If Discovery fails its gate, return NO_GO_DISCOVERY. Do not write code and do not claim profitability.",
+  "successCriteria": [
+    "agent selects RUN_HIGH_BREAKOUT_DISCOVERY_SEARCH",
+    "agent selects PRICE_N_HIGH_BREAKOUT with lookbackMin 5, lookbackMax 120, and lookbackStep 5",
+    "runtime executes exactly one whitelisted read-only discovery search action",
+    "tool evidence states discoveryOnlyRanking=true",
+    "tool evidence states validationEvaluated=false",
+    "tool evidence states historicalValidationReuseAllowed=false",
+    "if a candidate passes Discovery, exactly one candidate is frozen at the historical data cutoff",
+    "if a candidate is frozen, status is WAITING_FOR_FRESH_VALIDATION and fresh Validation requires decision dates strictly after 2026-08-13",
+    "if Discovery fails, status is NO_GO_DISCOVERY and no future Validation data is consumed",
+    "same agent reads the search status, candidate count, fresh-validation status, and frozen lookback when present",
+    "runtime creates canonical COMPLETE with the exact runtime-owned evidence reference",
+    "profitabilityClaim remains false"
+  ],
+  "toolContext": {
+    "datasetHash": "c4f56e2dae66fa09739797c9bac43b82b48d972591fe618dff16e5d4bacb5b3f",
+    "snapshotExperiment": "EXP-MA-STATE-INCREMENTAL-001"
+  },
+  "constraints": [
+    "Use the existing chart-ready PRICE_N_HIGH_BREAKOUT semantics",
+    "Do not change dataset population, outcome horizon, positive threshold, or negative threshold",
+    "Do not execute broker/order actions",
+    "Do not call or simulate Validation in this task",
+    "Do not reuse the previously exposed 2026-07-10 onward historical segment as a fresh holdout",
+    "Do not change ranking or Discovery gate after seeing results",
+    "Do not add rescue filters inside this lineage",
+    "Technical data exclusions must remain outcome-independent",
+    "Model output must not own or invent runtime ids"
+  ]
+}
