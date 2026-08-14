@@ -6,11 +6,12 @@
   "purpose": "Verify the autonomous local-agent research loop, not strategy profitability.",
   "objective": "Using the available skills and deterministic research tools, analyze the case where the closing price freshly crosses above the 5-day moving average. Choose the correct existing capability yourself, request the minimum required tool action, read the returned evidence, and return a structured COMPLETE result. Do not write code and do not optimize parameters.",
   "successCriteria": [
-    "first model turn returns ACTION_REQUIRED",
+    "first model turn returns the semantic action that runtime normalizes to ACTION_REQUIRED",
     "agent maps the goal to PRICE_MA_RECLAIM_UP with period 5 without being given a precomputed result",
     "runtime executes exactly one whitelisted deterministic research action",
     "tool evidence is returned to the same agent",
-    "second model turn returns COMPLETE and cites the tool evidence id",
+    "second model turn accurately reads featureId, period, eventCount, discovery sampleCount, and validation sampleCount",
+    "runtime attaches the exact evidence id to the canonical COMPLETE evidenceRefs",
     "profitabilityClaim remains false"
   ],
   "toolContext": {
@@ -22,6 +23,7 @@
     "Do not change dataset, horizon, thresholds, or population",
     "Do not execute broker/order actions",
     "Do not perform a parameter sweep in this smoke test",
-    "The strategy outcome is secondary to proving the autonomous loop"
+    "The strategy outcome is secondary to proving the autonomous loop",
+    "Model output must not own or invent runtime ids"
   ]
 }
