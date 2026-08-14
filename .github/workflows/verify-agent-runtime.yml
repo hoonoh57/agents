@@ -36,6 +36,19 @@ jobs:
         shell: pwsh
         run: node -e "const fs=require('fs'); const x=JSON.parse(fs.readFileSync('task-templates/current-logic-baseline-review.json','utf8')); if(x.schema!=='AgentTaskTemplate@1.0.0'||x.agentId!=='current-logic-analyst'||!Array.isArray(x.inputs)||x.inputs.length!==4) process.exit(1); console.log('TASK_TEMPLATE_PASS inputs='+x.inputs.length)"
 
+      - name: Verify production autonomous queue lane
+        shell: pwsh
+        run: |
+          node --check .\scripts\autonomous_research_engine.mjs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node --check .\scripts\agent_worker_router.mjs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node .\scripts\autonomous_research_engine.mjs --self-test
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node .\scripts\agent_worker_router.mjs self-test
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node -e "const fs=require('fs');const x=JSON.parse(fs.readFileSync('task-templates/autonomous-ma5-queue-smoke.json','utf8'));if(x.schema!=='AgentTaskTemplate@1.0.0'||x.executionMode!=='AUTONOMOUS_RESEARCH'||x.agentId!=='experiment-validation')process.exit(1);console.log('AUTONOMOUS_QUEUE_TEMPLATE_PASS')"
+
       - name: Parse first real task launcher
         shell: pwsh
         run: |
@@ -62,15 +75,15 @@ jobs:
           if ($errors.Count -gt 0) { $errors | Format-List | Out-String | Write-Host; exit 1 }
           Write-Host 'AUTONOMOUS_RESEARCH_SMOKE_PARSE_PASS'
 
-      - name: Verify after-hours research launchers
+      - name: Verify one-shot research launchers
         shell: pwsh
         run: |
-          foreach ($file in @('.\scripts\RUN_RESEARCH_WINDOW_ONCE.ps1','.\scripts\INSTALL_RESEARCH_NIGHT_TASK.ps1')) {
+          foreach ($file in @('.\scripts\RUN_AGENT_ONCE.ps1','.\scripts\RUN_RESEARCH_WINDOW_ONCE.ps1','.\scripts\RUN_AUTONOMOUS_QUEUE_SMOKE.ps1','.\scripts\INSTALL_RESEARCH_NIGHT_TASK.ps1')) {
             $errors = $null
             [System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path $file), [ref]$null, [ref]$errors) | Out-Null
             if ($errors.Count -gt 0) { $errors | Format-List | Out-String | Write-Host; exit 1 }
           }
-          Write-Host 'AFTER_HOURS_RESEARCH_LAUNCHERS_PARSE_PASS'
+          Write-Host 'ONE_SHOT_RESEARCH_LAUNCHERS_PARSE_PASS'
 
       - name: Verify semantic benchmark scorer
         shell: pwsh
