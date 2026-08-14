@@ -4,7 +4,7 @@
   "agentId": "feature-architect",
   "goalId": "GOAL-FEATURE-ARCHITECT-NEXT-TRIGGER-003",
   "priority": 80,
-  "status": "QUEUED",
+  "status": "ERROR",
   "createdBy": "HUMAN_RESEARCH_DIRECTOR",
   "createdAt": "2026-08-14T03:11:41.950Z",
   "objective": "Redesign the next chart-ready trigger after v2 contract rejection. Return exactly three machine-checkable semantically distinct triggers using finalized adjusted daily OHLCV only. Each trigger must define one shared scalar state and an explicit threshold crossing of that same state from D-1 to D. Closed price-MA and price-above-prior/rolling-high semantics are forbidden even if algebraically renamed. Select exactly one rank-1 candidate. Do not write code, run experiments, invent acceptance thresholds, infer participant behavior, or claim profitability.",

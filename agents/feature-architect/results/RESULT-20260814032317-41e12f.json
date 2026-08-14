@@ -1,0 +1,203 @@
+{
+  "schema": "AgentResult@1.0.0",
+  "resultId": "RESULT-20260814032317-41e12f",
+  "taskId": "TASK-20260814032317-41e12f",
+  "agentId": "feature-architect",
+  "status": "COMPLETED",
+  "modelProfile": "LOCAL_REASONER",
+  "modelVersion": "qwen3.6:35b-a3b",
+  "startedAt": "2026-08-14T03:42:39.340Z",
+  "completedAt": "2026-08-14T03:43:58.322Z",
+  "summary": "RANK1|featureId=VOLUME_DENSITY_SURGE|reason=falsifiability, simplicity, chart traceability, or data availability rationale",
+  "claims": [
+    {
+      "kind": "PROPOSAL",
+      "claim": "CANDIDATE|featureId=VOLUME_DENSITY_SURGE|family=VOLUME_TRANSFORM|name=Volume Density Surge|state=sum(volume) over lookback days|prevTest=D-1 state <= threshold|currTest=D state > threshold|fields=volume, adjustedPrice|params={lookback: integer [3, 20], threshold: scalar >= 0}|warmup=lookback bars|chart=histogram overlay with threshold line|densityRisk=low frequency event in low-volume regimes|distinct=uses volume magnitude rather than price direction or MA crossing.",
+      "sourceInputIds": [
+        "explorer-ma-cross",
+        "explorer-price-reclaim-high-breakout",
+        "daily-candle-contract",
+        "trigger-context-boundary",
+        "p3-reject-001",
+        "p3-reject-002"
+      ]
+    },
+    {
+      "kind": "PROPOSAL",
+      "claim": "CANDIDATE|featureId=PRICE_RANGE_EXPANSION|family=RANGE_TRANSFORM|name=Price Range Expansion|state=high - low|prevTest=D-1 state <= threshold|currTest=D state > threshold|fields=open, high, low, close, adjustedPrice|params={threshold: scalar >= 0}|warmup=1 bar|chart=candle body/wick visualization with threshold line|densityRisk=moderate frequency in volatile regimes|distinct=measures absolute price movement magnitude rather than direction or relative position to MA/high.",
+      "sourceInputIds": [
+        "explorer-ma-cross",
+        "explorer-price-reclaim-high-breakout",
+        "daily-candle-contract",
+        "trigger-context-boundary",
+        "p3-reject-001",
+        "p3-reject-002"
+      ]
+    },
+    {
+      "kind": "PROPOSAL",
+      "claim": "CANDIDATE|featureId=PRICE_GAP_SURGE|family=GAP_TRANSFORM|name=Price Gap Surge|state=open - previous_close|prevTest=D-1 state <= threshold|currTest=D state > threshold|fields=open, close, adjustedPrice|params={threshold: scalar >= 0}|warmup=2 bars|chart=gap visualization with threshold line|densityRisk=low frequency event in stable regimes|distinct=measures discontinuity in price rather than continuous movement or relative position.",
+      "sourceInputIds": [
+        "explorer-ma-cross",
+        "explorer-price-reclaim-high-breakout",
+        "daily-candle-contract",
+        "trigger-context-boundary",
+        "p3-reject-001",
+        "p3-reject-002"
+      ]
+    }
+  ],
+  "sourceRefs": [
+    {
+      "inputId": "explorer-ma-cross",
+      "root": "RESEARCH_LOCAL_ROOT",
+      "relativePath": "template/feature-packs/swing-research/ProfitFeatureExplorer.ts",
+      "repositoryHead": "6318d9235872ac72e7eaf5c36b06a720f88ac465",
+      "fileSha256": "e4504f29f2d9f8d26a7616d3f95d5cf118c2f60b420d1619e84291f4385c62bb",
+      "excerptSha256": "8096cb78d9406ace99e777d3a4138fbe11af63e7075606f7349544beb68bed80",
+      "sourceBytes": 27781,
+      "excerptBytes": 3278,
+      "mode": "AROUND",
+      "anchor": "const maCrossFeature"
+    },
+    {
+      "inputId": "explorer-price-reclaim-high-breakout",
+      "root": "RESEARCH_LOCAL_ROOT",
+      "relativePath": "template/feature-packs/swing-research/ProfitFeatureExplorer.ts",
+      "repositoryHead": "6318d9235872ac72e7eaf5c36b06a720f88ac465",
+      "fileSha256": "e4504f29f2d9f8d26a7616d3f95d5cf118c2f60b420d1619e84291f4385c62bb",
+      "excerptSha256": "556f0da2d44582e344a44d788fab2b1ec8e46170f47f5c37d39e26c8c2607656",
+      "sourceBytes": 27781,
+      "excerptBytes": 5915,
+      "mode": "AROUND",
+      "anchor": "const priceMaReclaimFeature"
+    },
+    {
+      "inputId": "daily-candle-contract",
+      "root": "RESEARCH_LOCAL_ROOT",
+      "relativePath": "template/feature-packs/swing-research/SwingTrendFoundation.ts",
+      "repositoryHead": "6318d9235872ac72e7eaf5c36b06a720f88ac465",
+      "fileSha256": "c419fe2e178635805ffb8d40c795e6575aeac14ee19789ece10204961d5b8e96",
+      "excerptSha256": "6690f27b0b14b3bafb622272cb0b9997e1b86c8d0beb358855d8dd601a74ebf7",
+      "sourceBytes": 8734,
+      "excerptBytes": 2977,
+      "mode": "AROUND",
+      "anchor": "export interface SwingDailyCandle"
+    },
+    {
+      "inputId": "trigger-context-boundary",
+      "root": "RESEARCH_LOCAL_ROOT",
+      "relativePath": "template/feature-packs/swing-research/ProfitFeatureFoundry.ts",
+      "repositoryHead": "6318d9235872ac72e7eaf5c36b06a720f88ac465",
+      "fileSha256": "9561116027a4eb4ef1b3ef9cf3fcfd617f049c13783656aa890166c5e8ca96ea",
+      "excerptSha256": "7849a45d00ac7eef58a72e73383977fa6449566adf8a57e040f86154818acd32",
+      "sourceBytes": 34186,
+      "excerptBytes": 3734,
+      "mode": "AROUND",
+      "anchor": "export interface ProfitObservation"
+    },
+    {
+      "inputId": "p3-reject-001",
+      "root": "AGENT_REPO_ROOT",
+      "relativePath": "coordinator/decisions/P3_FEATURE_ARCHITECT_NEXT_TRIGGER_001_REJECTED.json",
+      "repositoryHead": "f8882b0bc8bcfdaf5a637babe4d0b654426ba938",
+      "fileSha256": "2991be30fe403deabba114cc60e562b851e8168588a91755757ffccc469ac8b2",
+      "excerptSha256": "2991be30fe403deabba114cc60e562b851e8168588a91755757ffccc469ac8b2",
+      "sourceBytes": 2345,
+      "excerptBytes": 2345,
+      "mode": "FULL",
+      "anchor": null
+    },
+    {
+      "inputId": "p3-reject-002",
+      "root": "AGENT_REPO_ROOT",
+      "relativePath": "coordinator/decisions/P3_FEATURE_ARCHITECT_NEXT_TRIGGER_002_REJECTED.json",
+      "repositoryHead": "f8882b0bc8bcfdaf5a637babe4d0b654426ba938",
+      "fileSha256": "94acc6453135c472e97a7e5cc037373625c89bfba407165cdb485be4472f1eda",
+      "excerptSha256": "94acc6453135c472e97a7e5cc037373625c89bfba407165cdb485be4472f1eda",
+      "sourceBytes": 2179,
+      "excerptBytes": 2179,
+      "mode": "FULL",
+      "anchor": null
+    }
+  ],
+  "proposalRefs": [],
+  "artifactRefs": [],
+  "requiresValidation": true,
+  "externalEscalation": null,
+  "workProduct": {
+    "schema": "AgentWorkProduct@1.0.0",
+    "summary": "RANK1|featureId=VOLUME_DENSITY_SURGE|reason=falsifiability, simplicity, chart traceability, or data availability rationale",
+    "findings": [
+      {
+        "kind": "PROPOSAL",
+        "claim": "CANDIDATE|featureId=VOLUME_DENSITY_SURGE|family=VOLUME_TRANSFORM|name=Volume Density Surge|state=sum(volume) over lookback days|prevTest=D-1 state <= threshold|currTest=D state > threshold|fields=volume, adjustedPrice|params={lookback: integer [3, 20], threshold: scalar >= 0}|warmup=lookback bars|chart=histogram overlay with threshold line|densityRisk=low frequency event in low-volume regimes|distinct=uses volume magnitude rather than price direction or MA crossing.",
+        "sourceInputIds": [
+          "explorer-ma-cross",
+          "explorer-price-reclaim-high-breakout",
+          "daily-candle-contract",
+          "trigger-context-boundary",
+          "p3-reject-001",
+          "p3-reject-002"
+        ]
+      },
+      {
+        "kind": "PROPOSAL",
+        "claim": "CANDIDATE|featureId=PRICE_RANGE_EXPANSION|family=RANGE_TRANSFORM|name=Price Range Expansion|state=high - low|prevTest=D-1 state <= threshold|currTest=D state > threshold|fields=open, high, low, close, adjustedPrice|params={threshold: scalar >= 0}|warmup=1 bar|chart=candle body/wick visualization with threshold line|densityRisk=moderate frequency in volatile regimes|distinct=measures absolute price movement magnitude rather than direction or relative position to MA/high.",
+        "sourceInputIds": [
+          "explorer-ma-cross",
+          "explorer-price-reclaim-high-breakout",
+          "daily-candle-contract",
+          "trigger-context-boundary",
+          "p3-reject-001",
+          "p3-reject-002"
+        ]
+      },
+      {
+        "kind": "PROPOSAL",
+        "claim": "CANDIDATE|featureId=PRICE_GAP_SURGE|family=GAP_TRANSFORM|name=Price Gap Surge|state=open - previous_close|prevTest=D-1 state <= threshold|currTest=D state > threshold|fields=open, close, adjustedPrice|params={threshold: scalar >= 0}|warmup=2 bars|chart=gap visualization with threshold line|densityRisk=low frequency event in stable regimes|distinct=measures discontinuity in price rather than continuous movement or relative position.",
+        "sourceInputIds": [
+          "explorer-ma-cross",
+          "explorer-price-reclaim-high-breakout",
+          "daily-candle-contract",
+          "trigger-context-boundary",
+          "p3-reject-001",
+          "p3-reject-002"
+        ]
+      }
+    ],
+    "nextActions": [
+      "DISCOVERY_CONTRACT|featureId=VOLUME_DENSITY_SURGE|parameterSearch={lookback: [3, 20], threshold: [0, max_volume]}|notes=Focus on bounded parameter search for lookback and threshold. Ensure chart traceability via histogram overlay."
+    ],
+    "profitabilityClaim": false
+  },
+  "runtimeMetrics": {
+    "wallSeconds": 78.685,
+    "outputTokens": 766,
+    "tokensPerSecond": 40.2995932792484,
+    "contextBytes": 20428,
+    "doneReason": "stop",
+    "outputAttempts": 1,
+    "outputStrict": true,
+    "outputRecovered": false,
+    "outputTrailingChars": 0,
+    "outputDiagnostics": [
+      {
+        "attempt": 1,
+        "doneReason": "stop",
+        "outputTokens": 766,
+        "contentChars": 2731,
+        "contentSha256": "5d5a86a8bf9b3742cdea15cfbd7c42c2ec20e5b636397a3e21d6a086c2a32abd",
+        "preview": "{\n  \"schema\": \"AgentWorkProduct@1.0.0\",\n  \"summary\": \"RANK1|featureId=VOLUME_DENSITY_SURGE|reason=falsifiability, simplicity, chart traceability, or data availability rationale\",\n  \"findings\": [\n    {\n      \"kind\": \"PROPOSAL\",\n      \"claim\": \"CANDIDATE|featureId=VOLUME_DENSITY_SURGE|family=VOLUME_TRANSFORM|name=Volume Density Surge|state=sum(volume) over lookback days|prevTest=D-1 state <= threshold|currTest=D state > threshold|fields=volume, adjustedPrice|params={lookback: integer [3, 20], threshold: scalar >= 0}|warmup=lookback bars|chart=histogram overlay with threshold line|densityRisk=low frequency event in low-volume regimes|distinct=uses volume magnitude rather than price direction or",
+        "validationError": null,
+        "maxOutputTokens": 1800,
+        "parse": {
+          "strict": true,
+          "recovered": false,
+          "trailing": 0,
+          "error": null
+        }
+      }
+    ]
+  }
+}
