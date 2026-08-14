@@ -7,6 +7,8 @@ import { parseFirstJsonObject } from './structured_output.mjs';
 
 const TURN_SCHEMA = 'ResearchAgentTurn@1.0.0';
 const ENGINE_EVIDENCE_SCHEMA = 'AutonomousResearchTaskEvidence@1.0.0';
+const TOOL_EXPERIMENT = 'RUN_FEATURE_EXPERIMENT';
+const TOOL_PERIOD_SEARCH = 'RUN_FEATURE_PERIOD_SEARCH';
 
 function sha(value) {
   return crypto.createHash('sha256').update(typeof value === 'string' ? value : JSON.stringify(value)).digest('hex');
@@ -41,19 +43,28 @@ function registeredFeatureTool(toolRegistry, toolName) {
   if (!tool) throw engineError('AUTONOMOUS_TOOL_UNAVAILABLE', toolName);
   return tool;
 }
+function integerContractValue(value, name, contract) {
+  const parsed = Number(value);
+  if (!Number.isInteger(parsed)) throw engineError('AUTONOMOUS_ACTION_INVALID', `${name}=${String(value ?? 'missing')}`);
+  const min = Number(contract?.min ?? Number.MIN_SAFE_INTEGER);
+  const max = Number(contract?.max ?? Number.MAX_SAFE_INTEGER);
+  if (parsed < min || parsed > max) throw engineError('AUTONOMOUS_ACTION_INVALID', `${name}=${parsed}`);
+  return parsed;
+}
 function actionSemanticSchema(toolRegistry) {
   const tools = enabledResearchTools(toolRegistry);
   if (!tools.length) throw engineError('AUTONOMOUS_TOOL_UNAVAILABLE', 'no read-only research tool');
   const featureIds = [...new Set(tools.flatMap(x => x.allowedFeatureIds || []))];
-  const periodMin = Math.min(...tools.map(x => Number(x.parameterContract?.period?.min ?? 2)));
-  const periodMax = Math.max(...tools.map(x => Number(x.parameterContract?.period?.max ?? 240)));
   return {
     type: 'object', additionalProperties: false,
-    required: ['tool', 'featureId', 'period', 'reasoningSummary'],
+    required: ['tool', 'featureId', 'reasoningSummary'],
     properties: {
       tool: { type: 'string', enum: tools.map(x => x.tool) },
       featureId: { type: 'string', enum: featureIds },
-      period: { type: 'integer', minimum: periodMin, maximum: periodMax },
+      period: { type: 'integer', minimum: 2, maximum: 240 },
+      periodMin: { type: 'integer', minimum: 2, maximum: 240 },
+      periodMax: { type: 'integer', minimum: 2, maximum: 240 },
+      periodStep: { type: 'integer', minimum: 1, maximum: 60 },
       reasoningSummary: { type: 'string', maxLength: 1200 },
     },
   };
@@ -62,27 +73,69 @@ function validateActionSemantic(value, toolRegistry) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) throw engineError('AUTONOMOUS_ACTION_INVALID', 'object required');
   const tool = registeredFeatureTool(toolRegistry, String(value.tool || ''));
   const featureId = String(value.featureId || '');
-  const period = Number(value.period);
   if (!(tool.allowedFeatureIds || []).includes(featureId)) throw engineError('AUTONOMOUS_ACTION_INVALID', `feature=${featureId}`);
-  if (!Number.isInteger(period) || period < Number(tool.parameterContract?.period?.min) || period > Number(tool.parameterContract?.period?.max)) throw engineError('AUTONOMOUS_ACTION_INVALID', `period=${value.period}`);
   if (typeof value.reasoningSummary !== 'string' || !value.reasoningSummary.trim()) throw engineError('AUTONOMOUS_ACTION_INVALID', 'reasoningSummary required');
-  return { tool: tool.tool, featureId, period, reasoningSummary: value.reasoningSummary.trim() };
+
+  if (tool.tool === TOOL_EXPERIMENT) {
+    const period = integerContractValue(value.period, 'period', tool.parameterContract?.period);
+    return { tool: tool.tool, featureId, period, reasoningSummary: value.reasoningSummary.trim() };
+  }
+  if (tool.tool === TOOL_PERIOD_SEARCH) {
+    const periodMin = integerContractValue(value.periodMin, 'periodMin', tool.parameterContract?.periodMin);
+    const periodMax = integerContractValue(value.periodMax, 'periodMax', tool.parameterContract?.periodMax);
+    const periodStep = integerContractValue(value.periodStep, 'periodStep', tool.parameterContract?.periodStep);
+    if (periodMin > periodMax) throw engineError('AUTONOMOUS_ACTION_INVALID', `periodMin=${periodMin}>periodMax=${periodMax}`);
+    const candidateCount = Math.floor((periodMax - periodMin) / periodStep) + 1;
+    if (candidateCount < 1 || candidateCount > 120) throw engineError('AUTONOMOUS_ACTION_INVALID', `candidateCount=${candidateCount}`);
+    return { tool: tool.tool, featureId, periodMin, periodMax, periodStep, reasoningSummary: value.reasoningSummary.trim() };
+  }
+  throw engineError('AUTONOMOUS_TOOL_UNAVAILABLE', tool.tool);
+}
+function semanticParameters(semantic) {
+  if (semantic.tool === TOOL_EXPERIMENT) return { period: semantic.period };
+  if (semantic.tool === TOOL_PERIOD_SEARCH) return { periodMin: semantic.periodMin, periodMax: semantic.periodMax, periodStep: semantic.periodStep };
+  throw engineError('AUTONOMOUS_TOOL_UNAVAILABLE', semantic.tool);
 }
 function normalizeAction(goalId, semantic, toolRegistry) {
   const checked = validateActionSemantic(semantic, toolRegistry);
-  const actionId = `ACTION-${sha({ goalId, tool: checked.tool, featureId: checked.featureId, period: checked.period }).slice(0, 16)}`;
+  const parameters = semanticParameters(checked);
+  const actionId = `ACTION-${sha({ goalId, tool: checked.tool, featureId: checked.featureId, parameters }).slice(0, 16)}`;
   return {
     schema: TURN_SCHEMA,
     goalId,
     status: 'ACTION_REQUIRED',
     reasoningSummary: checked.reasoningSummary,
-    actions: [{ actionId, tool: checked.tool, arguments: { featureId: checked.featureId, parameters: { period: checked.period } } }],
+    actions: [{ actionId, tool: checked.tool, arguments: { featureId: checked.featureId, parameters } }],
     evidenceRefs: [], conclusion: '', nextResearch: [], profitabilityClaim: false,
   };
 }
 
+function normalizeNextResearch(value) {
+  if (Array.isArray(value)) return value.filter(x => typeof x === 'string' && x.trim()).map(x => x.trim()).slice(0, 2);
+  if (typeof value === 'string' && value.trim()) return [value.trim()];
+  return [];
+}
 function completionSemanticSchema(evidence) {
   const d = evidence.evidence;
+  if (d.tool === TOOL_PERIOD_SEARCH) {
+    const selected = d.selectedCandidate || null;
+    const required = ['featureId', 'searchStatus', 'candidateCount', 'validationSampleCount', 'reasoningSummary', 'conclusion'];
+    const properties = {
+      featureId: { type: 'string', enum: [String(d.featureId)] },
+      searchStatus: { type: 'string', enum: [String(d.status)] },
+      candidateCount: { type: 'integer', enum: [Array.isArray(d.discoveryRanking) ? d.discoveryRanking.length : 0] },
+      validationSampleCount: { type: 'integer', enum: [Number(d.validation?.sampleCount ?? 0)] },
+      reasoningSummary: { type: 'string', maxLength: 1200 },
+      conclusion: { type: 'string', maxLength: 2200 },
+      nextResearch: { type: 'array', maxItems: 2, items: { type: 'string', maxLength: 1000 } },
+    };
+    if (selected) {
+      required.push('selectedPeriod', 'discoverySampleCount');
+      properties.selectedPeriod = { type: 'integer', enum: [Number(selected.period)] };
+      properties.discoverySampleCount = { type: 'integer', enum: [Number(selected.discovery?.sampleCount ?? 0)] };
+    }
+    return { type: 'object', additionalProperties: false, required, properties };
+  }
   return {
     type: 'object', additionalProperties: false,
     required: ['featureId', 'period', 'eventCount', 'discoverySampleCount', 'validationSampleCount', 'reasoningSummary', 'conclusion'],
@@ -98,19 +151,26 @@ function completionSemanticSchema(evidence) {
     },
   };
 }
-function normalizeNextResearch(value) {
-  if (Array.isArray(value)) return value.filter(x => typeof x === 'string' && x.trim()).map(x => x.trim()).slice(0, 2);
-  if (typeof value === 'string' && value.trim()) return [value.trim()];
-  return [];
-}
 function validateCompletionSemantic(value, evidence) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) throw engineError('AUTONOMOUS_COMPLETION_INVALID', 'object required');
   const d = evidence.evidence;
   if (String(value.featureId || '') !== String(d.featureId)) throw engineError('AUTONOMOUS_COMPLETION_INVALID', `feature mismatch actual=${String(value.featureId ?? 'missing')}`);
-  if (Number(value.period) !== Number(d.parameters?.period)) throw engineError('AUTONOMOUS_COMPLETION_INVALID', `period mismatch actual=${String(value.period ?? 'missing')}`);
-  if (Number(value.eventCount) !== Number(d.eventCount)) throw engineError('AUTONOMOUS_COMPLETION_INVALID', `eventCount mismatch actual=${String(value.eventCount ?? 'missing')}`);
-  if (Number(value.discoverySampleCount) !== Number(d.discovery?.sampleCount ?? 0)) throw engineError('AUTONOMOUS_COMPLETION_INVALID', `discovery sample mismatch actual=${String(value.discoverySampleCount ?? 'missing')}`);
-  if (Number(value.validationSampleCount) !== Number(d.validation?.sampleCount ?? 0)) throw engineError('AUTONOMOUS_COMPLETION_INVALID', `validation sample mismatch actual=${String(value.validationSampleCount ?? 'missing')}`);
+
+  if (d.tool === TOOL_PERIOD_SEARCH) {
+    const candidateCount = Array.isArray(d.discoveryRanking) ? d.discoveryRanking.length : 0;
+    if (String(value.searchStatus || '') !== String(d.status)) throw engineError('AUTONOMOUS_COMPLETION_INVALID', `searchStatus mismatch actual=${String(value.searchStatus ?? 'missing')}`);
+    if (Number(value.candidateCount) !== candidateCount) throw engineError('AUTONOMOUS_COMPLETION_INVALID', `candidateCount mismatch actual=${String(value.candidateCount ?? 'missing')}`);
+    if (Number(value.validationSampleCount) !== Number(d.validation?.sampleCount ?? 0)) throw engineError('AUTONOMOUS_COMPLETION_INVALID', `validation sample mismatch actual=${String(value.validationSampleCount ?? 'missing')}`);
+    if (d.selectedCandidate) {
+      if (Number(value.selectedPeriod) !== Number(d.selectedCandidate.period)) throw engineError('AUTONOMOUS_COMPLETION_INVALID', `selectedPeriod mismatch actual=${String(value.selectedPeriod ?? 'missing')}`);
+      if (Number(value.discoverySampleCount) !== Number(d.selectedCandidate.discovery?.sampleCount ?? 0)) throw engineError('AUTONOMOUS_COMPLETION_INVALID', `discovery sample mismatch actual=${String(value.discoverySampleCount ?? 'missing')}`);
+    }
+  } else {
+    if (Number(value.period) !== Number(d.parameters?.period)) throw engineError('AUTONOMOUS_COMPLETION_INVALID', `period mismatch actual=${String(value.period ?? 'missing')}`);
+    if (Number(value.eventCount) !== Number(d.eventCount)) throw engineError('AUTONOMOUS_COMPLETION_INVALID', `eventCount mismatch actual=${String(value.eventCount ?? 'missing')}`);
+    if (Number(value.discoverySampleCount) !== Number(d.discovery?.sampleCount ?? 0)) throw engineError('AUTONOMOUS_COMPLETION_INVALID', `discovery sample mismatch actual=${String(value.discoverySampleCount ?? 'missing')}`);
+    if (Number(value.validationSampleCount) !== Number(d.validation?.sampleCount ?? 0)) throw engineError('AUTONOMOUS_COMPLETION_INVALID', `validation sample mismatch actual=${String(value.validationSampleCount ?? 'missing')}`);
+  }
   if (typeof value.reasoningSummary !== 'string' || !value.reasoningSummary.trim()) throw engineError('AUTONOMOUS_COMPLETION_INVALID', 'reasoningSummary required');
   if (typeof value.conclusion !== 'string' || !value.conclusion.trim()) throw engineError('AUTONOMOUS_COMPLETION_INVALID', 'conclusion required');
   return {
@@ -135,12 +195,19 @@ function normalizeCompletion(goalId, semantic, evidenceId, evidence) {
 function semanticDiagnostic(value) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
   return {
-    keys: Object.keys(value).slice(0, 16),
+    keys: Object.keys(value).slice(0, 20),
+    tool: value.tool ?? null,
     featureId: value.featureId ?? null,
     period: value.period ?? null,
+    periodMin: value.periodMin ?? null,
+    periodMax: value.periodMax ?? null,
+    periodStep: value.periodStep ?? null,
     eventCount: value.eventCount ?? null,
     discoverySampleCount: value.discoverySampleCount ?? null,
     validationSampleCount: value.validationSampleCount ?? null,
+    selectedPeriod: value.selectedPeriod ?? null,
+    searchStatus: value.searchStatus ?? null,
+    candidateCount: value.candidateCount ?? null,
     nextResearchType: Array.isArray(value.nextResearch) ? 'array' : value.nextResearch === null ? 'null' : typeof value.nextResearch,
   };
 }
@@ -196,27 +263,68 @@ async function runSemanticDecision({ stage, schema, validate, messages, candidat
   throw error;
 }
 
-function executeResearchAction({ action, goal, env, toolRegistry }) {
-  const semantic = validateActionSemantic({
+function semanticFromAction(action, toolRegistry) {
+  const parameters = action.arguments?.parameters || {};
+  return validateActionSemantic({
     tool: action.tool,
     featureId: action.arguments?.featureId,
-    period: action.arguments?.parameters?.period,
+    ...parameters,
     reasoningSummary: 'runtime validation',
   }, toolRegistry);
+}
+function resolveExecutor(researchRoot, tool) {
+  const configured = String(tool.executor || '').replace(/\\/g, '/');
+  const prefix = 'RESEARCH_LOCAL_ROOT/';
+  if (!configured.startsWith(prefix)) throw engineError('AUTONOMOUS_TOOL_EXECUTOR_INVALID', configured);
+  const relative = configured.slice(prefix.length);
+  if (!relative || relative.split('/').includes('..')) throw engineError('AUTONOMOUS_TOOL_EXECUTOR_INVALID', configured);
+  const resolvedRoot = path.resolve(researchRoot);
+  const executor = path.resolve(resolvedRoot, relative);
+  if (!(executor === resolvedRoot || executor.startsWith(resolvedRoot + path.sep))) throw engineError('AUTONOMOUS_TOOL_EXECUTOR_INVALID', executor);
+  return executor;
+}
+function executeResearchAction({ action, goal, env, toolRegistry }) {
+  const semantic = semanticFromAction(action, toolRegistry);
+  const registeredTool = registeredFeatureTool(toolRegistry, semantic.tool);
   const researchRoot = String(env.RESEARCH_LOCAL_ROOT || '').trim();
   if (!researchRoot) throw engineError('AUTONOMOUS_CONFIG_MISSING', 'RESEARCH_LOCAL_ROOT');
-  const executor = path.join(researchRoot, 'scripts', 'run_feature_experiment_tool.mjs');
+  const executor = resolveExecutor(researchRoot, registeredTool);
   if (!fs.existsSync(executor)) throw engineError('AUTONOMOUS_TOOL_EXECUTOR_MISSING', executor);
   const datasetHash = String(goal.toolContext?.datasetHash || '').trim();
   const snapshotExperiment = String(goal.toolContext?.snapshotExperiment || '').trim();
   if (!datasetHash || !snapshotExperiment) throw engineError('AUTONOMOUS_GOAL_INVALID', 'toolContext datasetHash/snapshotExperiment required');
-  const args = [executor, '--feature', semantic.featureId, '--period', String(semantic.period), '--dataset', datasetHash, '--snapshot-experiment', snapshotExperiment];
+
+  const args = [executor, '--feature', semantic.featureId];
+  if (semantic.tool === TOOL_EXPERIMENT) {
+    args.push('--period', String(semantic.period));
+  } else if (semantic.tool === TOOL_PERIOD_SEARCH) {
+    args.push('--period-min', String(semantic.periodMin), '--period-max', String(semantic.periodMax), '--period-step', String(semantic.periodStep));
+  } else {
+    throw engineError('AUTONOMOUS_TOOL_UNAVAILABLE', semantic.tool);
+  }
+  args.push('--dataset', datasetHash, '--snapshot-experiment', snapshotExperiment);
+
   const child = spawnSync(process.execPath, args, { cwd: researchRoot, encoding: 'utf8', windowsHide: true, timeout: 120000 });
   if (child.error) throw engineError('AUTONOMOUS_TOOL_SPAWN_FAILED', child.error.message);
   if (child.status !== 0) throw engineError('AUTONOMOUS_TOOL_FAILED', `exit=${child.status}:${String(child.stderr || '').slice(0, 700)}`);
   let evidence;
   try { evidence = JSON.parse(String(child.stdout || '').trim()); } catch { throw engineError('AUTONOMOUS_TOOL_EVIDENCE_INVALID', String(child.stdout || '').slice(0, 700)); }
   if (evidence.schema !== 'ResearchToolEvidence@1.0.0' || evidence.profitabilityClaim !== false) throw engineError('AUTONOMOUS_TOOL_EVIDENCE_INVALID', 'schema/profitabilityClaim');
+  if (String(evidence.tool) !== semantic.tool || String(evidence.featureId) !== semantic.featureId) throw engineError('AUTONOMOUS_TOOL_EVIDENCE_INVALID', 'tool/feature mismatch');
+
+  if (semantic.tool === TOOL_EXPERIMENT) {
+    if (Number(evidence.parameters?.period) !== semantic.period) throw engineError('AUTONOMOUS_TOOL_EVIDENCE_INVALID', 'period mismatch');
+  } else {
+    if (Number(evidence.parameters?.periodMin) !== semantic.periodMin || Number(evidence.parameters?.periodMax) !== semantic.periodMax || Number(evidence.parameters?.periodStep) !== semantic.periodStep) throw engineError('AUTONOMOUS_TOOL_EVIDENCE_INVALID', 'period search mismatch');
+    if (evidence.method?.discoveryOnlyRanking !== true || evidence.method?.selectedCandidateFrozenBeforeValidation !== true || evidence.method?.nonSelectedValidationEvaluated !== false) throw engineError('AUTONOMOUS_TOOL_EVIDENCE_INVALID', 'holdout policy mismatch');
+    const validationPeriods = Array.isArray(evidence.method?.validationEvaluatedPeriods) ? evidence.method.validationEvaluatedPeriods.map(Number) : [];
+    if (validationPeriods.length > 1) throw engineError('AUTONOMOUS_TOOL_EVIDENCE_INVALID', 'multiple validation periods');
+    if (evidence.selectedCandidate) {
+      if (validationPeriods.length !== 1 || validationPeriods[0] !== Number(evidence.selectedCandidate.period)) throw engineError('AUTONOMOUS_TOOL_EVIDENCE_INVALID', 'selected validation period mismatch');
+    } else if (validationPeriods.length !== 0) {
+      throw engineError('AUTONOMOUS_TOOL_EVIDENCE_INVALID', 'validation without selected candidate');
+    }
+  }
   const evidenceId = `EVIDENCE-${sha(evidence).slice(0, 16)}`;
   return { evidenceId, actionId: action.actionId, createdAt: nowIso(), evidence };
 }
@@ -243,38 +351,46 @@ function buildResearchPrompt({ root, task, agent, goal, toolRegistry }) {
 
 function compactEvidenceForCompletion(goal, firstTurn, evidence) {
   const d = evidence.evidence;
-  return {
-    goal: {
-      goalId: goal.goalId,
-      purpose: goal.purpose,
-      objective: goal.objective,
-      constraints: goal.constraints,
-    },
+  const base = {
+    goal: { goalId: goal.goalId, purpose: goal.purpose, objective: goal.objective, constraints: goal.constraints },
     priorAction: {
       tool: firstTurn.actions[0]?.tool,
       featureId: firstTurn.actions[0]?.arguments?.featureId,
-      period: firstTurn.actions[0]?.arguments?.parameters?.period,
+      parameters: firstTurn.actions[0]?.arguments?.parameters,
     },
-    toolEvidence: {
-      tool: d.tool,
-      featureId: d.featureId,
-      parameters: d.parameters,
-      datasetHash: d.datasetHash,
-      snapshotExperiment: d.snapshotExperiment,
-      dateFrom: d.dateFrom,
-      dateTo: d.dateTo,
-      validationStart: d.validationStart,
-      requestedSymbolCount: d.requestedSymbolCount,
-      effectiveSymbolCount: d.effectiveSymbolCount,
-      excludedSymbols: d.excludedSymbols,
-      eventCount: d.eventCount,
-      all: d.all,
-      discovery: d.discovery,
-      validation: d.validation,
-      profitabilityClaim: false,
-    },
-    runtimeNote: 'The evidence reference/id is runtime-owned. Do not invent, copy, or return an evidenceId. Prove evidence reading by returning the exact featureId, period, eventCount, discovery sampleCount and validation sampleCount requested by the response schema.',
   };
+  if (d.tool === TOOL_PERIOD_SEARCH) {
+    return {
+      ...base,
+      toolEvidence: {
+        tool: d.tool, featureId: d.featureId, parameters: d.parameters, datasetHash: d.datasetHash,
+        snapshotExperiment: d.snapshotExperiment, dateFrom: d.dateFrom, dateTo: d.dateTo, validationStart: d.validationStart,
+        requestedSymbolCount: d.requestedSymbolCount, effectiveSymbolCount: d.effectiveSymbolCount, excludedSymbols: d.excludedSymbols,
+        method: d.method, candidateCount: Array.isArray(d.discoveryRanking) ? d.discoveryRanking.length : 0,
+        topDiscoveryCandidates: Array.isArray(d.discoveryRanking) ? d.discoveryRanking.slice(0, 8) : [],
+        selectedCandidate: d.selectedCandidate, validation: d.validation, status: d.status, profitabilityClaim: false,
+      },
+      runtimeNote: 'All ids are runtime-owned. Read the holdout-safe search evidence. Do not request validation for another period and do not change the ranking after seeing Validation.',
+    };
+  }
+  return {
+    ...base,
+    toolEvidence: {
+      tool: d.tool, featureId: d.featureId, parameters: d.parameters, datasetHash: d.datasetHash, snapshotExperiment: d.snapshotExperiment,
+      dateFrom: d.dateFrom, dateTo: d.dateTo, validationStart: d.validationStart, requestedSymbolCount: d.requestedSymbolCount,
+      effectiveSymbolCount: d.effectiveSymbolCount, excludedSymbols: d.excludedSymbols, eventCount: d.eventCount,
+      all: d.all, discovery: d.discovery, validation: d.validation, profitabilityClaim: false,
+    },
+    runtimeNote: 'All ids are runtime-owned. Prove evidence reading by returning the exact featureId, period, eventCount, discovery sampleCount and validation sampleCount.',
+  };
+}
+function completionInstruction(evidence) {
+  const d = evidence.evidence;
+  if (d.tool === TOOL_PERIOD_SEARCH) {
+    const selectedFields = d.selectedCandidate ? ' Also return selectedPeriod and discoverySampleCount for the frozen candidate.' : ' There is no frozen candidate, so omit selectedPeriod and discoverySampleCount.';
+    return `Read only the supplied holdout-safe search evidence. Return featureId, searchStatus, candidateCount, validationSampleCount, reasoningSummary and conclusion.${selectedFields} nextResearch is optional. Preserve the tool status exactly; do not reinterpret a NO_GO as success and do not request another Validation action.`;
+  }
+  return 'Read only the supplied evidence. Return featureId, period, eventCount, discoverySampleCount, validationSampleCount, reasoningSummary and conclusion. nextResearch is optional; omit it when there is no useful follow-up. Do not return any evidenceId and do not request another action in this one-shot lane.';
 }
 
 export async function runAutonomousResearchTask({ root, task, agent, env }) {
@@ -299,7 +415,7 @@ export async function runAutonomousResearchTask({ root, task, agent, env }) {
     base, timeoutSeconds, contextTokens, outputTokens,
     messages: [
       { role: 'system', content: 'You are an evidence-bound local research agent. Return only the requested small JSON decision. Use only whitelisted read-only research tools.' },
-      { role: 'user', content: `${common}\n\n# ACTION DECISION\nRead the goal and available capability contracts. Choose the minimum deterministic action required. Return only tool, featureId, period and reasoningSummary. Do not invent evidence.` },
+      { role: 'user', content: `${common}\n\n# ACTION DECISION\nRead the goal and capability/tool contracts. Choose the minimum deterministic action required. Return tool, featureId, reasoningSummary and exactly the flat parameters required by that tool: period for RUN_FEATURE_EXPERIMENT, or periodMin/periodMax/periodStep for RUN_FEATURE_PERIOD_SEARCH. Derive values from the human goal and existing capability contract. Do not invent evidence.` },
     ],
   });
   const firstTurn = normalizeAction(goal.goalId, actionRun.decision, toolRegistry);
@@ -313,7 +429,7 @@ export async function runAutonomousResearchTask({ root, task, agent, env }) {
     base, timeoutSeconds, contextTokens, outputTokens,
     messages: [
       { role: 'system', content: 'You are the same evidence-bound local research agent continuing the queued task. Return only the requested small JSON evidence interpretation. Runtime owns all ids.' },
-      { role: 'user', content: `# COMPACT COMPLETION CONTEXT\n${JSON.stringify(completionContext, null, 2)}\n\n# COMPLETION DECISION\nRead only the supplied evidence. Return featureId, period, eventCount, discoverySampleCount, validationSampleCount, reasoningSummary and conclusion. nextResearch is optional; omit it when there is no useful follow-up. Do not return any evidenceId and do not request another action in this one-shot lane.` },
+      { role: 'user', content: `# COMPACT COMPLETION CONTEXT\n${JSON.stringify(completionContext, null, 2)}\n\n# COMPLETION DECISION\n${completionInstruction(evidence)}` },
     ],
   });
   const finalTurn = normalizeCompletion(goal.goalId, completionRun.decision, evidence.evidenceId, evidence);
@@ -355,17 +471,33 @@ export async function runAutonomousResearchTask({ root, task, agent, env }) {
 
 export function selfTestAutonomousResearchEngine({ root }) {
   const toolRegistry = readJson(path.join(root, 'registry', 'research_tools.json'));
-  const semantic = validateActionSemantic({ tool: 'RUN_FEATURE_EXPERIMENT', featureId: 'PRICE_MA_RECLAIM_UP', period: 5, reasoningSummary: 'synthetic' }, toolRegistry);
-  const turn = normalizeAction('SELFTEST-GOAL', semantic, toolRegistry);
-  if (turn.actions[0].arguments.parameters.period !== 5) throw engineError('AUTONOMOUS_ENGINE_SELF_TEST_FAILED', 'action');
-  const evidence = { evidenceId: 'EVIDENCE-SELFTEST', evidence: { featureId: 'PRICE_MA_RECLAIM_UP', parameters: { period: 5 }, eventCount: 12, discovery: { sampleCount: 8 }, validation: { sampleCount: 4 } } };
-  const completion = normalizeCompletion('SELFTEST-GOAL', {
-    featureId: 'PRICE_MA_RECLAIM_UP', period: 5, eventCount: 12,
-    discoverySampleCount: 8, validationSampleCount: 4,
+
+  const experiment = validateActionSemantic({ tool: TOOL_EXPERIMENT, featureId: 'PRICE_MA_RECLAIM_UP', period: 5, reasoningSummary: 'synthetic' }, toolRegistry);
+  const experimentTurn = normalizeAction('SELFTEST-GOAL', experiment, toolRegistry);
+  if (experimentTurn.actions[0].arguments.parameters.period !== 5) throw engineError('AUTONOMOUS_ENGINE_SELF_TEST_FAILED', 'experiment action');
+  const experimentEvidence = { evidenceId: 'EVIDENCE-SELFTEST', evidence: { tool: TOOL_EXPERIMENT, featureId: 'PRICE_MA_RECLAIM_UP', parameters: { period: 5 }, eventCount: 12, discovery: { sampleCount: 8 }, validation: { sampleCount: 4 } } };
+  const experimentCompletion = normalizeCompletion('SELFTEST-GOAL', {
+    featureId: 'PRICE_MA_RECLAIM_UP', period: 5, eventCount: 12, discoverySampleCount: 8, validationSampleCount: 4,
     reasoningSummary: 'synthetic', conclusion: 'synthetic',
-  }, 'EVIDENCE-SELFTEST', evidence);
-  if (completion.evidenceRefs[0] !== 'EVIDENCE-SELFTEST') throw engineError('AUTONOMOUS_ENGINE_SELF_TEST_FAILED', 'completion runtime evidence ref');
-  if (!Array.isArray(completion.nextResearch) || completion.nextResearch.length !== 0) throw engineError('AUTONOMOUS_ENGINE_SELF_TEST_FAILED', 'completion optional nextResearch default');
+  }, 'EVIDENCE-SELFTEST', experimentEvidence);
+  if (experimentCompletion.evidenceRefs[0] !== 'EVIDENCE-SELFTEST' || experimentCompletion.nextResearch.length !== 0) throw engineError('AUTONOMOUS_ENGINE_SELF_TEST_FAILED', 'experiment completion');
+
+  const search = validateActionSemantic({ tool: TOOL_PERIOD_SEARCH, featureId: 'PRICE_MA_RECLAIM_UP', periodMin: 5, periodMax: 120, periodStep: 5, reasoningSummary: 'synthetic search' }, toolRegistry);
+  const searchTurn = normalizeAction('SELFTEST-SEARCH', search, toolRegistry);
+  if (searchTurn.actions[0].arguments.parameters.periodMin !== 5 || searchTurn.actions[0].arguments.parameters.periodMax !== 120 || searchTurn.actions[0].arguments.parameters.periodStep !== 5) throw engineError('AUTONOMOUS_ENGINE_SELF_TEST_FAILED', 'search action');
+  const searchEvidence = {
+    evidenceId: 'EVIDENCE-SEARCH',
+    evidence: {
+      tool: TOOL_PERIOD_SEARCH, featureId: 'PRICE_MA_RECLAIM_UP', parameters: { periodMin: 5, periodMax: 120, periodStep: 5 },
+      discoveryRanking: [{ rank: 1, period: 20, discovery: { sampleCount: 8 } }],
+      selectedCandidate: { period: 20, discovery: { sampleCount: 8 } }, validation: { sampleCount: 4 }, status: 'NO_GO_VALIDATION',
+    },
+  };
+  const searchCompletion = normalizeCompletion('SELFTEST-SEARCH', {
+    featureId: 'PRICE_MA_RECLAIM_UP', searchStatus: 'NO_GO_VALIDATION', candidateCount: 1, selectedPeriod: 20,
+    discoverySampleCount: 8, validationSampleCount: 4, reasoningSummary: 'synthetic search', conclusion: 'synthetic no-go',
+  }, 'EVIDENCE-SEARCH', searchEvidence);
+  if (searchCompletion.evidenceRefs[0] !== 'EVIDENCE-SEARCH' || searchCompletion.nextResearch.length !== 0) throw engineError('AUTONOMOUS_ENGINE_SELF_TEST_FAILED', 'search completion');
   return true;
 }
 
