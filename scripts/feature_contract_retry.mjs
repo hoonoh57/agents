@@ -45,7 +45,17 @@ function validateCurrent(row) {
 
 function previousCompletedTaskId(backlog, row) {
   const prior = backlog.items.filter(x => x.agentId === row.agentId && x.taskId !== row.taskId && x.status === 'COMPLETED');
-  return prior.length ? prior[prior.length - 1].taskId : null;
+  for (let i = prior.length - 1; i >= 0; i -= 1) {
+    const candidate = prior[i];
+    if (!String(candidate.goalId || '').startsWith(GOAL_PREFIX)) return candidate.taskId;
+    const file = resultPath(candidate.agentId, candidate.taskId);
+    if (!fs.existsSync(file)) continue;
+    try {
+      validateFeatureDesignResult(readJson(file));
+      return candidate.taskId;
+    } catch {}
+  }
+  return null;
 }
 
 function rollbackForRepair(taskId, errorMessage, repairNumber) {
