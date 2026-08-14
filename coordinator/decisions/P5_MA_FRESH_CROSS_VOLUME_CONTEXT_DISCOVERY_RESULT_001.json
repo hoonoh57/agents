@@ -1,0 +1,81 @@
+{
+  "schema": "CoordinatorDecision@1.0.0",
+  "decisionId": "P5_MA_FRESH_CROSS_VOLUME_CONTEXT_DISCOVERY_RESULT_001",
+  "status": "DISCOVERY_GATE_PASS_FRESH_VALIDATION_AUTHORIZED",
+  "goalId": "GOAL-COMPOSITE-MA-FRESH-CROSS-VOLUME-DISCOVERY-001",
+  "protocolDecisionId": "P5_MA_FRESH_CROSS_VOLUME_CONTEXT_PROTOCOL_001",
+  "hypothesisId": "COMPOSITE_MA_FRESH_CROSS_VOLUME",
+  "evidenceOrigin": "CONVERSATION_REPORTED_LOCAL_DETERMINISTIC_TOOL_RUN",
+  "researchTool": "RUN_MA_FRESH_CROSS_VOLUME_CONTEXT_DISCOVERY",
+  "researchToolPath": "scripts/run_ma_fresh_cross_volume_context_discovery_tool.mjs",
+  "datasetHash": "c4f56e2dae66fa09739797c9bac43b82b48d972591fe618dff16e5d4bacb5b3f",
+  "historicalDataFrom": "2026-04-22",
+  "historicalDataCutoff": "2026-08-13",
+  "search": {
+    "legalPrimaryPairCount": 103,
+    "candidateCount": 4635
+  },
+  "rankOne": {
+    "fast": 7,
+    "slow": 20,
+    "volLookback": 15,
+    "volThreshold": 0.8,
+    "discoveryScore": 30.063605244263663,
+    "primaryBaseline": {
+      "sampleCount": 30,
+      "uniqueSymbols": 21,
+      "uniqueDecisionDates": 21,
+      "meanReturnPct": -4.88156620853751,
+      "medianReturnPct": -3.3572009005288614,
+      "winRatePct": 43.333333333333336,
+      "meanMfePct": 8.461903263160464,
+      "meanMaePct": -11.748937286710698,
+      "positiveBeforeNegativePct": 13.333333333333334,
+      "negativeBeforePositivePct": 56.666666666666664,
+      "ambiguousSameSessionPct": 30,
+      "noHitPct": 0
+    },
+    "composite": {
+      "sampleCount": 4,
+      "uniqueSymbols": 3,
+      "uniqueDecisionDates": 3,
+      "meanReturnPct": 0.5989252495351374,
+      "medianReturnPct": 0.5140327845586103,
+      "winRatePct": 50,
+      "meanMfePct": 18.651134071565195,
+      "meanMaePct": -5.505298843052533,
+      "positiveBeforeNegativePct": 75,
+      "negativeBeforePositivePct": 0,
+      "ambiguousSameSessionPct": 25,
+      "noHitPct": 0
+    },
+    "lift": {
+      "sampleRetentionPct": 13.333333333333334,
+      "meanReturnPct": 5.480491458072647,
+      "medianReturnPct": 3.871233685087472,
+      "winRatePct": 6.666666666666664,
+      "meanMfePct": 10.189230808404732,
+      "meanMaePct": 6.243638443658164,
+      "positiveBeforeNegativePct": 61.666666666666664,
+      "negativeBeforePositiveReductionPct": 56.666666666666664
+    },
+    "preRegisteredGatePassed": true
+  },
+  "selectionRisk": {
+    "smallCompositeSample": true,
+    "compositeSampleCount": 4,
+    "largeSearchSpace": 4635,
+    "topParameterAliasesShareIdenticalObservedMetrics": true,
+    "interpretation": "The pre-registered Discovery gate passed, but four selected events after a 4635-candidate search are insufficient to treat the observed magnitude as stable or profitable. The selected parameters are frozen; no Discovery gate is changed post hoc."
+  },
+  "disposition": {
+    "selectedParametersFrozen": true,
+    "freshValidationAuthorized": true,
+    "freshValidationEvaluated": false,
+    "lowerRankRescueForbidden": true,
+    "parameterRefitForbidden": true,
+    "profitabilityClaim": false
+  },
+  "nextProtocol": "P6_MA_FRESH_CROSS_VOLUME_CONTEXT_FRESH_VALIDATION_PROTOCOL_001",
+  "profitabilityClaim": false
+}
