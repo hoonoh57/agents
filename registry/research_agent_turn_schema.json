@@ -1,0 +1,12 @@
+{
+  "schema": "ResearchAgentTurnSchema@1.0.0",
+  "turnSchema": "ResearchAgentTurn@1.0.0",
+  "status": ["ACTION_REQUIRED", "COMPLETE", "BLOCKED"],
+  "actionTools": ["RUN_FEATURE_EXPERIMENT"],
+  "rules": {
+    "profitabilityClaimMustBeFalse": true,
+    "maxActionsPerTurn": 1,
+    "completeRequiresEvidence": true,
+    "actionRequiredRequiresAction": true
+  }
+}
