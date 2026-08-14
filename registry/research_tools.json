@@ -12,6 +12,26 @@
         "period": {"type": "integer", "min": 2, "max": 240}
       },
       "runtimeOwnedContext": ["datasetHash", "snapshotExperiment", "dateFrom", "dateTo", "objective"]
+    },
+    {
+      "tool": "RUN_FEATURE_PERIOD_SEARCH",
+      "enabled": true,
+      "executor": "RESEARCH_LOCAL_ROOT/scripts/run_feature_period_search_tool.mjs",
+      "readOnly": true,
+      "brokerAction": false,
+      "allowedFeatureIds": ["PRICE_MA_RECLAIM_UP"],
+      "parameterContract": {
+        "periodMin": {"type": "integer", "min": 2, "max": 240},
+        "periodMax": {"type": "integer", "min": 2, "max": 240},
+        "periodStep": {"type": "integer", "min": 1, "max": 60}
+      },
+      "methodContract": {
+        "rankingPhase": "DISCOVERY_ONLY",
+        "freezeCandidateBeforeValidation": true,
+        "validationCandidateLimit": 1,
+        "nonSelectedValidationAllowed": false
+      },
+      "runtimeOwnedContext": ["datasetHash", "snapshotExperiment", "dateFrom", "dateTo", "objective"]
     }
   ]
 }
