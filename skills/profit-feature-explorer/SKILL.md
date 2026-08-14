@@ -32,14 +32,6 @@ Parameter: `lookback` (integer).
 - Signal events must be reproducible and chart traceable.
 - A feature result may be negative; negative evidence is valid.
 
-## Goal translation examples
+## Translation rule
 
-Human goal: `종가가 5일 이동평균을 상향 돌파하는 경우를 분석하라.`
-
-Correct capability mapping:
-
-```json
-{"featureId":"PRICE_MA_RECLAIM_UP","parameters":{"period":5}}
-```
-
-Do not substitute `MA_FRESH_CROSS_UP`; that is MA-versus-MA, not price-versus-MA.
+Map the human goal to the capability whose trigger semantics match it, then derive parameter values from the goal text. Do not substitute MA-versus-MA logic for price-versus-MA logic. Do not invent parameter values that the goal did not specify.
