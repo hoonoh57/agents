@@ -18,16 +18,24 @@ function sha(value){return crypto.createHash('sha256').update(typeof value==='st
 function writeJson(file,value){fs.mkdirSync(path.dirname(file),{recursive:true});fs.writeFileSync(file,JSON.stringify(value,null,2)+'\n','utf8');}
 
 const env={...readEnv(path.join(root,'.env')),...process.env};
-const goal=readJson(path.join(root,'goals','GOAL-AUTONOMOUS-MA5-SMOKE-001.json'));
+const goalPath=path.join(root,'goals','GOAL-AUTONOMOUS-MA5-SMOKE-001.json');
+const goal=readJson(goalPath);
 const registry=readJson(path.join(root,'registry','agents.json'));
 const agent=registry.agents.find(x=>x.agentId===goal.agentId&&x.enabled);if(!agent)fail(`agent unavailable ${goal.agentId}`);
-const toolRegistry=readJson(path.join(root,'registry','research_tools.json'));
-const turnContract=readJson(path.join(root,'registry','research_agent_turn_schema.json'));
+const toolRegistryPath=path.join(root,'registry','research_tools.json');
+const turnContractPath=path.join(root,'registry','research_agent_turn_schema.json');
+const toolRegistry=readJson(toolRegistryPath);
+const turnContract=readJson(turnContractPath);
 const skillFiles=['skills/research-loop/SKILL.md','skills/profit-feature-explorer/SKILL.md','skills/research-tools/SKILL.md'];
 const skills=skillFiles.map(file=>({file,text:readText(path.join(root,file))}));
-const agentMd=readText(path.join(root,'agents',agent.agentId,'AGENT.md'));
+const agentRoot=path.join(root,'agents',agent.agentId);
+const agentMd=readText(path.join(agentRoot,'AGENT.md'));
+const agentGoals=readText(path.join(agentRoot,'GOALS.md'));
+const agentPlan=readText(path.join(agentRoot,'PLAN.md'));
+const memoryIndex=readText(path.join(agentRoot,'MEMORY_INDEX.md'));
 const objectives=readText(path.join(root,'shared','OBJECTIVES.md'));
 const rules=readText(path.join(root,'shared','RESEARCH_RULES.md'));
+const inputHashes={goalSha256:sha(readText(goalPath)),agentSha256:sha(agentMd),goalsSha256:sha(agentGoals),planSha256:sha(agentPlan),memoryIndexSha256:sha(memoryIndex),toolRegistrySha256:sha(readText(toolRegistryPath)),turnContractSha256:sha(readText(turnContractPath)),skills:Object.fromEntries(skills.map(x=>[x.file,sha(x.text)]))};
 
 function modelForRole(role){if(role==='LOCAL_FAST')return env.LOCAL_LLM_FAST_MODEL||'';if(role==='LOCAL_CODER')return env.LOCAL_LLM_CODER_MODEL||'';return env.LOCAL_LLM_REASONER_MODEL||'';}
 const role=agent.modelRoleHint||'LOCAL_REASONER';const model=modelForRole(role);if(!model)fail(`MODEL_NOT_CONFIGURED:${role}`);
@@ -42,12 +50,12 @@ const turnJsonSchema={
   properties:{
     schema:{type:'string',enum:[TURN_SCHEMA]},goalId:{type:'string'},status:{type:'string',enum:['ACTION_REQUIRED','COMPLETE','BLOCKED']},reasoningSummary:{type:'string',maxLength:1800},
     actions:{type:'array',maxItems:1,items:{type:'object',additionalProperties:false,required:['actionId','tool','arguments'],properties:{actionId:{type:'string'},tool:{type:'string',enum:['RUN_FEATURE_EXPERIMENT']},arguments:{type:'object',additionalProperties:false,required:['featureId','parameters'],properties:{featureId:{type:'string'},parameters:{type:'object',additionalProperties:false,required:['period'],properties:{period:{type:'integer',minimum:2,maximum:240}}}}}}}},
-    evidenceRefs:{type:'array',maxItems:8,items:{type:'string'}},conclusion:{type:['string','null'],maxLength:2200},nextResearch:{type:'array',maxItems:2,items:{type:'string',maxLength:1000}},profitabilityClaim:{type:'boolean'}
+    evidenceRefs:{type:'array',maxItems:8,items:{type:'string'}},conclusion:{type:'string',maxLength:2200},nextResearch:{type:'array',maxItems:2,items:{type:'string',maxLength:1000}},profitabilityClaim:{type:'boolean'}
   }
 };
 
 function validateTurn(turn,stage){
-  if(!turn||turn.schema!==TURN_SCHEMA)fail(`${stage} invalid schema`);if(turn.goalId!==goal.goalId)fail(`${stage} goalId mismatch`);if(turn.profitabilityClaim!==false)fail(`${stage} profitabilityClaim must be false`);if(!turnContract.status.includes(turn.status))fail(`${stage} invalid status ${turn.status}`);if(!Array.isArray(turn.actions)||turn.actions.length>1)fail(`${stage} invalid actions`);if(!Array.isArray(turn.evidenceRefs))fail(`${stage} evidenceRefs required`);
+  if(!turn||turn.schema!==TURN_SCHEMA)fail(`${stage} invalid schema`);if(turn.goalId!==goal.goalId)fail(`${stage} goalId mismatch`);if(turn.profitabilityClaim!==false)fail(`${stage} profitabilityClaim must be false`);if(!turnContract.status.includes(turn.status))fail(`${stage} invalid status ${turn.status}`);if(!Array.isArray(turn.actions)||turn.actions.length>1)fail(`${stage} invalid actions`);if(!Array.isArray(turn.evidenceRefs))fail(`${stage} evidenceRefs required`);if(typeof turn.conclusion!=='string')fail(`${stage} conclusion must be string`);
   if(turn.status==='ACTION_REQUIRED'&&turn.actions.length!==1)fail(`${stage} ACTION_REQUIRED needs one action`);if(turn.status==='COMPLETE'&&turn.evidenceRefs.length<1)fail(`${stage} COMPLETE needs evidence`);return turn;
 }
 function parseTurn(text,stage){const parsed=parseFirstJsonObject(text);if(!parsed.value)fail(`${stage} JSON parse failed: ${parsed.error||'unknown'}`);return validateTurn(parsed.value,stage);}
@@ -58,8 +66,9 @@ async function callModel(messages){
 }
 
 function basePrompt(){return[
-  '# AGENT',agentMd,'# SHARED OBJECTIVES',objectives,'# SHARED RULES',rules,
-  '# HUMAN GOAL',JSON.stringify(goal,null,2),
+  '# AGENT',agentMd,'# DURABLE GOALS',agentGoals,'# PLAN',agentPlan,'# MEMORY INDEX',memoryIndex,
+  '# SHARED OBJECTIVES',objectives,'# SHARED RULES',rules,
+  '# ASSIGNED HUMAN GOAL',JSON.stringify(goal,null,2),
   '# SKILLS',...skills.flatMap(x=>[`## ${x.file}`,x.text]),
   '# TOOL REGISTRY',JSON.stringify(toolRegistry,null,2),
   '# TURN CONTRACT',JSON.stringify(turnContract,null,2),
@@ -101,6 +110,6 @@ const secondCall=await callModel([{role:'system',content:'You are the same evide
 const finalTurn=parseTurn(secondCall.text,'SECOND_TURN');writeJson(path.join(runDir,'turn-2.json'),finalTurn);
 if(finalTurn.status!=='COMPLETE')fail(`SMOKE_EXPECTED_COMPLETE got=${finalTurn.status}`);if(finalTurn.actions.length!==0)fail('COMPLETE must not request another action in P0');if(!finalTurn.evidenceRefs.includes(evidence.evidenceId))fail('COMPLETE did not cite tool evidence');
 
-const completedAt=nowIso();const result={schema:RESULT_SCHEMA,status:'PASS',runId,goalId:goal.goalId,agentId:agent.agentId,modelRole:role,modelVersion:model,startedAt,completedAt,firstTurn,toolEvidence:evidence,finalTurn,checks:{goalRead:true,skillRead:true,correctCapabilitySelected:true,whitelistedToolExecuted:true,evidenceReturnedToSameAgent:true,completeReturned:true,profitabilityClaim:false},profitabilityClaim:false};
+const completedAt=nowIso();const result={schema:RESULT_SCHEMA,status:'PASS',runId,goalId:goal.goalId,agentId:agent.agentId,modelRole:role,modelVersion:model,startedAt,completedAt,inputHashes,firstTurn,toolEvidence:evidence,finalTurn,checks:{goalRead:true,workspaceContextRead:true,skillRead:true,correctCapabilitySelected:true,whitelistedToolExecuted:true,evidenceReturnedToSameAgent:true,completeReturned:true,profitabilityClaim:false},profitabilityClaim:false};
 const resultPath=path.join(runDir,'result.json');writeJson(resultPath,result);
 console.log(`[autonomous-smoke] COMPLETE run=${runId} status=PASS`);console.log(`[autonomous-smoke] RESULT_PATH=${resultPath}`);
