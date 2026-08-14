@@ -1,0 +1,32 @@
+{
+  "schema": "ResearchGoal@1.0.0",
+  "goalId": "GOAL-FEATURE-ARCHITECT-NEXT-TRIGGER-004",
+  "agentId": "feature-architect",
+  "createdBy": "HUMAN_RESEARCH_DIRECTOR",
+  "purpose": "Retry the scalar-transition next-trigger design with coordinator rejection decisions supplied as actual resolved SOURCE inputs rather than uncited artifact paths.",
+  "objective": "Using finalized adjusted daily OHLCV plus the supplied resolved coordinator decision sources, propose exactly three semantically distinct discrete scalar-state threshold-crossing trigger families. Closed MA-cross, close-to-MA reclaim, and close-above-prior/rolling-high semantics remain forbidden. Select exactly one rank-1 candidate. Do not write code, run experiments, invent acceptance thresholds, infer participant behavior, or claim profitability.",
+  "successCriteria": [
+    "the two prior P3 rejection decisions are available as resolved SOURCE inputIds",
+    "exactly three machine-parseable CANDIDATE proposal findings are returned",
+    "each candidate defines one lag-independent daily scalar state and one exact D-1 to D threshold crossing",
+    "all featureIds and mechanism families are unique",
+    "no closed price-MA or price-above-prior/rolling-high semantics are reused or algebraically renamed",
+    "each candidate states fields, bounded parameters, warmup, chart semantics, event-density risk, and distinctness rationale",
+    "exactly one RANK1 candidate and one matching DISCOVERY_CONTRACT next action are returned",
+    "sourceInputIds use only literal resolved SOURCE inputIds, never file paths or artifactRefs",
+    "Discovery ranking and acceptance gates remain coordinator-owned",
+    "profitabilityClaim remains false"
+  ],
+  "constraints": [
+    "No new data source, API, server, intraday feed, news, fundamentals, order book, or broker state",
+    "No MA-versus-MA trigger",
+    "No close-versus-price-MA trigger",
+    "No close-versus-prior-or-rolling-high trigger including algebraic equivalents",
+    "No closed trigger plus volume, volatility, ordering, or context filter",
+    "No invented profitability or acceptance thresholds",
+    "No participant, institutional, catalyst, support/resistance narrative unsupported by resolved sources",
+    "Completed D and earlier information only; D+1 open remains executable entry reference",
+    "Do not write implementation code or run Discovery/Validation"
+  ],
+  "profitabilityClaim": false
+}
