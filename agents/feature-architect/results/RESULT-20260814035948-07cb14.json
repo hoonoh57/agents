@@ -1,0 +1,203 @@
+{
+  "schema": "AgentResult@1.0.0",
+  "resultId": "RESULT-20260814035948-07cb14",
+  "taskId": "TASK-20260814035948-07cb14",
+  "agentId": "feature-architect",
+  "status": "COMPLETED",
+  "modelProfile": "LOCAL_REASONER",
+  "modelVersion": "qwen3.6:35b-a3b",
+  "startedAt": "2026-08-14T03:59:52.441Z",
+  "completedAt": "2026-08-14T04:01:14.593Z",
+  "summary": "RANK1|featureId=VOLUME_DENSITY_SHIFT|reason=Discrete scalar state (volume ratio) with clear D-1/D crossing; mechanically traceable, independent of price levels.",
+  "claims": [
+    {
+      "kind": "PROPOSAL",
+      "claim": "CANDIDATE|featureId=VOLUME_DENSITY_SHIFT|family=VOLUME_FAMILY|name=Volume Density Shift|state=(volume / rolling_mean_volume, period N)|prevTest=D-1 state <= threshold|currTest=D state > threshold|fields=OHLCV (volume only)|params=N=[5,60]|warmup=N|chart=Histogram overlay with threshold line|densityRisk=Low frequency of extreme volume events may limit sample size in low-liquidity symbols|distinct=Uses volume magnitude relative to history, not price levels or MA crossings.",
+      "sourceInputIds": [
+        "explorer-ma-cross",
+        "explorer-price-reclaim-high-breakout",
+        "daily-candle-contract",
+        "trigger-context-boundary",
+        "p3-reject-001",
+        "p3-reject-002"
+      ]
+    },
+    {
+      "kind": "PROPOSAL",
+      "claim": "CANDIDATE|featureId=PRICE_RANGE_EXPANSION|family=RANGE_FAMILY|name=Price Range Expansion|state=(high - low) / rolling_mean_range, period N|prevTest=D-1 state <= threshold|currTest=D state > threshold|fields=OHLCV (high, low only)|params=N=[5,60]|warmup=N|chart=Histogram overlay with threshold line|densityRisk=Moderate; range expansion is common but extreme expansions are less frequent|distinct=Measures volatility expansion relative to history, not price direction or MA crossings.",
+      "sourceInputIds": [
+        "explorer-ma-cross",
+        "explorer-price-reclaim-high-breakout",
+        "daily-candle-contract",
+        "trigger-context-boundary",
+        "p3-reject-001",
+        "p3-reject-002"
+      ]
+    },
+    {
+      "kind": "PROPOSAL",
+      "claim": "CANDIDATE|featureId=PRICE_GAP_FILL|family=GAP_FAMILY|name=Price Gap Fill|state=(open - previous_close) / previous_close|prevTest=D-1 state <= threshold (negative gap)|currTest=D state > threshold (gap filled or reversed)|fields=OHLCV (open, close)|params=None|warmup=1|chart=Candle color change on gap fill|densityRisk=High frequency of small gaps; requires careful threshold definition to avoid noise|distinct=Measures price gap relative to previous close, not MA or rolling high/low crossings.",
+      "sourceInputIds": [
+        "explorer-ma-cross",
+        "explorer-price-reclaim-high-breakout",
+        "daily-candle-contract",
+        "trigger-context-boundary",
+        "p3-reject-001",
+        "p3-reject-002"
+      ]
+    }
+  ],
+  "sourceRefs": [
+    {
+      "inputId": "explorer-ma-cross",
+      "root": "RESEARCH_LOCAL_ROOT",
+      "relativePath": "template/feature-packs/swing-research/ProfitFeatureExplorer.ts",
+      "repositoryHead": "6318d9235872ac72e7eaf5c36b06a720f88ac465",
+      "fileSha256": "e4504f29f2d9f8d26a7616d3f95d5cf118c2f60b420d1619e84291f4385c62bb",
+      "excerptSha256": "8096cb78d9406ace99e777d3a4138fbe11af63e7075606f7349544beb68bed80",
+      "sourceBytes": 27781,
+      "excerptBytes": 3278,
+      "mode": "AROUND",
+      "anchor": "const maCrossFeature"
+    },
+    {
+      "inputId": "explorer-price-reclaim-high-breakout",
+      "root": "RESEARCH_LOCAL_ROOT",
+      "relativePath": "template/feature-packs/swing-research/ProfitFeatureExplorer.ts",
+      "repositoryHead": "6318d9235872ac72e7eaf5c36b06a720f88ac465",
+      "fileSha256": "e4504f29f2d9f8d26a7616d3f95d5cf118c2f60b420d1619e84291f4385c62bb",
+      "excerptSha256": "556f0da2d44582e344a44d788fab2b1ec8e46170f47f5c37d39e26c8c2607656",
+      "sourceBytes": 27781,
+      "excerptBytes": 5915,
+      "mode": "AROUND",
+      "anchor": "const priceMaReclaimFeature"
+    },
+    {
+      "inputId": "daily-candle-contract",
+      "root": "RESEARCH_LOCAL_ROOT",
+      "relativePath": "template/feature-packs/swing-research/SwingTrendFoundation.ts",
+      "repositoryHead": "6318d9235872ac72e7eaf5c36b06a720f88ac465",
+      "fileSha256": "c419fe2e178635805ffb8d40c795e6575aeac14ee19789ece10204961d5b8e96",
+      "excerptSha256": "6690f27b0b14b3bafb622272cb0b9997e1b86c8d0beb358855d8dd601a74ebf7",
+      "sourceBytes": 8734,
+      "excerptBytes": 2977,
+      "mode": "AROUND",
+      "anchor": "export interface SwingDailyCandle"
+    },
+    {
+      "inputId": "trigger-context-boundary",
+      "root": "RESEARCH_LOCAL_ROOT",
+      "relativePath": "template/feature-packs/swing-research/ProfitFeatureFoundry.ts",
+      "repositoryHead": "6318d9235872ac72e7eaf5c36b06a720f88ac465",
+      "fileSha256": "9561116027a4eb4ef1b3ef9cf3fcfd617f049c13783656aa890166c5e8ca96ea",
+      "excerptSha256": "7849a45d00ac7eef58a72e73383977fa6449566adf8a57e040f86154818acd32",
+      "sourceBytes": 34186,
+      "excerptBytes": 3734,
+      "mode": "AROUND",
+      "anchor": "export interface ProfitObservation"
+    },
+    {
+      "inputId": "p3-reject-001",
+      "root": "AGENT_REPO_ROOT",
+      "relativePath": "coordinator/decisions/P3_FEATURE_ARCHITECT_NEXT_TRIGGER_001_REJECTED.json",
+      "repositoryHead": "28bc517dd59d1b91291573a5c18523fa6971ad17",
+      "fileSha256": "2991be30fe403deabba114cc60e562b851e8168588a91755757ffccc469ac8b2",
+      "excerptSha256": "2991be30fe403deabba114cc60e562b851e8168588a91755757ffccc469ac8b2",
+      "sourceBytes": 2345,
+      "excerptBytes": 2345,
+      "mode": "FULL",
+      "anchor": null
+    },
+    {
+      "inputId": "p3-reject-002",
+      "root": "AGENT_REPO_ROOT",
+      "relativePath": "coordinator/decisions/P3_FEATURE_ARCHITECT_NEXT_TRIGGER_002_REJECTED.json",
+      "repositoryHead": "28bc517dd59d1b91291573a5c18523fa6971ad17",
+      "fileSha256": "94acc6453135c472e97a7e5cc037373625c89bfba407165cdb485be4472f1eda",
+      "excerptSha256": "94acc6453135c472e97a7e5cc037373625c89bfba407165cdb485be4472f1eda",
+      "sourceBytes": 2179,
+      "excerptBytes": 2179,
+      "mode": "FULL",
+      "anchor": null
+    }
+  ],
+  "proposalRefs": [],
+  "artifactRefs": [],
+  "requiresValidation": true,
+  "externalEscalation": null,
+  "workProduct": {
+    "schema": "AgentWorkProduct@1.0.0",
+    "summary": "RANK1|featureId=VOLUME_DENSITY_SHIFT|reason=Discrete scalar state (volume ratio) with clear D-1/D crossing; mechanically traceable, independent of price levels.",
+    "findings": [
+      {
+        "kind": "PROPOSAL",
+        "claim": "CANDIDATE|featureId=VOLUME_DENSITY_SHIFT|family=VOLUME_FAMILY|name=Volume Density Shift|state=(volume / rolling_mean_volume, period N)|prevTest=D-1 state <= threshold|currTest=D state > threshold|fields=OHLCV (volume only)|params=N=[5,60]|warmup=N|chart=Histogram overlay with threshold line|densityRisk=Low frequency of extreme volume events may limit sample size in low-liquidity symbols|distinct=Uses volume magnitude relative to history, not price levels or MA crossings.",
+        "sourceInputIds": [
+          "explorer-ma-cross",
+          "explorer-price-reclaim-high-breakout",
+          "daily-candle-contract",
+          "trigger-context-boundary",
+          "p3-reject-001",
+          "p3-reject-002"
+        ]
+      },
+      {
+        "kind": "PROPOSAL",
+        "claim": "CANDIDATE|featureId=PRICE_RANGE_EXPANSION|family=RANGE_FAMILY|name=Price Range Expansion|state=(high - low) / rolling_mean_range, period N|prevTest=D-1 state <= threshold|currTest=D state > threshold|fields=OHLCV (high, low only)|params=N=[5,60]|warmup=N|chart=Histogram overlay with threshold line|densityRisk=Moderate; range expansion is common but extreme expansions are less frequent|distinct=Measures volatility expansion relative to history, not price direction or MA crossings.",
+        "sourceInputIds": [
+          "explorer-ma-cross",
+          "explorer-price-reclaim-high-breakout",
+          "daily-candle-contract",
+          "trigger-context-boundary",
+          "p3-reject-001",
+          "p3-reject-002"
+        ]
+      },
+      {
+        "kind": "PROPOSAL",
+        "claim": "CANDIDATE|featureId=PRICE_GAP_FILL|family=GAP_FAMILY|name=Price Gap Fill|state=(open - previous_close) / previous_close|prevTest=D-1 state <= threshold (negative gap)|currTest=D state > threshold (gap filled or reversed)|fields=OHLCV (open, close)|params=None|warmup=1|chart=Candle color change on gap fill|densityRisk=High frequency of small gaps; requires careful threshold definition to avoid noise|distinct=Measures price gap relative to previous close, not MA or rolling high/low crossings.",
+        "sourceInputIds": [
+          "explorer-ma-cross",
+          "explorer-price-reclaim-high-breakout",
+          "daily-candle-contract",
+          "trigger-context-boundary",
+          "p3-reject-001",
+          "p3-reject-002"
+        ]
+      }
+    ],
+    "nextActions": [
+      "DISCOVERY_CONTRACT|featureId=VOLUME_DENSITY_SHIFT|parameterSearch=N=[5,60]|notes=Deterministic computation of volume ratio relative to rolling mean volume. Chart traceable via histogram overlay with threshold line."
+    ],
+    "profitabilityClaim": false
+  },
+  "runtimeMetrics": {
+    "wallSeconds": 81.855,
+    "outputTokens": 789,
+    "tokensPerSecond": 39.92849105829529,
+    "contextBytes": 20428,
+    "doneReason": "stop",
+    "outputAttempts": 1,
+    "outputStrict": true,
+    "outputRecovered": false,
+    "outputTrailingChars": 0,
+    "outputDiagnostics": [
+      {
+        "attempt": 1,
+        "doneReason": "stop",
+        "outputTokens": 789,
+        "contentChars": 2828,
+        "contentSha256": "13c478043e5d6d48846ec33654f2cadcd0c07b42d32e33f1fa9fc8e0455cfce5",
+        "preview": "{\n  \"schema\": \"AgentWorkProduct@1.0.0\",\n  \"summary\": \"RANK1|featureId=VOLUME_DENSITY_SHIFT|reason=Discrete scalar state (volume ratio) with clear D-1/D crossing; mechanically traceable, independent of price levels.\",\n  \"findings\": [\n    {\n      \"kind\": \"PROPOSAL\",\n      \"claim\": \"CANDIDATE|featureId=VOLUME_DENSITY_SHIFT|family=VOLUME_FAMILY|name=Volume Density Shift|state=(volume / rolling_mean_volume, period N)|prevTest=D-1 state <= threshold|currTest=D state > threshold|fields=OHLCV (volume only)|params=N=[5,60]|warmup=N|chart=Histogram overlay with threshold line|densityRisk=Low frequency of extreme volume events may limit sample size in low-liquidity symbols|distinct=Uses volume magnitud",
+        "validationError": null,
+        "maxOutputTokens": 1800,
+        "parse": {
+          "strict": true,
+          "recovered": false,
+          "trailing": 0,
+          "error": null
+        }
+      }
+    ]
+  }
+}
