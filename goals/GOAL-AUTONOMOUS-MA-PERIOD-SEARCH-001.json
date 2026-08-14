@@ -1,0 +1,34 @@
+{
+  "schema": "ResearchGoal@1.0.0",
+  "goalId": "GOAL-AUTONOMOUS-MA-PERIOD-SEARCH-001",
+  "agentId": "experiment-validation",
+  "createdBy": "HUMAN_RESEARCH_DIRECTOR",
+  "purpose": "Use the production autonomous research lane to find the strongest evidence among close-above-moving-average reclaim periods without contaminating the chronological Validation holdout.",
+  "objective": "For the existing PRICE_MA_RECLAIM_UP trigger, search moving-average periods from 5 through 120 in steps of 5. Use the registered holdout-safe deterministic period-search capability so all candidates are ranked on Discovery only, exactly one top candidate is frozen, and Validation is evaluated only for that frozen candidate. Return the tool's BEST_VALIDATED or NO_GO status with evidence. Do not write code and do not claim profitability.",
+  "successCriteria": [
+    "agent selects RUN_FEATURE_PERIOD_SEARCH rather than manually issuing many single-period experiments",
+    "agent selects PRICE_MA_RECLAIM_UP with periodMin 5, periodMax 120, and periodStep 5",
+    "runtime executes exactly one whitelisted read-only period-search action",
+    "tool evidence states discoveryOnlyRanking=true",
+    "tool evidence states selectedCandidateFrozenBeforeValidation=true",
+    "tool evidence states nonSelectedValidationEvaluated=false",
+    "Validation is evaluated for at most one frozen period",
+    "same agent reads the selected period, candidate count, validation sample count, and search status",
+    "runtime creates canonical COMPLETE with the exact runtime-owned evidence reference",
+    "profitabilityClaim remains false"
+  ],
+  "toolContext": {
+    "datasetHash": "c4f56e2dae66fa09739797c9bac43b82b48d972591fe618dff16e5d4bacb5b3f",
+    "snapshotExperiment": "EXP-MA-STATE-INCREMENTAL-001"
+  },
+  "constraints": [
+    "Use existing chart-ready capabilities before proposing implementation",
+    "Do not change dataset, outcome horizon, positive threshold, negative threshold, or population",
+    "Do not execute broker/order actions",
+    "Do not inspect Validation for non-selected periods",
+    "Do not change ranking rules after Validation is observed",
+    "Do not rerun the search to rescue a negative Validation result",
+    "Technical data exclusions must remain outcome-independent",
+    "Model output must not own or invent runtime ids"
+  ]
+}
