@@ -8,8 +8,8 @@ param(
 $ErrorActionPreference = 'Stop'
 $Root = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 Set-Location $Root
-$Template = 'feature-architect-next-trigger-v3.json'
-$GoalId = 'GOAL-FEATURE-ARCHITECT-NEXT-TRIGGER-003'
+$Template = 'feature-architect-next-trigger-v4.json'
+$GoalId = 'GOAL-FEATURE-ARCHITECT-NEXT-TRIGGER-004'
 $AgentId = 'feature-architect'
 
 function Invoke-NativeChecked {
@@ -55,12 +55,12 @@ Write-Host '[feature-architect-next] pull trading research repo'
 Invoke-NativeChecked 'research pull' { git -C $ResearchRoot pull --ff-only origin main } | Out-Null
 
 $env:RESEARCH_LOCAL_ROOT = $ResearchRoot
-$env:AGENT_CONTEXT_MAX_BYTES = '22000'
+$env:AGENT_CONTEXT_MAX_BYTES = '30000'
 $env:LOCAL_LLM_CONTEXT_TOKENS = '16384'
 $env:LOCAL_LLM_MAX_OUTPUT_TOKENS = '1800'
 $env:LOCAL_LLM_TIMEOUT_SECONDS = '120'
 
-Write-Host '[feature-architect-next] verify source and scalar-transition design contracts'
+Write-Host '[feature-architect-next] verify source provenance and scalar-transition design contracts'
 Invoke-NativeChecked 'context adapter self-test' { node .\scripts\verify_project_context.mjs self-test } | Out-Null
 Invoke-NativeChecked 'feature design contract self-test' { node .\scripts\verify_feature_design_contract.mjs --self-test } | Out-Null
 Invoke-NativeChecked 'feature architect template context' { node .\scripts\verify_project_context.mjs template --template $Template } | Out-Null
@@ -83,7 +83,7 @@ if ($existing.Count -eq 1 -and -not $ForceNew) {
         throw "existing feature architecture task has unsupported status=$status task=$taskId"
     }
 } else {
-    Write-Host '[feature-architect-next] enqueue evidence-bound scalar-transition design task v3'
+    Write-Host '[feature-architect-next] enqueue provenance-corrected scalar-transition design task v4'
     $out = Invoke-NativeChecked 'enqueue feature architect task' { node .\scripts\agent_runtime_stable.mjs enqueue --template $Template }
     $joined = ($out -join "`n")
     if ($joined -notmatch 'ENQUEUED\s+(TASK-[A-Za-z0-9-]+)') { throw 'could not parse feature architect task id' }
@@ -92,7 +92,7 @@ if ($existing.Count -eq 1 -and -not $ForceNew) {
     Write-Host "[feature-architect-next] persist queued task=$taskId"
     git add -- agents/feature-architect coordinator
     if ($LASTEXITCODE -ne 0) { throw 'git add queued feature architect task failed' }
-    git commit -m 'Queue scalar-transition feature architecture task v3'
+    git commit -m 'Queue provenance-corrected feature architecture task v4'
     if ($LASTEXITCODE -ne 0) { throw 'git commit queued feature architect task failed' }
     git push origin main
     if ($LASTEXITCODE -ne 0) { throw 'git push queued feature architect task failed' }
@@ -121,4 +121,4 @@ if (Test-Path $workPath) {
     $work = Get-Content $workPath -Raw -Encoding UTF8 | ConvertFrom-Json
     if ($work.error) { $detail = [string]$work.error }
 }
-throw "feature architect task did not produce a scalar-transition contract-valid result task=$taskId status=$($item[0].status) error=$detail"
+throw "feature architect task did not produce a provenance-correct scalar-transition contract-valid result task=$taskId status=$($item[0].status) error=$detail"
