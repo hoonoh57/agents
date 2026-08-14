@@ -64,18 +64,19 @@ if ($result.schema -ne 'AutonomousResearchSmokeResult@1.0.0' -or $result.status 
     throw 'Autonomous smoke result did not PASS.'
 }
 
-$destDir = Join-Path $Root "experiments\AUTONOMOUS-RESEARCH-SMOKE\$($result.runId)"
+$relativeDir = Join-Path 'experiments' (Join-Path 'AUTONOMOUS-RESEARCH-SMOKE' $result.runId)
+$destDir = Join-Path $Root $relativeDir
 New-Item -ItemType Directory -Force $destDir | Out-Null
 $dest = Join-Path $destDir 'result.json'
-Copy-Item $resultPath $dest
+Copy-Item -LiteralPath $resultPath -Destination $dest -Force
 
-git add -- $dest
+git -C $Root add -- $relativeDir
 if ($LASTEXITCODE -ne 0) { throw 'git add smoke evidence failed' }
-$staged = @(git diff --cached --name-only)
+$staged = @(git -C $Root diff --cached --name-only)
 if ($staged.Count -gt 0) {
-    git commit -m "Record autonomous research smoke evidence"
+    git -C $Root commit -m "Record autonomous research smoke evidence"
     if ($LASTEXITCODE -ne 0) { throw 'git commit smoke evidence failed' }
-    git push origin main
+    git -C $Root push origin main
     if ($LASTEXITCODE -ne 0) { throw 'git push smoke evidence failed' }
 }
 
