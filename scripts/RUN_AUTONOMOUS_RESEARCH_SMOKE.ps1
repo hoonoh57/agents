@@ -45,11 +45,12 @@ if (-not (Test-Path $snapshot) -or -not (Test-Path $manifest)) {
 $worker = Join-Path $Root 'scripts\autonomous_research_smoke.mjs'
 Write-Host '[autonomous-smoke] verify autonomous loop harness'
 Invoke-NativeChecked 'autonomous harness parse' { node --check $worker } | Out-Null
+Invoke-NativeChecked 'autonomous harness self-test' { node $worker --self-test } | Out-Null
 
 $previousResearchRoot = $env:RESEARCH_LOCAL_ROOT
 $env:RESEARCH_LOCAL_ROOT = $ResearchRoot
 try {
-    Write-Host '[autonomous-smoke] execute Local LLM -> ACTION -> TOOL -> EVIDENCE -> Local LLM -> COMPLETE'
+    Write-Host '[autonomous-smoke] execute Local LLM -> DECISION -> ACTION -> TOOL -> EVIDENCE -> DECISION -> COMPLETE'
     $lines = Invoke-NativeChecked 'autonomous research smoke' { node $worker }
 } finally {
     $env:RESEARCH_LOCAL_ROOT = $previousResearchRoot
