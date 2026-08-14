@@ -1,0 +1,84 @@
+{
+  "schema": "AgentTaskTemplate@1.0.0",
+  "agentId": "feature-architect",
+  "goalId": "GOAL-FEATURE-ARCHITECT-NEXT-TRIGGER-001",
+  "priority": 80,
+  "createdBy": "HUMAN_RESEARCH_DIRECTOR",
+  "modelRoleHint": "LOCAL_REASONER",
+  "objective": "Design the next chart-ready trigger family after three closed negative trigger lineages. Coordinator-frozen evidence says MA_FRESH_CROSS_UP/MA cross-state is NO_GO_SPARSE_OOS, PRICE_MA_RECLAIM_UP 5-120 is NO_GO_VALIDATION, and PRICE_N_HIGH_BREAKOUT 5-120 is NO_GO_DISCOVERY. Using only supplied source evidence, propose exactly three semantically distinct discrete t0 triggers that can be computed and drawn from existing finalized adjusted daily OHLCV data, then select exactly one smallest falsifiable implementation candidate. Do not write code, do not run experiments, and do not claim profitability.",
+  "inputs": [
+    {
+      "schema": "ProjectContextInput@1.0.0",
+      "inputId": "explorer-ma-cross",
+      "root": "RESEARCH_LOCAL_ROOT",
+      "path": "template/feature-packs/swing-research/ProfitFeatureExplorer.ts",
+      "mode": "AROUND",
+      "anchor": "const maCrossFeature",
+      "beforeChars": 200,
+      "afterChars": 3000,
+      "maxBytes": 3600
+    },
+    {
+      "schema": "ProjectContextInput@1.0.0",
+      "inputId": "explorer-price-reclaim-high-breakout",
+      "root": "RESEARCH_LOCAL_ROOT",
+      "path": "template/feature-packs/swing-research/ProfitFeatureExplorer.ts",
+      "mode": "AROUND",
+      "anchor": "const priceMaReclaimFeature",
+      "beforeChars": 200,
+      "afterChars": 5600,
+      "maxBytes": 6200
+    },
+    {
+      "schema": "ProjectContextInput@1.0.0",
+      "inputId": "daily-candle-contract",
+      "root": "RESEARCH_LOCAL_ROOT",
+      "path": "template/feature-packs/swing-research/SwingTrendFoundation.ts",
+      "mode": "AROUND",
+      "anchor": "export interface SwingDailyCandle",
+      "beforeChars": 150,
+      "afterChars": 2800,
+      "maxBytes": 3400
+    },
+    {
+      "schema": "ProjectContextInput@1.0.0",
+      "inputId": "trigger-context-boundary",
+      "root": "RESEARCH_LOCAL_ROOT",
+      "path": "template/feature-packs/swing-research/ProfitFeatureFoundry.ts",
+      "mode": "AROUND",
+      "anchor": "export interface ProfitObservation",
+      "beforeChars": 300,
+      "afterChars": 3400,
+      "maxBytes": 4200
+    }
+  ],
+  "requiredOutputs": [
+    "Exactly three proposed trigger candidates, no more and no fewer",
+    "For each candidate: proposed featureId/name, exact causal t0 condition, permitted source fields/derived values, minimal parameter family, warmup, chart marker/overlay semantics, event-density risk, and explicit falsification criterion",
+    "A direct statement explaining why each candidate is semantically distinct from MA_FRESH_CROSS_UP, PRICE_MA_RECLAIM_UP, and PRICE_N_HIGH_BREAKOUT rather than a rescue filter",
+    "Exactly one rank-1 implementation candidate",
+    "For the rank-1 candidate: the minimum deterministic Discovery-only experiment contract needed next",
+    "DIRECT / INFERENCE / PROPOSAL separation with sourceInputIds",
+    "profitabilityClaim=false"
+  ],
+  "constraints": [
+    "Use only resolved SOURCE inputIds for executable capability/data claims",
+    "Treat the three prior NO_GO statuses in this task as coordinator-frozen constraints; do not reopen or rescue those lineages",
+    "No new data source, API, server, intraday feed, news, fundamentals, order book or broker state",
+    "Completed D and earlier information only at decision t0; D+1 open remains the executable entry reference",
+    "A persistent state or context is not a trigger unless a discrete state transition creates a unique t0",
+    "Do not propose a failed trigger plus volume/MA/context filter as a new trigger",
+    "Prefer simple OHLCV price-action transitions and deterministic rolling statistics over indicator proliferation",
+    "Do not write implementation code",
+    "Do not run Discovery or Validation",
+    "Do not claim profitability"
+  ],
+  "artifactRefs": [
+    "coordinator/decisions/EXP_MA_STATE_INCREMENTAL_001_RESULT.json",
+    "coordinator/decisions/P1_AUTONOMOUS_MA_PERIOD_SEARCH_001.json",
+    "coordinator/decisions/P2_HIGH_BREAKOUT_DISCOVERY_001_RESULT.json"
+  ],
+  "dependsOn": [
+    "P2_HIGH_BREAKOUT_DISCOVERY_001_RESULT"
+  ]
+}
